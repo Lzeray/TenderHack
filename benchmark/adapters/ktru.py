@@ -75,18 +75,29 @@ class _Dialog:
 
 class KtruInProcess(_Dialog, Adapter):
     def __init__(self, config: str = "core"):
-        from ktru_assist.api import build_orchestrator, get_engine
-        from ktru_assist.orchestrator import OrchestratorConfig
+        from ktru_assist.api import get_engine
         if config not in CONFIGS:
             raise ValueError(f"неизвестная конфигурация {config}; есть: {', '.join(CONFIGS)}")
         self.name = f"ktru:{config}"
-        self.o = build_orchestrator(get_engine(), OrchestratorConfig(cache_size=512, **CONFIGS[config]))
+        try:
+            from ktru_assist.api import build_orchestrator
+            from ktru_assist.orchestrator import OrchestratorConfig
+        except ImportError:
+            # MVP без оркестратора (ветка main до плана улучшений): только ядро
+            if config != "core":
+                raise ValueError("в этой версии ktru_assist нет моделей: доступна только конфигурация core")
+            self.o, self.engine = None, get_engine()
+        else:
+            self.o = build_orchestrator(get_engine(), OrchestratorConfig(cache_size=512, **CONFIGS[config]))
+            self.engine = self.o.engine
 
     def info(self):
-        return {"adapter": self.name, "versions": self.o.versions()}
+        return {"adapter": self.name, "versions": self.o.versions() if self.o else self.engine.versions()}
 
     def _call(self, payload):
         from ktru_assist.models import SearchRequest
+        if self.o is None:
+            return self.engine.search(SearchRequest(**payload)).model_dump(mode="json")
         return self.o.run(SearchRequest(**payload)).model_dump(mode="json")
 
     def predict(self, text):

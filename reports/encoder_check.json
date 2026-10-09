@@ -1,0 +1,7 @@
+{
+ "model": "cointegrated/rubert-tiny2",
+ "revision": "e8ed3b0c8bbf4fb6984c3de043bf7d2f4e5969ae",
+ "texts": 9,
+ "min_cosine_numpy_vs_reference": 1.0,
+ "max_abs_diff": 1.210719347000122e-07
+}

@@ -48,6 +48,10 @@ class Settings:
     opensearch_index: str
     top_k: int
     type_fetch_limit: int
+    encoder_path: Path = ROOT / "data" / "models" / "rubert-tiny2"
+    cache_dir: Path = ROOT / "data" / "cache"
+    ollama_url: str = "http://127.0.0.1:11434"
+    llm_model: str = "qwen3:4b-instruct-2507-q4_K_M"
 
     @staticmethod
     def from_env() -> "Settings":
@@ -58,4 +62,8 @@ class Settings:
             opensearch_index=os.environ.get("OPENSEARCH_INDEX", "ktru_positions"),
             top_k=int(os.environ.get("TOP_K", "50")),
             type_fetch_limit=int(os.environ.get("TYPE_FETCH_LIMIT", "1000")),
+            encoder_path=Path(os.environ.get("ENCODER_PATH", str(ROOT / "data" / "models" / "rubert-tiny2"))),
+            cache_dir=Path(os.environ.get("CACHE_DIR", str(ROOT / "data" / "cache"))),
+            ollama_url=os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434"),
+            llm_model=os.environ.get("LLM_MODEL", "qwen3:4b-instruct-2507-q4_K_M"),
         )

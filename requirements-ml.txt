@@ -1,0 +1,6 @@
+# Необязательные зависимости для слоёв моделей (включаются флагами SEMANTIC=1, LLM_MODE=...).
+# Энкодер rubert-tiny2 считается на numpy, без torch. LLM — локальный сервер Ollama (HTTP на localhost),
+# пакетов в приложении не требует.
+numpy>=1.26
+safetensors>=0.4
+tokenizers>=0.15

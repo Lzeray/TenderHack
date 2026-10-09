@@ -27,7 +27,7 @@ from .resolver import describe, merge_model_features
 from .search.base import SearchBackend
 from .text import fuzzy_equal, norm, tokenize
 from .units import BY_KEY
-from .validate import evaluate
+from .validate import check_feature, evaluate
 
 MAX_CANDIDATES_OUT = 100
 PREFERENCE_WORDS = {"желательно", "предпочтительно", "желательный", "предпочтительный"}
@@ -238,6 +238,18 @@ class Engine:
                 tok.used_by = "type"
             if tok.used_by is None and tok.i in det.alias_token_idx:
                 tok.used_by = "type"
+        # гипотеза модели, противоречащая всем конечным позициям области, не становится фильтром:
+        # это сигнал об ошибке в описании (несуществующее значение), а не повод исключить всех кандидатов
+        domain_finals = [p for p in positions if not p.is_template]
+        for f in features:
+            if f.source == "model" and f.status == "bound" and domain_finals:
+                sts = {check_feature(p, f)[0] for p in domain_finals}
+                if sts == {"invalid"}:
+                    f.status = "proposed"
+                    f.note += "; противоречит всем позициям области — не применено как условие"
+                    issues.append(Issue(level="warning", code="model_value_not_in_ktru",
+                                        message=f"«{f.evidence}»: предложено {describe(f)}, но такого значения нет "
+                                                "ни у одной позиции области КТРУ. Проверьте описание."))
         # правдоподобие: предупреждения, не исключения
         categories = {p.category for p in positions if p.category}
         findings = plausibility_check(features, categories)

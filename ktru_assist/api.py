@@ -1,6 +1,7 @@
 """HTTP API (FastAPI) и раздача веб-интерфейса."""
 from __future__ import annotations
 
+import logging
 import threading
 from functools import lru_cache
 from pathlib import Path
@@ -13,8 +14,10 @@ from .catalog.repository import Catalog
 from .config import Settings
 from .engine import Engine
 from .models import SearchRequest, SearchResponse
+from .orchestrator import Orchestrator, OrchestratorConfig
 
 WEB = Path(__file__).resolve().parent / "web"
+log = logging.getLogger("ktru_assist")
 _lock = threading.Lock()
 
 
@@ -38,8 +41,36 @@ def get_engine() -> Engine:
         return Engine(catalog, make_backend(settings, catalog), settings)
 
 
-app = FastAPI(title="Подбор КТРУ", version="1.0",
-              description="Автозаполнение характеристик и подбор конечной позиции КТРУ (MVP, без LLM).")
+def build_orchestrator(engine: Engine, cfg: OrchestratorConfig | None = None) -> Orchestrator:
+    """Модели подключаются только по флагам (SEMANTIC=1, LLM_MODE=escalate|always); при ошибке загрузки —
+    работа без них с явным статусом в ответе."""
+    cfg = cfg or OrchestratorConfig.from_env()
+    s = engine.settings
+    semantic = llm = None
+    if cfg.semantic:
+        try:
+            from .semantic.encoder import RubertTiny2
+            from .semantic.proposer import SemanticProposer
+            semantic = SemanticProposer(RubertTiny2(s.encoder_path), engine.catalog, engine.registry, s.cache_dir)
+        except Exception as e:  # noqa: BLE001
+            log.warning("семантический слой не загружен: %s", e)
+            cfg.semantic = False
+    if cfg.b_mode != "off":
+        from .llm.provider import OllamaProvider
+        llm = OllamaProvider(s.ollama_url, s.llm_model, timeout_s=cfg.b_timeout_s)
+    return Orchestrator(engine, cfg, semantic=semantic, llm=llm)
+
+
+@lru_cache(maxsize=1)
+def get_orchestrator() -> Orchestrator:
+    eng = get_engine()
+    with _lock:
+        return build_orchestrator(eng)
+
+
+app = FastAPI(title="Подбор КТРУ", version="2.0",
+              description="Автозаполнение характеристик и подбор конечной позиции КТРУ. Детерминированное ядро; "
+                          "локальные модели — только предложения, по флагам.")
 
 
 @app.get("/health")
@@ -50,12 +81,24 @@ def health():
         return {"status": "error", "error": str(e)}
     return {"status": "ok", "catalog_snapshot": eng.catalog.meta.get("snapshot"),
             "catalog_as_of": eng.catalog.meta.get("as_of"), "search_backend": eng.backend.name,
-            "versions": eng.versions()}
+            "versions": get_orchestrator().versions()}
 
 
 @app.post("/api/search", response_model=SearchResponse)
 def api_search(req: SearchRequest) -> SearchResponse:
-    return get_engine().search(req)
+    return get_orchestrator().run(req)
+
+
+@app.get("/api/providers")
+def api_providers():
+    o = get_orchestrator()
+    llm = None
+    if o.llm is not None:
+        llm = {"model": o.llm.model, "digest": o.llm.digest(), "available": o.llm.available(),
+               "mode": o.cfg.b_mode, "timeout_s": o.cfg.b_timeout_s}
+    return {"semantic": {"enabled": o.semantic is not None and o.cfg.semantic,
+                         "encoder": o.semantic.revision if o.semantic else None},
+            "llm": llm or {"mode": "off"}, "versions": o.versions()}
 
 
 @app.get("/api/catalog")

@@ -57,7 +57,7 @@ def same_value(a: Feature, b: Feature) -> bool:
         return norm(a.value or "") == norm(b.value or "") and a.unit == b.unit
     na, nb = _num(a.value, a.unit), _num(b.value, b.unit)
     if na is not None and nb is not None:
-        if _num(a.value_to, a.unit) != _num(b.value_to, b.unit):
+        if a.op == "between" and _num(a.value_to, a.unit) != _num(b.value_to, b.unit):
             return False
         return na == nb
     return norm(a.value or "").strip() == norm(b.value or "").strip()

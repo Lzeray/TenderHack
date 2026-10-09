@@ -281,6 +281,16 @@ class Catalog:
                 out.add(core)
         return out
 
+    def quality_values(self) -> list[tuple[str, str, str]]:
+        """(главное слово, название характеристики, качественное значение) активных позиций MVP."""
+        rows = self.con.execute(
+            "SELECT DISTINCT p.head, c.name, v.text FROM char_values v "
+            "JOIN characteristics c ON c.position_code=v.position_code AND c.char_code=v.char_code "
+            "JOIN positions p ON p.code=v.position_code "
+            "WHERE p.category IS NOT NULL AND p.active=1 AND v.value_kind='quality' AND v.text IS NOT NULL "
+            "ORDER BY p.head, c.name, v.text").fetchall()
+        return [(r[0] or "", r[1], r[2]) for r in rows]
+
     def catalog_summary(self) -> dict:
         m = self.meta
         return {

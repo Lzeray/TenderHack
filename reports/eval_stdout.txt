@@ -1,0 +1,62 @@
+﻿{
+ "cases": 28,
+ "status_ok": 28,
+ "matched": 16,
+ "correct_final": 16,
+ "false_unique": 0,
+ "cases_with_expected_code": 22,
+ "expected_in_compatible": 22,
+ "expected_rank1": 21,
+ "must_explain_ok": "2/2",
+ "simulated_resolved": "6/6",
+ "repeatable": 28,
+ "engine_latency_ms": {
+  "n": 560,
+  "p50": 14.57,
+  "p95": 41.04,
+  "max": 220.84,
+  "mean": 19.38
+ },
+ "api_latency_ms": {
+  "n": 140,
+  "p50": 25.36,
+  "p95": 48.04,
+  "max": 140.01
+ },
+ "engine_init_s": 1.44,
+ "backend": "local-bm25",
+ "catalog_snapshot": "nsiKTRUNew_all_actual_20261003020003",
+ "machine": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.8",
+  "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel"
+ }
+}
+OK  T01 matched               final=25.73.30.163-00000005 exp=25.73.30.163-00000005 rank=1 sim=- 
+OK  T02 matched               final=25.73.30.163-00000005 exp=25.73.30.163-00000005 rank=1 sim=- 
+OK  T03 clarification_needed  final=None exp=25.73.30.163-00000002 rank=1 sim=1 25.73.30.163-00000002
+OK  T04 conflict              final=None exp=None rank=None sim=- 
+OK  T05 matched               final=28.24.11.000-00000030 exp=28.24.11.000-00000030 rank=1 sim=- 
+OK  T06 matched               final=28.24.11.000-00000031 exp=28.24.11.000-00000031 rank=1 sim=- 
+OK  T07 clarification_needed  final=None exp=28.24.11.000-00000031 rank=2 sim=1 28.24.11.000-00000031
+OK  T08 matched               final=25.73.30.141-00000005 exp=25.73.30.141-00000005 rank=1 sim=- 
+OK  T09 matched               final=25.73.30.141-00000012 exp=25.73.30.141-00000012 rank=1 sim=- 
+OK  T10 matched               final=25.73.30.161-00000002 exp=25.73.30.161-00000002 rank=1 sim=- 
+OK  T11 clarification_needed  final=None exp=28.24.11.000-00000001 rank=1 sim=3 28.24.11.000-00000001
+OK  T12 clarification_needed  final=None exp=None rank=None sim=- 
+OK  F01 matched               final=31.01.11.150-00000003 exp=31.01.11.150-00000003 rank=1 sim=- 
+OK  F02 matched               final=31.01.11.150-00000001 exp=31.01.11.150-00000001 rank=1 sim=- 
+OK  F03 clarification_needed  final=None exp=31.01.11.150-00000002 rank=1 sim=1 31.01.11.150-00000002
+OK  F04 clarification_needed  final=None exp=31.09.10.000-00000018 rank=1 sim=3 31.09.10.000-00000018
+OK  F05 matched               final=31.09.10.000-00000018 exp=31.09.10.000-00000018 rank=1 sim=- 
+OK  F06 clarification_needed  final=None exp=31.01.11.121-00000003 rank=1 sim=1 31.01.11.121-00000003
+OK  F07 matched               final=31.01.11.121-00000003 exp=31.01.11.121-00000003 rank=1 sim=- 
+OK  F08 clarification_needed  final=None exp=None rank=None sim=- 
+OK  C01 matched               final=14.11.10.000-00000005 exp=14.11.10.000-00000005 rank=1 sim=- 
+OK  C02 matched               final=14.11.10.000-00000002 exp=14.11.10.000-00000002 rank=1 sim=- 
+OK  C03 conflict              final=None exp=None rank=None sim=- 
+OK  C04 matched               final=14.13.12.140-00000005 exp=14.13.12.140-00000005 rank=1 sim=- 
+OK  C05 matched               final=14.13.12.140-00000001 exp=14.13.12.140-00000001 rank=1 sim=- 
+OK  C06 matched               final=14.12.30.150-00000003 exp=14.12.30.150-00000003 rank=1 sim=- 
+OK  C07 clarification_needed  final=None exp=None rank=None sim=- 
+OK  N01 not_found             final=None exp=None rank=None sim=- 

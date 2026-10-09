@@ -1,0 +1,137 @@
+﻿inner files: {'actual': 82, 'not_actual': 101}
+not_actual entries: [('243_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_001.xml'), ('244_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_002.xml'), ('245_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_003.xml'), ('246_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_004.xml'), ('247_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_005.xml'), ('248_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_006.xml'), ('249_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_007.xml'), ('250_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_008.xml'), ('251_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_009.xml'), ('252_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_010.xml'), ('253_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_011.xml'), ('254_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_012.xml'), ('255_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_013.xml'), ('256_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_014.xml'), ('257_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_015.xml'), ('258_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_016.xml'), ('259_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_017.xml'), ('260_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_018.xml'), ('261_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_019.xml'), ('262_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_020.xml'), ('263_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_021.xml'), ('264_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_022.xml'), ('265_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_023.xml'), ('266_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_024.xml'), ('267_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_025.xml'), ('268_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_026.xml'), ('269_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_027.xml'), ('270_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_028.xml'), ('271_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_029.xml'), ('272_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_030.xml'), ('273_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_031.xml'), ('274_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_032.xml'), ('275_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_033.xml'), ('276_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_034.xml'), ('277_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_035.xml'), ('278_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_036.xml'), ('279_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_037.xml'), ('280_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_038.xml'), ('281_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_039.xml'), ('282_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_040.xml'), ('283_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_041.xml'), ('284_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_042.xml'), ('285_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_043.xml'), ('286_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_044.xml'), ('287_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_045.xml'), ('288_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_046.xml'), ('289_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_047.xml'), ('290_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_048.xml'), ('291_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_049.xml'), ('292_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_050.xml'), ('293_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_051.xml'), ('294_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_052.xml'), ('295_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_053.xml'), ('296_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_054.xml'), ('297_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_055.xml'), ('298_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_056.xml'), ('299_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_057.xml'), ('300_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_058.xml'), ('301_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_059.xml'), ('302_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_060.xml'), ('303_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_061.xml'), ('304_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_062.xml'), ('305_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_063.xml'), ('306_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_064.xml'), ('307_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_065.xml'), ('308_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_066.xml'), ('309_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_067.xml'), ('310_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_068.xml'), ('311_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_069.xml'), ('312_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_070.xml'), ('313_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_071.xml'), ('314_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_072.xml'), ('315_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_073.xml'), ('316_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_074.xml'), ('317_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_075.xml'), ('318_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_076.xml'), ('319_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_077.xml'), ('320_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_078.xml'), ('321_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_079.xml'), ('322_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_080.xml'), ('323_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_081.xml'), ('324_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_082.xml'), ('325_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_083.xml'), ('326_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_084.xml'), ('327_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_085.xml'), ('328_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_086.xml'), ('329_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_087.xml'), ('330_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_088.xml'), ('331_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_089.xml'), ('332_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_090.xml'), ('333_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_091.xml'), ('334_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_092.xml'), ('335_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_093.xml'), ('336_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_094.xml'), ('337_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_095.xml'), ('338_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_096.xml'), ('339_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_097.xml'), ('340_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_098.xml'), ('341_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_099.xml'), ('342_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_100.xml'), ('343_nsiKTRUNew_all_2026-10-05.zip', 'nsiKTRUNew_all_not-actual_20261003020635_101.xml')]
+positions: 81465 unique codes: 81463 codes with >1 record: 2
+82 export
+82 export/nsiKTRUs
+81465 export/nsiKTRUs/position
+81465 export/nsiKTRUs/position/data
+80975 export/nsiKTRUs/position/data/NSI
+80967 export/nsiKTRUs/position/data/NSI/classifiers
+139140 export/nsiKTRUs/position/data/NSI/classifiers/classifier
+139140 export/nsiKTRUs/position/data/NSI/classifiers/classifier/NSIcode
+139140 export/nsiKTRUs/position/data/NSI/classifiers/classifier/code
+139140 export/nsiKTRUs/position/data/NSI/classifiers/classifier/name
+139140 export/nsiKTRUs/position/data/NSI/classifiers/classifier/source
+139140 export/nsiKTRUs/position/data/NSI/classifiers/classifier/values
+176588 export/nsiKTRUs/position/data/NSI/classifiers/classifier/values/value
+176588 export/nsiKTRUs/position/data/NSI/classifiers/classifier/values/value/code
+59894 export/nsiKTRUs/position/data/NSI/classifiers/classifier/values/value/descriptionValue
+176588 export/nsiKTRUs/position/data/NSI/classifiers/classifier/values/value/name
+9948 export/nsiKTRUs/position/data/NSI/standarts
+17203 export/nsiKTRUs/position/data/NSI/standarts/standart
+17203 export/nsiKTRUs/position/data/NSI/standarts/standart/docName
+79464 export/nsiKTRUs/position/data/OKEIs
+79818 export/nsiKTRUs/position/data/OKEIs/OKEI
+79818 export/nsiKTRUs/position/data/OKEIs/OKEI/code
+79818 export/nsiKTRUs/position/data/OKEIs/OKEI/name
+81465 export/nsiKTRUs/position/data/OKPD2
+81465 export/nsiKTRUs/position/data/OKPD2/code
+81465 export/nsiKTRUs/position/data/OKPD2/name
+34 export/nsiKTRUs/position/data/applicationDateEnd
+81465 export/nsiKTRUs/position/data/applicationDateStart
+1 export/nsiKTRUs/position/data/attachments
+1 export/nsiKTRUs/position/data/attachments/attachment
+1 export/nsiKTRUs/position/data/attachments/attachment/docDate
+1 export/nsiKTRUs/position/data/attachments/attachment/docDescription
+1 export/nsiKTRUs/position/data/attachments/attachment/fileName
+1 export/nsiKTRUs/position/data/attachments/attachment/fileSize
+1 export/nsiKTRUs/position/data/attachments/attachment/url
+21367 export/nsiKTRUs/position/data/cancelInfo
+21367 export/nsiKTRUs/position/data/cancelInfo/cancelDate
+21367 export/nsiKTRUs/position/data/cancelInfo/cancelReason
+71723 export/nsiKTRUs/position/data/characteristics
+330548 export/nsiKTRUs/position/data/characteristics/characteristic
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/actual
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/choiceType
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/code
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/isRequired
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/kind
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/name
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/type
+330548 export/nsiKTRUs/position/data/characteristics/characteristic/values
+1067572 export/nsiKTRUs/position/data/characteristics/characteristic/values/value
+384912 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/OKEI
+384912 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/OKEI/code
+384912 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/OKEI/name
+417261 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/qualityDescription
+343955 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet
+343955 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet/valueRange
+242065 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet/valueRange/max
+242065 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet/valueRange/maxMathNotation
+309395 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet/valueRange/min
+309395 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet/valueRange/minMathNotation
+1067285 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/valueCode
+600552 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/valueFormat
+306356 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/valueSet
+306356 export/nsiKTRUs/position/data/characteristics/characteristic/values/value/valueSet/concreteValue
+81465 export/nsiKTRUs/position/data/code
+16255 export/nsiKTRUs/position/data/externalCode
+81465 export/nsiKTRUs/position/data/inclusionDate
+81465 export/nsiKTRUs/position/data/isTemplate
+81465 export/nsiKTRUs/position/data/name
+76503 export/nsiKTRUs/position/data/noNewFeatures
+1558 export/nsiKTRUs/position/data/noNewFeaturesReason
+41152 export/nsiKTRUs/position/data/nsiDescription
+64850 export/nsiKTRUs/position/data/parentPositionInfo
+64850 export/nsiKTRUs/position/data/parentPositionInfo/code
+16119 export/nsiKTRUs/position/data/parentPositionInfo/externalCode
+64850 export/nsiKTRUs/position/data/parentPositionInfo/version
+81465 export/nsiKTRUs/position/data/publishDate
+73649 export/nsiKTRUs/position/data/rubricators
+76399 export/nsiKTRUs/position/data/rubricators/rubricatorInfo
+76399 export/nsiKTRUs/position/data/rubricators/rubricatorInfo/code
+76399 export/nsiKTRUs/position/data/rubricators/rubricatorInfo/name
+81465 export/nsiKTRUs/position/data/status
+81465 export/nsiKTRUs/position/data/updateDate
+81465 export/nsiKTRUs/position/data/version
+73537 export/nsiKTRUs/position/data/versionCode
+73582 export/nsiKTRUs/position/printForm
+70632 export/nsiKTRUs/position/printForm/signatureInfo
+70632 export/nsiKTRUs/position/printForm/signatureInfo/dsUid
+73582 export/nsiKTRUs/position/printForm/url
+{
+ "export/nsiKTRUs/position/data/status": {
+  "ACTIVE": 60087,
+  "TERMINATED": 21378
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/type": {
+  "1": 184319,
+  "2": 146229
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/kind": {
+  "1": 191402,
+  "2": 126672,
+  "3": 12474
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/actual": {
+  "true": 330548
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/isRequired": {
+  "true": 235354,
+  "false": 95194
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/choiceType": {
+  "1": 193069,
+  "2": 137479
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet/valueRange/minMathNotation": {
+  "greaterOrEqual": 209314,
+  "greater": 100081
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/values/value/rangeSet/valueRange/maxMathNotation": {
+  "lessOrEqual": 156819,
+  "less": 85246
+ },
+ "export/nsiKTRUs/position/data/isTemplate": {
+  "false": 75315,
+  "true": 6150
+ },
+ "export/nsiKTRUs/position/data/noNewFeatures": {
+  "false": 74945,
+  "true": 1558
+ },
+ "export/nsiKTRUs/position/data/characteristics/characteristic/values/value/valueFormat": {
+  "N": 596635,
+  "A": 3917
+ }
+}

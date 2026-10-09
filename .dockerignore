@@ -1,0 +1,6 @@
+КТРУ
+Примеры выгрузок
+data/*.sqlite
+reports
+.git
+**/__pycache__

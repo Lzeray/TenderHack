@@ -1,0 +1,52 @@
+﻿{
+ "cases": 18,
+ "status_ok": 18,
+ "matched": 12,
+ "correct_final": 12,
+ "false_unique": 0,
+ "cases_with_expected_code": 15,
+ "expected_in_compatible": 15,
+ "expected_rank1": 14,
+ "must_explain_ok": "0/0",
+ "simulated_resolved": "3/3",
+ "repeatable": 18,
+ "engine_latency_ms": {
+  "n": 90,
+  "p50": 3.92,
+  "p95": 10.88,
+  "max": 12.79,
+  "mean": 4.89
+ },
+ "api_latency_ms": {
+  "n": 90,
+  "p50": 7.37,
+  "p95": 14.26,
+  "max": 23.83
+ },
+ "engine_init_s": 0.79,
+ "backend": "local-bm25",
+ "catalog_snapshot": "nsiKTRUNew_all_actual_20261003020003",
+ "machine": {
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.8",
+  "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel"
+ }
+}
+OK  H01 matched               final=31.09.12.124-00000001 exp=31.09.12.124-00000001 rank=1 sim=- 
+OK  H02 matched               final=25.73.10.000-00000009 exp=25.73.10.000-00000009 rank=1 sim=- 
+OK  H03 matched               final=25.73.10.000-00000006 exp=25.73.10.000-00000006 rank=1 sim=- 
+OK  H04 matched               final=25.73.10.000-00000012 exp=25.73.10.000-00000012 rank=1 sim=- 
+OK  H05 clarification_needed  final=None exp=31.09.12.110-00000005 rank=2 sim=1 31.09.12.110-00000005
+OK  H06 clarification_needed  final=None exp=31.09.12.110-00000006 rank=1 sim=1 31.09.12.110-00000006
+OK  H07 matched               final=31.01.10.000-00000008 exp=31.01.10.000-00000008 rank=1 sim=- 
+OK  H08 clarification_needed  final=None exp=31.01.10.000-00013 rank=1 sim=2 31.01.10.000-00013
+OK  H09 matched               final=14.14.10.000-00000004 exp=14.14.10.000-00000004 rank=1 sim=- 
+OK  H10 matched               final=25.73.30.223-00000012 exp=25.73.30.223-00000012 rank=1 sim=- 
+OK  H11 matched               final=25.73.30.223-00000003 exp=25.73.30.223-00000003 rank=1 sim=- 
+OK  H12 matched               final=14.12.30.130-00000006 exp=14.12.30.130-00000006 rank=1 sim=- 
+OK  H13 matched               final=14.13.10.000-00000040 exp=14.13.10.000-00000040 rank=1 sim=- 
+OK  H14 conflict              final=None exp=None rank=None sim=- 
+OK  H15 matched               final=31.09.13.149-00000007 exp=31.09.13.149-00000007 rank=1 sim=- 
+OK  H16 matched               final=25.73.30.164-00000001 exp=25.73.30.164-00000001 rank=1 sim=- 
+OK  H17 clarification_needed  final=None exp=None rank=None sim=- 
+OK  H18 not_found             final=None exp=None rank=None sim=- 

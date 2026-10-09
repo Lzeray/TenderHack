@@ -1,0 +1,43 @@
+# Не проверено на машине разработки (Docker отсутствовал). См. README «Что не проверено».
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.15.0
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    ports: ["9200:9200"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      retries: 30
+
+  # Одноразовые шаги: импорт XML в SQLite и индексация в OpenSearch.
+  importer:
+    build: .
+    profiles: ["setup"]
+    volumes:
+      - ./КТРУ/КТРУ xml/КТРУ:/src:ro
+      - ./data:/app/data
+    command: ["python", "-m", "ktru_assist.cli", "import", "--src", "/src", "--db", "/app/data/ktru.sqlite"]
+
+  indexer:
+    build: .
+    profiles: ["setup"]
+    depends_on:
+      opensearch: {condition: service_healthy}
+    volumes: ["./data:/app/data:ro"]
+    command: ["python", "-m", "ktru_assist.cli", "index", "--db", "/app/data/ktru.sqlite",
+              "--opensearch", "http://opensearch:9200"]
+
+  app:
+    build: .
+    depends_on:
+      opensearch: {condition: service_healthy}
+    environment:
+      - KTRU_DB=/app/data/ktru.sqlite
+      - SEARCH_BACKEND=opensearch
+      - OPENSEARCH_URL=http://opensearch:9200
+    volumes: ["./data:/app/data:ro"]
+    ports: ["8000:8000"]

@@ -1,0 +1,12 @@
+# исходные материалы организаторов (большие, >100 МБ) и производные данные
+КТРУ/
+Примеры выгрузок/
+data/*.sqlite
+data/*.tmp
+reports/dev_*.txt
+reports/sql.txt
+reports/explore.txt
+reports/families*.txt
+__pycache__/
+*.pyc
+.pytest_cache/

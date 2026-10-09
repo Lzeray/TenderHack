@@ -9,7 +9,7 @@
   * resolved_after_questions — СИМУЛЯЦИЯ: на каждый вопрос «пользователь» выбирает вариант,
     совместимый с эталонной позицией; считаем, за сколько вопросов получен верный код (макс. 6);
   * задержки: время engine.search (p50/p95) по всем кейсам × повторы, и полное время через HTTP API.
-Повторяемость: ответы на одинаковые запросы сравниваются побайтно (без elapsed_ms).
+Повторяемость: ответы на одинаковые запросы сравниваются побайтно (без замеров времени elapsed_ms, timings).
 
 python -m eval.run_eval [--repeat 20]
 """
@@ -76,13 +76,15 @@ def main() -> int:
     rows, lat = [], []
     for c in cases:
         r = eng.search(SearchRequest(text=c["text"]))
-        dump = json.dumps(r.model_dump(mode="json") | {"elapsed_ms": 0}, ensure_ascii=False, sort_keys=True)
+        dump = json.dumps(r.model_dump(mode="json") | {"elapsed_ms": 0, "timings": {}}, ensure_ascii=False,
+                          sort_keys=True)
         same = True
         for _ in range(args.repeat):
             t = time.perf_counter()
             r2 = eng.search(SearchRequest(text=c["text"]))
             lat.append((time.perf_counter() - t) * 1000)
-            d2 = json.dumps(r2.model_dump(mode="json") | {"elapsed_ms": 0}, ensure_ascii=False, sort_keys=True)
+            d2 = json.dumps(r2.model_dump(mode="json") | {"elapsed_ms": 0, "timings": {}}, ensure_ascii=False,
+                            sort_keys=True)
             same &= d2 == dump
         exp = c["expected_code"]
         finals = [x.code for x in r.candidates if x.compatible and not x.is_template]

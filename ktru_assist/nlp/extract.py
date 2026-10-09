@@ -185,15 +185,19 @@ def value_aliases_version() -> str:
 
 
 def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
-                    forward_only: bool = False) -> tuple[str, int] | None:
+                    forward_only: bool = False, include_self: bool = False) -> tuple[str, int] | None:
     """Часть товара, названная вплотную к значению (± dist слов, без пересечения границ и чисел).
 
     forward_only — для названий свойств: часть стоит после них в родительном падеже («высота каркаса»).
+    include_self — часть может быть словом самого найденного названия свойства («высота сиденья»);
+    для значений не используется: «ножки» — это значение «Тип опоры», а не часть товара.
+    Слова, уже объяснённые другим признаком («масса головки», «металлическом каркасе»), не считаются.
     """
-    for j in idxs:
-        c = component_of_lemma(tokens[j].lemma) if tokens[j].kind == "word" else None
-        if c:
-            return c, j
+    if include_self:
+        for j in idxs:
+            c = component_of_lemma(tokens[j].lemma) if tokens[j].kind == "word" else None
+            if c:
+                return c, j
     lo, hi = min(idxs), max(idxs)
     order = []
     for d in range(1, dist + 1):
@@ -205,7 +209,7 @@ def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
         if any(tokens[k].lemma in BOUNDARY or tokens[k].kind == "number" for k in between):
             continue
         t = tokens[j]
-        if t.kind != "word" or t.lemma in BOUNDARY:
+        if t.kind != "word" or t.lemma in BOUNDARY or t.used_by is not None:
             continue
         c = component_of_lemma(t.lemma)
         if c:
@@ -495,7 +499,7 @@ class Extractor:
             named_unknown = None
             part = None   # часть товара рядом с названием свойства не совпала со схемой
             if explicit:
-                near = _component_near(tokens, sorted({h for e in explicit for h in e[2]}), forward_only=True)
+                near = _component_near(tokens, sorted({h for e in explicit for h in e[2]}), forward_only=True, include_self=True)
                 if near is not None:
                     same = [e for e in explicit if e[1].component == near[0]]
                     if same:

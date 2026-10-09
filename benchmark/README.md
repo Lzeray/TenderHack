@@ -3,6 +3,10 @@
 Набор не зависит от реализации: любое решение подключается адаптером (`adapters/base.py`) и получает
 одинаковые метрики по каждому набору кейсов. Отчёты двух решений сравниваются `benchmark.compare`.
 
+> В ветке `main` (MVP без моделей) доступна только конфигурация `ktru:core`. Конфигурации с моделями
+> (`core_sem_b`, `core_b_always`, `core_b_nodraft`) — в ветке `claude/trusting-bardeen-5kcff8`.
+> Базовая линия MVP на реальном снимке: `reports/bench/mvp_core.md`.
+
 ```bash
 # наше решение: ядро без моделей, в процессе (нужна data/ktru.sqlite)
 python -m benchmark.run --adapter ktru:core --suites all --dialog --out reports/bench/core.json

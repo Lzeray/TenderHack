@@ -37,3 +37,16 @@ def test_real_terminated_not_offered(real_engine):
     # 31.01.11.121-00000002 в снимке TERMINATED
     r = real_engine.search(SearchRequest(text="шкаф для одежды металлический"))
     assert "31.01.11.121-00000002" not in {c.code for c in r.candidates}
+
+
+def test_value_aliases_exist():
+    """Цель каждого алиаса значения (свойство + значение) есть у активных позиций направлений MVP."""
+    aliases = json.loads((ROOT / "data" / "value_aliases.json").read_text(encoding="utf-8"))["aliases"]
+    con = sqlite3.connect(REAL_DB)
+    for a in aliases:
+        n = con.execute(
+            "SELECT count(*) FROM char_values v JOIN characteristics c ON c.position_code=v.position_code "
+            "AND c.char_code=v.char_code JOIN positions p ON p.code=v.position_code "
+            "WHERE p.category IS NOT NULL AND p.active=1 AND c.name=? AND v.text=?",
+            (a["property"], a["value"])).fetchone()[0]
+        assert n > 0, f"алиас значения «{a['phrase']}» → {a['property']} = {a['value']}: в каталоге нет"

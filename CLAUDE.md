@@ -130,9 +130,15 @@ python -m eval.run_eval --cases eval/holdout.jsonl --out reports/holdout_results
 - `units.py` — ОКЕИ и точный перевод внутри одной размерности (В ≠ Вт).
 - `search/` — `LocalBM25Backend` (по умолчанию) и `OpenSearchBackend` с одинаковым интерфейсом.
 - `validate.py`, `rank.py`, `clarify.py`, `engine.py` — проверка, сортировка, вопрос, решение.
-- `api.py`, `web/` — FastAPI и интерфейс на HTML/CSS/JS.
+- `registry.py`, `components.py`, `plausibility.py`, `resolver.py` — реестр типов, части товара,
+  правдоподобие, согласование источников (ручное > правила > модели).
+- `orchestrator.py` — пути A/B, эскалация, revision/stale, кэши, журнал; `semantic/` — rubert-tiny2 на numpy;
+  `llm/` — контекст из снимка, Ollama, проверка ответа. Контракты — `docs/CONTRACTS.md`.
+- `api.py`, `web/` — FastAPI и интерфейс на HTML/CSS/JS (`web/state.js` — правила применения ответов).
+- `eval/` — `run_eval.py` (MVP-метрики), `run_benchmark.py` (сравнение конфигураций), `synth.py`, `SCHEMA.md`.
 
-`data/aliases.json` — только проверенные алиасы типа. Цель алиаса должна существовать в каталоге:
+`data/aliases.json` — только проверенные алиасы типа (значение — главное слово или список трактовок).
+`data/value_aliases.json` — алиасы значений с контекстом свойства. Цели обоих должны существовать в каталоге:
 это проверяет `tests/test_catalog_real.py`.
 
 ## Правила изменений

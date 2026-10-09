@@ -10,3 +10,9 @@ reports/families*.txt
 __pycache__/
 *.pyc
 .pytest_cache/
+.venv/
+# локальные модели, кэши эмбеддингов и журналы событий
+data/models/
+data/cache/
+data/logs/
+reports/runs/

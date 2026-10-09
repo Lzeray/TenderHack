@@ -1,6 +1,9 @@
-"""Нормализация запроса с сохранением истории преобразований.
+"""Нормализация запроса с сохранением истории преобразований и карты координат.
 
 Сохраняет числа, единицы, отрицания, коды и модели; ничего не удаляет из смысла.
+Для каждого символа нормализованного текста хранится интервал исходного текста
+(Unicode code points), из которого он получен: `NormalizedQuery.raw_span` переводит
+координаты нормализованного текста в координаты исходного.
 """
 from __future__ import annotations
 
@@ -11,21 +14,52 @@ from ..models import Step
 from ..text import NEGATIONS, STOPWORDS, is_known_word, lemma
 from ..units import AMBIGUOUS_SHORT, lookup
 
+# Преобразования: (название, [(шаблон, замена)], пояснение). Регистр обрабатывается отдельно.
 _STEPS = [
-    ("регистр и ё", lambda s: s.lower().replace("ё", "е"), "нижний регистр, ё → е"),
-    ("пробелы", lambda s: re.sub(r"\s+", " ", s).strip(), "схлопнуты пробелы"),
-    ("кв. и куб. единицы", lambda s: re.sub(r"\bкв\.?\s*(мм|см|м)\b", r"\g<1>2",
-                                           re.sub(r"\bкуб\.?\s*(мм|см|м)\b", r"\g<1>3", s)),
+    ("пробелы", [(r"\s+", " "), (r"^ | $", "")], "схлопнуты пробелы"),
+    ("кв. и куб. единицы", [(r"\bкуб\.?\s*(мм|см|м)\b", r"\g<1>3"), (r"\bкв\.?\s*(мм|см|м)\b", r"\g<1>2")],
      "«кв. м» → «м2», «куб. м» → «м3»"),
-    ("разделитель размеров", lambda s: re.sub(r"(?<=\d)\s*[xх×*]\s*(?=\d)", " x ", s),
-     "«120х60» → «120 x 60»"),
-    ("число и единица", lambda s: re.sub(r"(?<=\d)(?=[a-zа-я°\"%])", " ", s), "«75см» → «75 см»"),
-    ("сокращения", lambda s: re.sub(r"\b(мм|см|м|кг|гр|шт|вт|квт|мин)\.(?=\s|$|,)", r"\1", s),
-     "точка после сокращения единицы"),
+    ("разделитель размеров", [(r"(?<=\d)\s*[xх×*]\s*(?=\d)", " x ")], "«120х60» → «120 x 60»"),
+    ("число и единица", [(r"(?<=\d)(?=[a-zа-я°\"%])", " ")], "«75см» → «75 см»"),
+    ("сокращения", [(r"\b(мм|см|м|кг|гр|шт|вт|квт|мин)\.(?=\s|$|,)", r"\1")], "точка после сокращения единицы"),
 ]
 
+
+class Tracked:
+    """Строка с картой: для каждого символа — (начало, конец) в исходном тексте."""
+
+    def __init__(self, text: str):
+        self.text = text
+        self.map: list[tuple[int, int]] = [(i, i + 1) for i in range(len(text))]
+
+    def lower(self) -> None:
+        chars, mp = [], []
+        for ch, m in zip(self.text, self.map):
+            low = ch.lower().replace("ё", "е")
+            chars.append(low)
+            mp.extend([m] * len(low))
+        self.text, self.map = "".join(chars), mp
+
+    def sub(self, pattern: str, repl: str) -> None:
+        out, mp, pos = [], [], 0
+        for m in re.finditer(pattern, self.text):
+            out.append(self.text[pos:m.start()])
+            mp.extend(self.map[pos:m.start()])
+            new = m.expand(repl)
+            if m.end() > m.start():
+                lo, hi = self.map[m.start()][0], self.map[m.end() - 1][1]
+            else:  # вставка: привязка к соседнему символу нулевой ширины
+                at = self.map[m.start()][0] if m.start() < len(self.map) else (self.map[-1][1] if self.map else 0)
+                lo = hi = at
+            out.append(new)
+            mp.extend([(lo, hi)] * len(new))
+            pos = m.end()
+        out.append(self.text[pos:])
+        mp.extend(self.map[pos:])
+        self.text, self.map = "".join(out), mp
+
 TOKEN_RE = re.compile(
-    r"(?P<num>\d+(?:[.,]\d+)?)"
+    r"(?P<num>(?:(?<![\w.,])-)?\d+(?:[.,]\d+)?)"   # знак минуса — только не внутри «10-20»
     r"|(?P<unit>об/мин|г/м2|м3/ч|л/мин|м/мин|г/мин|а\*ч|а·ч|ма\*ч|ма·ч|н\*м|н·м|°c|°с|%|\")"
     r"|(?P<cmp>>=|<=|≥|≤|>|<)"
     r"|(?P<word>[a-zа-я0-9]+(?:[-/][a-zа-я0-9]+)*)"
@@ -56,9 +90,21 @@ class NormalizedQuery:
     text: str
     tokens: list[Token]
     history: list[Step] = field(default_factory=list)
+    offsets: list[tuple[int, int]] = field(default_factory=list)
 
     def lemmas(self) -> list[str]:
         return [t.lemma for t in self.tokens if t.significant]
+
+    def raw_span(self, start: int, end: int) -> tuple[int, int] | None:
+        """Координаты [start, end) нормализованного текста → координаты исходного текста."""
+        if not self.offsets or start >= end or end > len(self.offsets):
+            return None
+        part = self.offsets[start:end]
+        return min(a for a, _ in part), max(b for _, b in part)
+
+    def raw_quote(self, start: int, end: int) -> str | None:
+        rs = self.raw_span(start, end)
+        return self.original[rs[0]:rs[1]] if rs else None
 
 
 def _classify_word(w: str) -> str:
@@ -109,15 +155,20 @@ def tokenize_query(text: str) -> list[Token]:
 
 def normalize(original: str) -> NormalizedQuery:
     history: list[Step] = []
-    s = original
-    for name, fn, note in _STEPS:
-        new = fn(s)
-        if new != s:
-            history.append(Step(step=name, before=s, after=new, note=note))
-            s = new
+    tr = Tracked(original)
+    tr.lower()
+    if tr.text != original:
+        history.append(Step(step="регистр и ё", before=original, after=tr.text, note="нижний регистр, ё → е"))
+    for name, rules, note in _STEPS:
+        before = tr.text
+        for pattern, repl in rules:
+            tr.sub(pattern, repl)
+        if tr.text != before:
+            history.append(Step(step=name, before=before, after=tr.text, note=note))
+    s = tr.text
     tokens = tokenize_query(s)
     lem = [f"{t.text}→{t.lemma}" for t in tokens if t.kind == "word" and t.lemma != t.text]
     if lem:
         history.append(Step(step="словоформы", before=s, after=" ".join(t.lemma for t in tokens),
                             note="леммы: " + ", ".join(lem[:30])))
-    return NormalizedQuery(original, s, tokens, history)
+    return NormalizedQuery(original, s, tokens, history, tr.map)

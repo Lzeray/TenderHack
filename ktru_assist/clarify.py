@@ -96,7 +96,8 @@ def _count(name_key: str, opt: _Opt, cands: list[Position], sample_values: dict)
 
 
 def choose_question(cands: list[Position], constrained: set[str], type_fixed: bool,
-                    required_unknown: list[Prop] | None = None) -> Question | None:
+                    required_unknown: list[Prop] | None = None, type_first: bool = False) -> Question | None:
+    """type_first — сначала подтвердить тип (разговорное слово с несколькими трактовками)."""
     n = len(cands)
     best = None  # (worst, not_required, code_key, question)
     if not type_fixed:
@@ -112,6 +113,8 @@ def choose_question(cands: list[Position], constrained: set[str], type_fixed: bo
                          worst_case_remaining=worst, current_remaining=n, options=opts[:MAX_OPTIONS],
                          reason=f"кандидаты относятся к {len(names)} разным наименованиям")
             best = (worst, 0, "", q)
+            if type_first:
+                return q
     keys = sorted({p.norm_name for c in cands for p in c.props.values()} - constrained)
     for key in keys:
         opts, sample = _options_for(key, cands)

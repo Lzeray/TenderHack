@@ -20,8 +20,17 @@ class Constraint(BaseModel):
     remove: bool = Field(False, description="удалить извлечённое из текста значение этого свойства")
 
 
+RunStage = Literal["draft", "submitted"]
+
+
 class SearchRequest(BaseModel):
     text: str = Field(max_length=2000)
+    session_id: Optional[str] = Field(None, max_length=64, description="идентификатор сеанса интерфейса")
+    revision: Optional[int] = Field(None, ge=0, description="версия состояния: растёт при любом изменении ввода")
+    stage: RunStage = Field("draft", description="draft — черновик A при вводе; submitted — Enter, допускает разбор B")
+    rejected: list[str] = Field(default_factory=list, description="ключи отклонённых пользователем предложений")
+    confirmed: list[str] = Field(default_factory=list,
+                                 description="ключи подтверждённых предупреждений правдоподобия")
     overrides: list[Constraint] = Field(default_factory=list, description="ручное редактирование")
     answers: list[Constraint] = Field(default_factory=list, description="ответы на уточнения")
     answers_query_hash: Optional[str] = Field(None, description="хеш нормализованного текста, к которому даны ответы")
@@ -45,10 +54,14 @@ class Correction(BaseModel):
     note: str = ""
 
 
+Origin = Literal["rule", "semantic", "llm", "manual"]
+
+
 class Feature(BaseModel):
+    """Разрешённый признак (ResolvedAssertion): привязка к свойству КТРУ области поиска."""
     id: str
-    source: Literal["text", "override", "answer"]
-    status: Literal["bound", "ambiguous", "unknown_property", "overridden", "removed"]
+    source: Literal["text", "override", "answer", "model"]
+    status: Literal["bound", "ambiguous", "unknown_property", "overridden", "removed", "proposed"]
     property_code: Optional[str] = None
     property_name: Optional[str] = None
     op: Op = "eq"
@@ -62,6 +75,93 @@ class Feature(BaseModel):
     negated: bool = False
     options: list[dict[str, Any]] = Field(default_factory=list, description="варианты свойства при неоднозначности")
     note: str = ""
+    origin: Origin = "rule"
+    confirmation: Literal["confirmed", "tentative"] = "confirmed"
+    component: Optional[str] = Field(None, description="часть товара: каркас, сиденье, рукоятка …")
+    canonical_key: Optional[str] = Field(None, description="компонент.свойство, напр. frame.color; внутренний ключ")
+    intent: Literal["fact", "requirement", "preference", "unknown"] = "fact"
+    raw_span: Optional[tuple[int, int]] = Field(None, description="координаты в исходном тексте (code points)")
+    supported_by: list[str] = Field(default_factory=list, description="источники, согласные с трактовкой")
+    proposal_key: Optional[str] = Field(None, description="ключ предложения модели (для подтверждения/отказа)")
+
+
+class Span(BaseModel):
+    start: int = Field(description="начало, Unicode code point, включительно")
+    end: int = Field(description="конец, не включается")
+    quote: str
+
+
+class Predicate(BaseModel):
+    kind: Literal["enum", "number", "bool", "range", "text"]
+    operator: Op = "eq"
+
+
+class RawAssertion(BaseModel):
+    """Исходный признак: что и где написано, до привязки к схеме КТРУ."""
+    assertion_id: str
+    source: Origin
+    span: Optional[Span] = None
+    component_raw: Optional[str] = None
+    property_raw: Optional[str] = None
+    raw_value: Optional[str] = None
+    raw_value_to: Optional[str] = None
+    raw_unit: Optional[str] = None
+    predicate: Predicate
+    negated: bool = False
+    intent: Literal["fact", "requirement", "preference", "unknown"] = "fact"
+    proposed_property_ref: Optional[str] = None
+    alternatives: list[dict[str, Any]] = Field(default_factory=list)
+    confidence: Optional[float] = Field(None, description="вспомогательный сигнал модели, не вероятность")
+    confirmation: Literal["confirmed", "tentative", "rejected"] = "tentative"
+    feature_id: Optional[str] = None
+    status: str = Field("", description="результат согласования: accepted / proposed / rejected:<причина>")
+
+
+class Proposal(BaseModel):
+    """Предложение модели (A-semantic или B-llm). Не применяется без подтверждения пользователя."""
+    key: str
+    origin: Literal["semantic", "llm"]
+    kind: Literal["type", "value", "correction"]
+    quote: Optional[str] = None
+    span: Optional[Span] = None
+    label: str
+    answer: Optional[Constraint] = Field(None, description="что отправить в answers при подтверждении")
+    score: Optional[float] = Field(None, description="косинусная близость/сигнал модели — не вероятность")
+    reason: str = ""
+
+
+class CodeResolution(BaseModel):
+    status: Literal["resolved", "unconfirmed", "multiple", "none", "conflict"]
+    code: Optional[str] = None
+    remaining: int = 0
+    reason: str = ""
+
+
+class CharacteristicsCompletion(BaseModel):
+    """Полнота заполнения СТЕ — отдельно от однозначности кода."""
+    complete: bool
+    required_total: int = 0
+    required_filled: int = 0
+    missing: list[str] = Field(default_factory=list)
+    unchecked: list[str] = Field(default_factory=list, description="указанные, но не проверенные (unknown)")
+
+
+class Scope(BaseModel):
+    detected_types: list[str] = Field(default_factory=list, description="предложенные типы (главные слова)")
+    type_basis: list[str] = Field(default_factory=list, description="на чём основан выбор типа")
+    confirmed_scope: Optional[str] = Field(None, description="подтверждённая область: наименование или тип")
+    scope_complete: bool = False
+    registry_complete: bool = Field(True, description="все позиции области покрыты реестром типов")
+    note: str = ""
+
+
+class ProviderStatus(BaseModel):
+    name: str
+    enabled: bool
+    used: bool = False
+    status: Literal["off", "ok", "skipped", "timeout", "error", "invalid", "cached", "stale"] = "off"
+    detail: str = ""
+    elapsed_ms: Optional[float] = None
 
 
 class PropertyCheck(BaseModel):
@@ -113,11 +213,14 @@ class Stage(BaseModel):
 class QuestionOption(BaseModel):
     label: str
     remaining: int
-    answer: Constraint
+    answer: Optional[Constraint] = None
+    answers: list[Constraint] = Field(default_factory=list, description="несколько ответов сразу (подтверждение)")
+    reject: list[str] = Field(default_factory=list, description="ключи предложений, отклоняемых этим вариантом")
+    confirm: list[str] = Field(default_factory=list, description="ключи предупреждений, подтверждаемых вариантом")
 
 
 class Question(BaseModel):
-    kind: Literal["property", "type", "manual_choice"]
+    kind: Literal["property", "type", "manual_choice", "confirm"]
     property_code: Optional[str] = None
     property_name: Optional[str] = None
     text: str
@@ -162,6 +265,12 @@ class DomainProperty(BaseModel):
 
 class SearchResponse(BaseModel):
     status: Literal["matched", "clarification_needed", "conflict", "not_found", "manual_choice", "error"]
+    session_id: Optional[str] = None
+    revision: Optional[int] = None
+    run_id: str = ""
+    stage: RunStage = "draft"
+    preliminary: bool = Field(True, description="черновик: результат не окончательный")
+    stale: bool = Field(False, description="пришла более новая версия запроса — ответ не применять")
     message: str
     query: dict[str, Any]
     query_hash: str
@@ -180,3 +289,12 @@ class SearchResponse(BaseModel):
     completeness: Completeness
     versions: dict[str, str]
     elapsed_ms: float
+    assertions: list[RawAssertion] = Field(default_factory=list)
+    proposals: list[Proposal] = Field(default_factory=list)
+    code_resolution: Optional[CodeResolution] = None
+    characteristics_completion: Optional[CharacteristicsCompletion] = None
+    scope: Optional[Scope] = None
+    providers: list[ProviderStatus] = Field(default_factory=list)
+    changes: list[str] = Field(default_factory=list, description="что изменилось после расширенного разбора")
+    timings: dict[str, float] = Field(default_factory=dict, description="мс по этапам")
+    effective_at: Optional[str] = Field(None, description="дата проверки активности позиций (снимок)")

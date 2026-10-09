@@ -146,7 +146,8 @@ def test_top_k_one_still_complete_domain(fixture_db):
 def test_repeatability(engine):
     a = search(engine, "стул на металлическом каркасе с мягким сиденьем").model_dump(mode="json")
     b = search(engine, "стул на металлическом каркасе с мягким сиденьем").model_dump(mode="json")
-    a.pop("elapsed_ms"), b.pop("elapsed_ms")
+    for k in ("elapsed_ms", "timings"):
+        a.pop(k), b.pop(k)
     assert a == b
 
 

@@ -12,15 +12,24 @@
   3. число с единицей без названия — если в области ровно одно свойство такой размерности;
   4. логические свойства «Наличие X» / «Складная конструкция»: все ключевые слова названия
      рядом в тексте → «Да», с отрицанием («без», «не», «нет») → «Нет»;
-  5. качественные значения справочника («слесарные», «аккумуляторный») с учётом отрицания.
+  5. проверенные алиасы значений (data/value_aliases.json: «сетевой» → «Тип питания» = «От сети»);
+  6. качественные значения справочника («слесарные», «аккумуляторный») с учётом отрицания.
+
+Части товара: если рядом со значением названа часть («чёрный каркас»), значение привязывается
+только к свойству этой части («Цвет каркаса»). Свойство другой части («Цвет сиденья») не подходит,
+общее свойство без части («Цвет») — только через выбор пользователя.
 """
 from __future__ import annotations
 
 import itertools
+import json
 from dataclasses import dataclass, field
 from decimal import Decimal
+from functools import lru_cache
 
 from ..catalog.repository import Position, Prop
+from ..components import canonical_key, component_of_lemma, property_component
+from ..config import ROOT
 from ..models import Feature
 from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, norm, tokenize
 from ..units import BY_KEY, fmt
@@ -52,6 +61,8 @@ class PropGroup:
     positions: int = 0
     unit_in_name: str | None = None
     core: str | None = None           # главное существительное названия («Российский размер» → «размер»)
+    component: str | None = None      # часть товара («Цвет каркаса» → frame)
+    canonical: str | None = None      # внутренний ключ «компонент.свойство»
 
 
 def _core_noun(name: str) -> str | None:
@@ -72,6 +83,8 @@ def build_groups(positions: list[Position]) -> dict[str, PropGroup]:
                     terms = content_lemmas(prop.name)
                 g = groups[key] = PropGroup(key, prop.name, [], False, True, set(), set(), {}, {}, terms, False)
                 g.core = _core_noun(prop.name)
+                g.component = property_component(prop.name)
+                g.canonical = canonical_key(prop.name, g.core)
             if prop.code not in g.codes:
                 g.codes.append(prop.code)
             g.positions += 1
@@ -146,6 +159,60 @@ def _terms_present(terms: list[str], tokens: list[Token], idxs: list[int]) -> li
 PROPERTY_SYNONYMS = {"вес": "масса"}
 
 
+@dataclass(frozen=True)
+class ValueAlias:
+    phrase: tuple[str, ...]
+    property: str
+    value: str
+
+
+@lru_cache(maxsize=1)
+def value_aliases() -> tuple[ValueAlias, ...]:
+    path = ROOT / "data" / "value_aliases.json"
+    if not path.exists():
+        return ()
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    out = []
+    for a in raw["aliases"]:
+        ph = tuple(content_lemmas(a["phrase"])) or (lemma(a["phrase"]),)
+        out.append(ValueAlias(ph, a["property"], a["value"]))
+    return tuple(sorted(out, key=lambda a: (-len(a.phrase), a.phrase, a.property)))
+
+
+def value_aliases_version() -> str:
+    path = ROOT / "data" / "value_aliases.json"
+    return json.loads(path.read_text(encoding="utf-8"))["version"] if path.exists() else "-"
+
+
+def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
+                    forward_only: bool = False) -> tuple[str, int] | None:
+    """Часть товара, названная вплотную к значению (± dist слов, без пересечения границ и чисел).
+
+    forward_only — для названий свойств: часть стоит после них в родительном падеже («высота каркаса»).
+    """
+    for j in idxs:
+        c = component_of_lemma(tokens[j].lemma) if tokens[j].kind == "word" else None
+        if c:
+            return c, j
+    lo, hi = min(idxs), max(idxs)
+    order = []
+    for d in range(1, dist + 1):
+        order += [hi + d] if forward_only else [hi + d, lo - d]
+    for j in order:
+        if not (0 <= j < len(tokens)):
+            continue
+        between = range(min(j, lo) + 1, max(j, hi)) if j > hi or j < lo else []
+        if any(tokens[k].lemma in BOUNDARY or tokens[k].kind == "number" for k in between):
+            continue
+        t = tokens[j]
+        if t.kind != "word" or t.lemma in BOUNDARY:
+            continue
+        c = component_of_lemma(t.lemma)
+        if c:
+            return c, j
+    return None
+
+
 def _core_present(g: "PropGroup", tokens: list[Token], idxs: list[int]) -> int | None:
     """Первое ключевое слово названия свойства («Длина режущей части» → «длина») среди idxs."""
     core = g.core or (g.terms[0] if g.terms else None)
@@ -192,9 +259,12 @@ class Extractor:
         for i in idxs:
             if tokens[i].used_by is None:
                 tokens[i].used_by = fid
+        raw = nq.raw_span(*span) if span else None
+        kw.setdefault("component", g.component if g else None)
         return Feature(id=fid, source="text", status=status,
                        property_code=g.codes[0] if g else None, property_name=g.name if g else None,
-                       evidence=nq.text[span[0]:span[1]] if span else None, span=span, **kw)
+                       evidence=nq.text[span[0]:span[1]] if span else None, span=span, raw_span=raw,
+                       canonical_key=g.canonical if g else None, **kw)
 
     # ------------------------------------------------------------------
     def extract(self, nq: NormalizedQuery) -> list[Feature]:
@@ -203,7 +273,34 @@ class Extractor:
         feats += self._explicit_pairs(nq)
         feats += self._numbers(nq)
         feats += self._booleans(nq)
+        feats += self._value_aliases(nq)
         feats += self._qualities(nq)
+        return feats
+
+    # 5. алиасы значений --------------------------------------------------------
+    def _value_aliases(self, nq: NormalizedQuery) -> list[Feature]:
+        tokens = nq.tokens
+        feats = []
+        words = [t for t in tokens if t.kind == "word"]
+        for a in value_aliases():
+            g = self.groups.get(" ".join(tokenize(a.property)))
+            if g is None or norm(a.value) not in g.quality:
+                continue  # свойства или значения нет у позиций области — алиас не применяется
+            n = len(a.phrase)
+            for k in range(len(words) - n + 1):
+                seq = words[k:k + n]
+                if any(t.used_by for t in seq) or not all(t.lemma == p for t, p in zip(seq, a.phrase)):
+                    continue
+                idxs = [t.i for t in seq]
+                # «от электросети»: предлог перед фразой тоже объяснён алиасом
+                if idxs[0] > 0 and tokens[idxs[0] - 1].lemma == "от":
+                    idxs.insert(0, idxs[0] - 1)
+                neg = _negated(tokens, idxs[0])
+                extra = [j for j in (idxs[0] - 1, idxs[0] - 2) if neg and j >= 0 and tokens[j].lemma in NEGATIONS]
+                feats.append(self._feature(g, tokens, idxs + extra, nq, op="ne" if neg else "eq",
+                                           value=g.quality[norm(a.value)], negated=neg,
+                                           note=f"проверенный алиас значения «{' '.join(t.text for t in seq)}» → "
+                                                f"«{a.value}» (data/value_aliases.json)"))
         return feats
 
     # 1. «характеристика: значение» ---------------------------------------
@@ -326,12 +423,12 @@ class Extractor:
             unit_key = tokens[k].unit_key
             used.append(k)
         if op == "eq":
-            for words in GE_WORDS:
-                if pre[-len(words):] == words:
-                    op = "gt" if words in STRICT else "ge"
-            for words in LE_WORDS:
-                if pre[-len(words):] == words:
-                    op = "lt" if words in STRICT else "le"
+            # самое длинное совпадение: «не менее» (≥), а не «менее» (<)
+            hits = [(len(w), w, "ge") for w in GE_WORDS if pre[-len(w):] == w] + \
+                   [(len(w), w, "le") for w in LE_WORDS if pre[-len(w):] == w]
+            if hits:
+                _, words, kind = max(hits, key=lambda h: h[0])
+                op = {"ge": "gt", "le": "lt"}[kind] if words in STRICT else kind
             if op == "eq":
                 used = [j] + used[used.index(j) + 1:]
         return op, v1, v2, lo_inc, hi_inc, unit_key, used
@@ -396,9 +493,31 @@ class Extractor:
             kw = dict(op=op, value=fmt(v1), value_to=fmt(v2) if v2 is not None else None,
                       min_inclusive=lo_inc, max_inclusive=hi_inc, unit=unit.title if unit else None)
             named_unknown = None
+            part = None   # часть товара рядом с названием свойства не совпала со схемой
+            if explicit:
+                near = _component_near(tokens, sorted({h for e in explicit for h in e[2]}), forward_only=True)
+                if near is not None:
+                    same = [e for e in explicit if e[1].component == near[0]]
+                    if same:
+                        explicit = same
+                    else:
+                        part = (near, [e[1] for e in explicit if e[1].component is None])
+            if part is not None:
+                (comp, j), generic = part
+                if generic:
+                    feats.append(self._feature(None, tokens, used + [j], nq, status="ambiguous", component=comp,
+                                               options=[self._opt(g) for g in sorted(generic, key=lambda g: g.key)],
+                                               note=f"значение указано для части «{tokens[j].text}», а у позиций "
+                                                    "свойство без указания части — подтвердите привязку", **kw))
+                else:
+                    feats.append(self._feature(None, tokens, used + [j], nq, status="unknown_property", component=comp,
+                                               note=f"у позиций нет такого свойства для части «{tokens[j].text}»; "
+                                                    "свойства других частей не подходят", **kw))
+                i = anchor + 1
+                continue
             if not explicit:
                 back = [k for k in win if k < min(used) and min(used) - k <= 2]
-                named_unknown = next((tokens[k] for k in sorted(back) if tokens[k].kind == "word"
+                named_unknown = next((tokens[k] for k in sorted(back, reverse=True) if tokens[k].kind == "word"
                                       and PROPERTY_SYNONYMS.get(tokens[k].lemma, tokens[k].lemma) in self.known_terms),
                                      None)
             if named_unknown is not None:
@@ -473,7 +592,7 @@ class Extractor:
                                        note="логическое свойство: слова названия" + (" с отрицанием" if neg else "")))
         return feats
 
-    # 5. качественные значения ---------------------------------------------------
+    # 6. качественные значения ---------------------------------------------------
     def _qualities(self, nq: NormalizedQuery) -> list[Feature]:
         tokens = nq.tokens
         feats = []
@@ -509,6 +628,32 @@ class Extractor:
                 continue
             prop_keys = sorted({g.key for g, _, _ in opts})
             neg = _negated(tokens, first)
+            comp_idx: list[int] = []
+            near = _component_near(tokens, sorted({i for _, _, ix in opts for i in ix}))
+            if near is not None:
+                comp, j = near
+                same = [o for o in opts if o[0].component == comp]
+                if same:
+                    opts, comp_idx = same, [j]
+                    prop_keys = sorted({g.key for g, _, _ in opts})
+                else:
+                    generic = [o for o in opts if o[0].component is None]
+                    idxs = sorted({i for _, _, ix in opts for i in ix} | {j})
+                    value = nq.text[tokens[min(i for _, _, ix in opts for i in ix)].start:
+                                    tokens[max(i for _, _, ix in opts for i in ix)].end]
+                    if generic:
+                        feats.append(self._feature(
+                            None, tokens, idxs, nq, status="ambiguous", negated=neg, value=value, component=comp,
+                            options=[{**self._opt(g), "value": v} for g, v, _ in
+                                     sorted(generic, key=lambda o: (o[0].key, o[1]))],
+                            note=f"значение указано для части «{tokens[j].text}», а у позиций свойство без "
+                                 "указания части — подтвердите привязку"))
+                    else:
+                        feats.append(self._feature(
+                            None, tokens, idxs, nq, status="unknown_property", negated=neg, value=value, component=comp,
+                            note=f"у позиций нет такого свойства для части «{tokens[j].text}»; свойства других "
+                                 f"частей ({', '.join(sorted({o[0].name for o in opts}))}) не подходят"))
+                    continue
             if len(prop_keys) > 1:
                 # уточнить по названию свойства рядом
                 win = _window(tokens, first, 4, 4)
@@ -522,9 +667,12 @@ class Extractor:
                 win = _window(tokens, min(idxs), 4, 4)
                 name_hit = _terms_present(g.terms, tokens, win) or []
                 extra = [j for j in (first - 1, first - 2) if neg and j >= 0 and tokens[j].lemma in NEGATIONS]
-                feats.append(self._feature(g, tokens, idxs + [h for h in name_hit if tokens[h].used_by is None] + extra,
-                                           nq, op="ne" if neg else "eq", value=val, negated=neg,
-                                           note="значение из справочника допустимых значений"))
+                note = "значение из справочника допустимых значений"
+                if g.component and not comp_idx and not name_hit:
+                    note += "; часть товара в описании не названа — значение отнесено к единственному свойству " \
+                            f"«{g.name}»"
+                feats.append(self._feature(g, tokens, idxs + comp_idx + [h for h in name_hit if tokens[h].used_by is None]
+                                           + extra, nq, op="ne" if neg else "eq", value=val, negated=neg, note=note))
             else:
                 idxs = sorted({i for _, _, ix in opts for i in ix})
                 feats.append(self._feature(None, tokens, idxs, nq, status="ambiguous", negated=neg,

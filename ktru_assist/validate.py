@@ -5,7 +5,8 @@ invalid (есть противоречие), unknown (данных недост�
 
 Числа: значение пользователя — интервал U (точка, луч или отрезок). Допустимые значения
 позиции — объединение интервалов A (смежные объединяются). U ⊆ A → valid; U ∩ A = ∅ → invalid;
-иначе unknown. Перевод единиц — только внутри одной размерности (units.convert), точный.
+иначе unknown. Для требования («не менее 600 Вт», intent=requirement) дополнительно valid,
+если какое-то допустимое значение КТРУ целиком лежит в U: заказчик может выбрать его. Перевод единиц — только внутри одной размерности (units.convert), точный.
 """
 from __future__ import annotations
 
@@ -97,6 +98,13 @@ def check_numeric(prop: Prop, f: Feature, U: Interval) -> tuple[str, str]:
     unit_t = uu.title if uu else None
     allowed_txt = "; ".join(i.label(unit_t) for i in comparable[:12]) + ("…" if len(comparable) > 12 else "")
     exact = [i for i in comparable if U.subset_of(i)]
+    if f.intent == "requirement" and f.op in ("ge", "gt", "le", "lt", "between"):
+        # требование к будущему товару выполнимо, если хотя бы одно допустимое значение КТРУ
+        # целиком ему удовлетворяет (заказчик выберет это значение)
+        sat = [i for i in comparable if i.subset_of(U)]
+        if sat and not exact:
+            return "valid", (f"требование {user_txt} выполнимо: допустимое значение «{sat[0].label(uu.title if uu else None)}»"
+                             " целиком ему удовлетворяет")
     if exact:
         return "valid", f"{user_txt} входит в допустимое значение «{exact[0].label(unit_t)}»"
     if any(U.subset_of(m) for m in merged):

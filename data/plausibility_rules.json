@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "description": "Правила правдоподобия значений. Это НЕ ограничения КТРУ: срабатывание даёт предупреждение и требует подтверждения пользователя, значение не исправляется и позиции не исключаются. Границы — оценка разработчика (status=unconfirmed), их должна подтвердить команда. property_core — главное слово названия характеристики; scope — направления (clothes/furniture/tools); max/min — в единице unit, границы не включаются в допустимое (> max — подозрительно).",
+  "rules": [
+    {"id": "furniture-size-max", "scope": ["furniture"], "property_core": ["высота", "ширина", "глубина", "длина", "диаметр"],
+     "unit": "м", "max": "4", "severity": "warning", "status": "unconfirmed",
+     "basis": "предмет мебели больше 4 м по одному измерению — вероятная ошибка единицы (м вместо см)"},
+    {"id": "furniture-mass-max", "scope": ["furniture"], "property_core": ["масса", "вес", "нагрузка"],
+     "unit": "кг", "max": "2000", "severity": "warning", "status": "unconfirmed",
+     "basis": "масса или нагрузка мебели больше 2 т — вероятная ошибка единицы"},
+    {"id": "tool-length-max", "scope": ["tools"], "property_core": ["длина", "ширина", "высота", "диаметр", "толщина", "глубина"],
+     "unit": "м", "max": "3", "severity": "warning", "status": "unconfirmed",
+     "basis": "ручной инструмент длиннее 3 м — вероятная ошибка единицы"},
+    {"id": "tool-mass-max", "scope": ["tools"], "property_core": ["масса", "вес"],
+     "unit": "кг", "max": "100", "severity": "warning", "status": "unconfirmed",
+     "basis": "ручной инструмент тяжелее 100 кг — вероятная ошибка единицы (кг вместо г)"},
+    {"id": "tool-power-max", "scope": ["tools"], "property_core": ["мощность"],
+     "unit": "Вт", "max": "10000", "severity": "warning", "status": "unconfirmed",
+     "basis": "ручной электроинструмент мощнее 10 кВт — вероятная ошибка единицы (кВт вместо Вт)"},
+    {"id": "clothes-size-max", "scope": ["clothes"], "property_core": ["длина", "ширина", "высота", "обхват"],
+     "unit": "м", "max": "3", "severity": "warning", "status": "unconfirmed",
+     "basis": "предмет одежды больше 3 м — вероятная ошибка единицы"},
+    {"id": "positive-size", "scope": ["clothes", "furniture", "tools"],
+     "property_core": ["высота", "ширина", "глубина", "длина", "диаметр", "толщина", "масса", "вес", "мощность", "объём", "объем"],
+     "min": "0", "min_inclusive": true, "severity": "warning", "status": "unconfirmed",
+     "basis": "физический размер, масса или мощность должны быть больше нуля"}
+  ]
+}

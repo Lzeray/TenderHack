@@ -9,14 +9,18 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Версии правил: меняются вручную при изменении соответствующего модуля.
 VERSIONS = {
-    "api": "1.0",
+    "api": "2.0",
     "importer": "1.0",
-    "normalizer": "1.0",
+    "normalizer": "1.1",      # карта координат исходного текста, отрицательные числа
     "typos": "1.0",
-    "extractor": "1.0",
-    "validator": "1.0",
+    "extractor": "1.1",       # алиасы значений, части товара, «не менее» = ≥ (ошибка 1.0: было <)
+    "validator": "1.1",       # семантика требования (intent=requirement)
     "ranking": "1.0",
-    "clarifier": "1.0",
+    "clarifier": "1.1",       # сначала тип при неоднозначном алиасе
+    "engine": "2.0",          # реестр типов, защита завершения, code_resolution / completion
+    "type_registry": "1.0",
+    "resolver": "1.0",
+    "plausibility": "1.0",
 }
 
 # Направления MVP. Критерий — префикс ОКПД2 (см. docs/DATA.md, почему не рубрикатор).

@@ -20,17 +20,17 @@ from decimal import Decimal, InvalidOperation
 
 from ..models import Constraint, Feature, Proposal, Span
 from ..nlp.normalize import normalize
-from ..text import content_lemmas, fuzzy_equal, norm
+from ..text import NEGATIONS, content_lemmas, fuzzy_equal, lemma, norm, tokenize
 from ..units import lookup
 from .context import CatalogContext
 
-PROMPT_VERSION = "b-1.2"
+PROMPT_VERSION = "b-1.3"
 
 SCHEMA = {
     "type": "object",
     "properties": {
         "type_ref": {"type": ["string", "null"]},
-        "assertions": {"type": "array", "maxItems": 20, "items": {
+        "assertions": {"type": "array", "maxItems": 12, "items": {
             "type": "object",
             "properties": {
                 "quote": {"type": "string", "minLength": 1},
@@ -66,7 +66,8 @@ SYSTEM = """Ты — модуль разбора описаний товаров
    не округляй, не исправляй числа. «190 мм» без «не менее/до» — это operator="eq".
 5. Для свойств с перечнем allowed выбирай значение из allowed, если слово пользователя означает его
    («сетевой» → «От сети»). Если значения в перечне нет — верни слово пользователя без изменений.
-6. Отрицание («без подлокотников», «не складной») — negated=true; для перечислений operator="ne" или значение «Нет».
+6. Отрицание: для свойств «Да/Нет» («Наличие …») «без подлокотников» — value="Нет", operator="eq", negated=true;
+   для перечислений — operator="ne". Не используй двойное отрицание («ne» вместе с «Нет»).
 7. Операторы: «не менее/от» → ge, «не более/до» → le, «более» → gt, «менее» → lt, диапазон → between, иначе eq.
 8. intent: fact — свойство товара; requirement — требование («не менее», «нужен»); preference — «желательно».
 9. component — часть товара, к которой относится признак (каркас, сиденье, рукоятка…), иначе null.
@@ -168,6 +169,20 @@ def parse_and_validate(raw_text: str, reply: str, ctx: CatalogContext,
             continue
         if op != "between":
             value_to = None        # модель иногда дублирует value в value_to при eq
+        if g.boolean and norm(value) in ("да", "нет"):
+            # логическое свойство: полярность сверяется с текстом цитаты, а не берётся у модели на веру
+            pol = norm(value)
+            if op == "ne":
+                pol = "нет" if pol == "да" else "да"
+            q_lems = [lemma(w) for w in tokenize(span.quote)]
+            terms_in_quote = all(any(fuzzy_equal(t, q) for q in q_lems) for t in g.terms)
+            if pol == "да" and any(q in NEGATIONS for q in q_lems):
+                res.rejected.append({"item": a, "reason": "«есть» противоречит отрицанию в цитате"})
+                continue
+            if pol == "да" and not terms_in_quote:
+                res.rejected.append({"item": a, "reason": f"наличие «{g.name}» не подтверждено словами текста"})
+                continue
+            value, op = g.quality.get(pol, value), "eq"
         if g.numeric and _numbers(value):
             # «190 мм» в value: число и единица разбираются тем же токенизатором, что и описание
             vt = normalize(value).tokens

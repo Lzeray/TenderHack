@@ -292,6 +292,18 @@ class Engine:
         out = [c for _, c, _ in finals][:MAX_CANDIDATES_OUT]
         out += [c for _, c, p in compatible if p.is_template][:20]
         out += [c for _, c, _ in ranked if not c.compatible][:30]
+        # ошибка размерности — отдельное предупреждение с обоснованием, а не только причина исключения
+        for f in features:
+            if f.status != "bound" or not f.unit:
+                continue
+            reasons = [k.reason for ev in evals.values() for k in ev.checks if k.feature_id == f.id
+                       and k.status == "invalid" and k.reason.startswith("несовместимая размерность")]
+            others = [k for ev in evals.values() for k in ev.checks if k.feature_id == f.id
+                      and not k.reason.startswith("несовместимая размерность") and k.status != "unknown"]
+            if reasons and not others:
+                issues.append(Issue(level="error", code="dimension_mismatch",
+                                    message=f"«{f.evidence or f.value}»: {reasons[0]}. Это разные физические величины — "
+                                            f"проверьте единицу для «{f.property_name}»."))
         t = lap("validate", t)
 
         # --- решение ------------------------------------------------------------

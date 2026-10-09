@@ -16,9 +16,12 @@ from ..nlp.extract import PropGroup, build_groups
 from ..units import BY_KEY
 
 MAX_TYPES = 30
-MAX_PROPS = 60
-MAX_VALUES = 40
 MAX_HEADS = 4
+# Бюджет контекста в символах JSON (≈ 2,1 символа на токен Qwen3 для русского текста, замер на «шкаф»):
+# 12 000 символов ≈ 5,7 тыс. токенов, с запасом в окне 12 288 под системный промпт и ответ.
+MAX_CHARS = 12000
+# ступени сокращения: (свойств, значений на свойство)
+LIMITS = [(60, 40), (60, 20), (40, 12), (30, 8), (20, 5)]
 
 
 @dataclass
@@ -63,22 +66,29 @@ def build_context(engine, heads: list[str], basis: dict[str, str], snapshot: str
     type_refs = {f"t{i + 1}": n for i, n in enumerate(names[:MAX_TYPES])}
     groups = build_groups(positions)
     ordered = sorted(groups.values(), key=lambda g: (-g.positions, g.key))
-    if len(ordered) > MAX_PROPS:
-        omitted.append(f"свойств сверх лимита {MAX_PROPS}: " + ", ".join(g.name for g in ordered[MAX_PROPS:][:20]))
-    prop_refs: dict[str, PropGroup] = {}
-    props = []
-    for i, g in enumerate(ordered[:MAX_PROPS]):
-        ref = f"p{i + 1}"
-        prop_refs[ref] = g
-        allowed = _allowed(g, positions)
-        if len(allowed) > MAX_VALUES:
-            omitted.append(f"значений свойства «{g.name}» сверх лимита {MAX_VALUES}: {len(allowed) - MAX_VALUES}")
-        props.append({
-            "property_ref": ref, "name": g.name, "component": g.component,
-            "kind": "number" if g.numeric else ("bool" if g.boolean else "enum"),
-            "required": g.required, "units": sorted(BY_KEY[k].title for k in g.unit_keys),
-            "allowed": allowed[:MAX_VALUES],
-        })
+    allowed_all = {g.key: _allowed(g, positions) for g in ordered}
+    base_omitted = list(omitted)
+    for max_props, max_values in LIMITS:
+        omitted = list(base_omitted)
+        if len(ordered) > max_props:
+            omitted.append(f"свойств сверх лимита {max_props}: "
+                           + ", ".join(g.name for g in ordered[max_props:][:20]))
+        prop_refs: dict[str, PropGroup] = {}
+        props = []
+        for i, g in enumerate(ordered[:max_props]):
+            ref = f"p{i + 1}"
+            prop_refs[ref] = g
+            allowed = allowed_all[g.key]
+            if len(allowed) > max_values:
+                omitted.append(f"значений свойства «{g.name}» сверх лимита {max_values}: {len(allowed) - max_values}")
+            props.append({
+                "property_ref": ref, "name": g.name, "component": g.component,
+                "kind": "number" if g.numeric else ("bool" if g.boolean else "enum"),
+                "required": g.required, "units": sorted(BY_KEY[k].title for k in g.unit_keys),
+                "allowed": allowed[:max_values],
+            })
+        if len(json.dumps(props, ensure_ascii=False)) <= MAX_CHARS:
+            break
     payload = {
         "snapshot": snapshot, "effective_at": effective_at,
         "types": [{"type_ref": r, "name": n, "basis": basis.get(n, "главное слово типа в описании")}

@@ -221,3 +221,20 @@ def test_component_used_by_other_feature_not_reused(engine):
     f = feat(r, "Материал")
     assert f and f[0].value == "Металл" and f[0].status == "bound"
     assert r.final_code == "31.01.12.170-95000002"
+
+
+def test_negated_value_not_matched_partially(engine):
+    # ошибка MVP: «обивка» сопоставлялась со значением «Без обивки» (противоположный смысл)
+    r = search(engine, "кресло офисное с подлокотниками, обивка экокожа")
+    vals = [f.value for f in feat(r, "Тип обивки")]
+    assert "Без обивки" not in vals and "Экокожа" in vals
+    r2 = search(engine, "кресло офисное с подлокотниками без обивки")
+    assert [f.value for f in feat(r2, "Тип обивки")] == ["Без обивки"]
+
+
+def test_dimension_error_is_explicit_issue(engine):
+    r = search(engine, "дрель ручная электрическая от сети мощность 600 в")
+    i = next(i for i in r.issues if i.code == "dimension_mismatch")
+    assert "Вт" in i.message and i.level == "error"
+    r2 = search(engine, "дрель ручная электрическая от сети мощность 600 вт")
+    assert not any(i.code == "dimension_mismatch" for i in r2.issues)

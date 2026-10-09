@@ -247,3 +247,37 @@ def test_b_boolean_supported_by_property_name(engine):
     r = o.run(req("кресло офисное с подлокотниками", revision=1))
     f = next(f for f in r.features if f.property_name == "Наличие подлокотников")
     assert "llm" in f.supported_by
+
+
+def _bool_reply(name, quote, value, op):
+    def f(m):
+        ctx = json.loads(m[1]["content"])["context"]
+        ref = next(p["property_ref"] for p in ctx["properties"] if p["name"] == name)
+        return {"type_ref": None, "assertions": [{
+            "quote": quote, "component": None, "property_ref": ref, "value": value, "value_to": None,
+            "unit": None, "operator": op, "negated": True, "intent": "fact"}],
+            "unrecognized": [], "corrections": [], "ambiguities": []}
+    return f
+
+
+def test_b_double_negation_rejected(engine):
+    # реальная ошибка Qwen (F02): «без мягкого сиденья» → «≠ Нет» (= «Да»)
+    o, _ = orch(engine, _bool_reply("Наличие мягкого сидения", "без мягкого сиденья", "Нет", "ne"), mode="always")
+    r = o.run(req("стул на металлическом каркасе без мягкого сиденья", revision=1))
+    assert not any(i.code == "model_disagreement" for i in r.issues)
+    assert r.status == "matched" and r.final_code == "31.01.11.150-91000002"
+
+
+def test_b_presence_without_words_rejected(engine):
+    # реальная ошибка Qwen (F03): «спинка жесткая» → «Наличие мягкой спинки ≠ Нет» (мягкая есть)
+    o, _ = orch(engine, _bool_reply("Наличие мягкого сидения", "сиденье жесткое", "Нет", "ne"))
+    r = o.run(req("стул на металлическом каркасе, сиденье жесткое", revision=1))
+    assert not any(f.source == "model" for f in r.features)
+    assert any(i.code == "llm_item_rejected" and "не подтверждено словами" in i.message for i in r.issues)
+    assert "31.01.11.150-91000002" in {c.code for c in r.candidates if c.compatible}
+
+
+def test_context_fits_budget(engine):
+    from ktru_assist.llm.context import MAX_CHARS, build_context
+    ctx = build_context(engine, ["пассатижи", "кресло", "табурет", "дрель"], {}, "s", None)
+    assert len(json.dumps(ctx.payload["properties"], ensure_ascii=False)) <= MAX_CHARS

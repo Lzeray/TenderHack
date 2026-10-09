@@ -622,6 +622,10 @@ class Extractor:
                 unique = [x for x in found if x not in others]
                 if not (full or unique):
                     continue
+                # значение с отрицанием («Без обивки») по части слов не сопоставляется:
+                # «обивка» в тексте означает скорее наличие обивки, чем её отсутствие
+                if not full and set(lem) & NEGATIONS:
+                    continue
                 idxs = sorted(found.values())
                 if max(idxs) - min(idxs) > 3:
                     continue

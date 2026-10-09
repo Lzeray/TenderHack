@@ -25,7 +25,10 @@
     <div class="card">
       <label class="label" for="desc">Описание товара</label>
       <textarea id="desc" rows="4" placeholder="Например: стул на металлическом каркасе с мягким сиденьем, без подлокотников"></textarea>
-      <div class="hint">Направления MVP: одежда, мебель, инструменты. Поиск запускается через 0,6 с после ввода.</div>
+      <div class="hint">Направления: одежда, мебель, инструменты. Черновик пересчитывается при вводе;
+        <b>Enter</b> — полный разбор (с локальной моделью, если она включена). Shift+Enter — перенос строки.</div>
+      <div class="submit-row"><button class="btn" id="submitBtn" type="button">Полный разбор (Enter)</button>
+        <span id="uiState" class="ui-state"></span></div>
       <div class="examples" id="examples"></div>
       <div id="corrections"></div>
       <details class="history" id="historyBox" hidden>
@@ -61,8 +64,11 @@
 
   <section class="col col--right">
     <div id="status" class="status status--idle">Ожидание описания</div>
+    <div id="resolution"></div>
     <div id="final"></div>
     <div id="question"></div>
+    <div id="proposals"></div>
+    <div id="changes"></div>
     <div class="card" id="issuesCard" hidden><h2>Ошибки и предупреждения</h2><ul id="issues" class="issues"></ul></div>
     <div class="card">
       <div class="card__head">
@@ -71,6 +77,8 @@
       </div>
       <ol id="stages" class="stages"></ol>
       <div id="completeness" class="small muted"></div>
+      <div id="providers" class="providers"></div>
+      <div id="latency" class="small latency"></div>
     </div>
     <div class="card">
       <h2>Кандидаты <span id="candCount" class="muted"></span></h2>
@@ -79,6 +87,7 @@
   </section>
 </main>
 <footer class="wrap footer small muted" id="versions"></footer>
+<script src="/static/state.js"></script>
 <script src="/static/app.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 """Тип по составу слова (без словаря синонимов): дефис, сложные слова в обе стороны."""
 from ktru_assist.nlp.normalize import normalize
 from ktru_assist.registry import TypeRegistry
-from ktru_assist.text import content_lemmas, head_lemma
+from ktru_assist.text import content_lemmas, head_lemma, lemma
 
 
 def doc(name):
@@ -20,16 +20,16 @@ def detect(text):
 
 def test_catalog_compound_from_two_words():
     d = detect("лобзик электрический 650 вт")
-    assert d.heads == ["электролобзик"] and d.type_token_idx
+    assert d.heads == [lemma("электролобзик")] and d.type_token_idx
 
 
 def test_hyphen_single_type():
-    assert detect("стеллаж-пила ручная").heads == ["пила"]
+    assert detect("стеллаж-пила ручная").heads == [lemma("пила")]
 
 
 def test_hyphen_two_types_needs_confirmation():
     d = detect("дрель-шуруповерт аккумуляторная")
-    assert d.heads == ["дрель", "шуруповерт"]
+    assert d.heads == sorted([lemma("дрель"), lemma("шуруповерт")])
     assert d.ambiguous_aliases                      # тип подтверждает пользователь
 
 

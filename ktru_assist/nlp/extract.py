@@ -31,12 +31,12 @@ from ..catalog.repository import Position, Prop
 from ..components import canonical_key, component_of_lemma, property_component
 from ..config import ROOT
 from ..models import Feature
-from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, norm, tokenize
+from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_set, norm, tokenize
 from ..units import BY_KEY, fmt
 from .normalize import NormalizedQuery, Token
 
-GENERIC_NAME_WORDS = {"наличие", "вид", "тип", "функция", "возможность", "количество", "показатель", "конструкция",
-                      "значение", "характеристика", "исполнение"}
+GENERIC_NAME_WORDS = lemma_set({"наличие", "вид", "тип", "функция", "возможность", "количество", "показатель",
+                                "конструкция", "значение", "характеристика", "исполнение"})
 GE_WORDS = {("не", "менее"), ("не", "меньше"), ("не", "ниже"), ("от",), ("более",), ("больше",),
             ("свыше",), (">=",), ("≥",), (">",), ("минимум",)}
 LE_WORDS = {("не", "более"), ("не", "больше"), ("не", "выше"), ("до",), ("менее",), ("меньше",),
@@ -156,7 +156,7 @@ def _terms_present(terms: list[str], tokens: list[Token], idxs: list[int]) -> li
 
 
 # Синонимы слов в названиях свойств (проверенные вручную по каталогу).
-PROPERTY_SYNONYMS = {"вес": "масса"}
+PROPERTY_SYNONYMS = {lemma("вес"): lemma("масса")}
 
 
 @dataclass(frozen=True)

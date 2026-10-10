@@ -79,7 +79,13 @@ _ADJ_END = re.compile(r"(ый|ий|ой|ая|яя|ое|ее|ые|ие|ого|е�
 
 
 def install(name: str) -> None:
-    """Подменить лемматизацию в ktru_assist.text ДО импорта остальных модулей ktru_assist."""
+    """Подменить лемматизацию в ktru_assist.text ДО импорта остальных модулей ktru_assist.
+
+    snowball теперь штатный режим ядра (KTRU_MORPH=snowball, ktru_assist/morph.py) — подмена не нужна."""
+    if name == "snowball":
+        import os
+        os.environ["KTRU_MORPH"] = "snowball"
+        return
     from functools import lru_cache
     import ktru_assist.text as text
     stem = STEMMERS[name]

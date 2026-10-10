@@ -25,7 +25,7 @@ from .rank import components, name_match, term_coverage
 from .registry import TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import SearchBackend
-from .text import fuzzy_equal, lemma, norm, tokenize
+from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate
 
@@ -55,6 +55,7 @@ class Engine:
         v["components_lexicon"] = components_version()
         v["value_aliases"] = value_aliases_version()
         v["plausibility_rules"] = plausibility_version()
+        v["morph"] = MORPH_MODE
         return v
 
     @property

@@ -8,7 +8,7 @@ from decimal import Decimal
 from functools import cached_property
 from pathlib import Path
 
-from ..text import content_lemmas, norm, tokenize
+from ..text import MORPH_MODE, content_lemmas, norm, tokenize
 from ..units import Unit, fmt, from_okei, unit_from_char_name
 
 YES_NO = {"да", "нет"}
@@ -180,6 +180,10 @@ class Catalog:
         self.con = sqlite3.connect(uri, uri=True, check_same_thread=False)
         self.con.row_factory = sqlite3.Row
         self._cache: dict[str, Position] = {}
+        built = self.meta.get("morph", "pymorphy")
+        if built != MORPH_MODE:
+            raise RuntimeError(f"База {self.db_path} собрана с KTRU_MORPH={built}, а сейчас KTRU_MORPH={MORPH_MODE}: "
+                               "леммы наименований не совпадут. Переимпортируйте каталог или смените режим.")
 
     # --- метаданные --------------------------------------------------------
     @cached_property

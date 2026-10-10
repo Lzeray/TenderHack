@@ -12,10 +12,10 @@ import json
 from functools import lru_cache
 
 from .config import ROOT
-from .text import content_lemmas, fuzzy_equal, lemma
+from .text import content_lemmas, fuzzy_equal, lemma, lemma_set
 
-GENERIC = {"наличие", "вид", "тип", "функция", "возможность", "количество", "показатель", "конструкция",
-           "значение", "характеристика", "исполнение"}
+GENERIC = lemma_set({"наличие", "вид", "тип", "функция", "возможность", "количество", "показатель", "конструкция",
+                     "значение", "характеристика", "исполнение"})
 
 
 @lru_cache(maxsize=1)

@@ -1,6 +1,8 @@
+import pytest
 """Нормализация, опечатки, извлечение: числа, единицы, отрицания, конструкции «свойство: значение»."""
 from ktru_assist.nlp.normalize import normalize
 from ktru_assist.nlp.typos import TypoCorrector
+from ktru_assist.text import MORPH_MODE, lemma
 
 
 def test_normalization_keeps_numbers_units_codes_and_history():
@@ -44,6 +46,7 @@ def test_numbers_and_units_not_fuzzy_corrected():
     assert any(t.text == "мн" for t in nq.tokens)          # короткое слово не «исправлено» в «мм»
 
 
+@pytest.mark.skipif(MORPH_MODE != "pymorphy", reason="без словаря нельзя отличить настоящее слово от опечатки")
 def test_known_word_not_corrected():
     tc = TypoCorrector(["стул"])
     res = tc.correct(normalize("стол").tokens, {})
@@ -53,6 +56,20 @@ def test_known_word_not_corrected():
 def test_typo_tie_broken_by_type_head():
     # «куркта» одинаково близка к «курка» и «куртка»; тип товара — только «куртка»
     tc = TypoCorrector(["курка", "куртка"])
-    res = tc.correct(normalize("куркта").tokens, {}, type_heads={"куртка"})
+    res = tc.correct(normalize("куркта").tokens, {}, type_heads={lemma("куртка")})
     assert res[0].status == "corrected" and res[0].corrected == "куртка"
     assert TypoCorrector(["курка", "куртка"]).correct(normalize("куркта").tokens, {})[0].status == "ambiguous"
+
+
+def test_snowball_stemmer_merges_word_forms():
+    from ktru_assist.morph import stem
+    assert stem("металлический") == stem("металлическом") == stem("металлическая")
+    assert stem("сиденьем") == stem("сиденья")
+    assert stem("менее") == "менее" and stem("без") == "без"      # служебные слова не меняются
+
+
+def test_catalog_refuses_other_morph_mode(fixture_db, monkeypatch):
+    import ktru_assist.catalog.repository as repo
+    monkeypatch.setattr(repo, "MORPH_MODE", "snowball" if MORPH_MODE == "pymorphy" else "pymorphy")
+    with pytest.raises(RuntimeError):
+        repo.Catalog(fixture_db[0])

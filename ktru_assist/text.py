@@ -1,16 +1,27 @@
-"""Общие текстовые утилиты: токенизация, лемматизация, расстояние редактирования.
+"""Общие текстовые утилиты: токенизация, нормализация словоформ, расстояние редактирования.
 
-Лемматизация — словарная (pymorphy3, OpenCorpora), без нейросетей. Если у слова
-несколько разборов, берётся первый (pymorphy3 упорядочивает их детерминированно).
+Нормализация словоформ выбирается переменной KTRU_MORPH:
+* pymorphy (по умолчанию) — словарная лемматизация pymorphy3 (OpenCorpora). Если у слова несколько
+  разборов, берётся первый (pymorphy3 упорядочивает их детерминированно);
+* snowball — бесловарный стеммер (ktru_assist/morph.py). Сравнение качества — README, «Эксперименты».
+База каталога хранит леммы наименований, поэтому импорт и работа должны использовать один режим
+(режим записывается в meta базы и проверяется при открытии каталога).
 """
 from __future__ import annotations
 
+import os
 import re
 from functools import lru_cache
 
-import pymorphy3
-
-_MORPH = pymorphy3.MorphAnalyzer()
+MORPH_MODE = os.environ.get("KTRU_MORPH", "pymorphy")
+if MORPH_MODE not in ("pymorphy", "snowball"):
+    raise ValueError(f"KTRU_MORPH={MORPH_MODE}: допустимо pymorphy или snowball")
+if MORPH_MODE == "pymorphy":
+    import pymorphy3
+    _MORPH = pymorphy3.MorphAnalyzer()
+else:
+    from . import morph as _stemmer
+    _MORPH = None
 
 TOKEN_RE = re.compile(
     r"\d+(?:[.,]\d+)?"          # число
@@ -45,12 +56,23 @@ def lemma(word: str) -> str:
         return w
     if "-" in w:  # «дрель-шуруповерт» → леммы частей через дефис
         return "-".join(lemma(p) for p in w.split("-") if p)
+    if _MORPH is None:
+        return _stemmer.stem(w)
     return norm(_MORPH.parse(w)[0].normal_form)
 
 
 @lru_cache(maxsize=200_000)
 def is_known_word(word: str) -> bool:
-    return _MORPH.word_is_known(norm(word))
+    """Слово есть в словаре русского языка (без словаря — неизвестно, считаем «нет»)."""
+    return _MORPH.word_is_known(norm(word)) if _MORPH is not None else False
+
+
+def lemma_set(words) -> set[str]:
+    """Набор служебных слов, приведённый к текущей нормализации (лемма или основа)."""
+    return {lemma(w) for w in words} | set(words)
+
+
+STOPWORDS |= lemma_set(list(STOPWORDS))   # стоп-слова сравниваются с леммами/основами токенов
 
 
 def content_lemmas(s: str) -> list[str]:
@@ -71,6 +93,13 @@ def head_lemma(name: str) -> str | None:
 
     Для «Стул на металлическом каркасе» → «стул», «Одежда специальная …» → «одежда».
     """
+    if _MORPH is None:
+        # без морфологии: первое значимое слово, не похожее на прилагательное
+        words = [t for t in tokenize(name) if not t[0].isdigit() and lemma(t) not in STOPWORDS]
+        for t in words:
+            if not _stemmer.looks_adjective(t):
+                return lemma(t)
+        return lemma(words[0]) if words else None
     for t in tokenize(name):
         if t[0].isdigit():
             continue

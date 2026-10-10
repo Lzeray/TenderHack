@@ -338,15 +338,23 @@ def _negation_inside_or_after(tokens: list[Token], hit: list[int]) -> list[int]:
     return []
 
 
-def _negated(tokens: list[Token], first: int) -> bool:
+def _negation_at(tokens: list[Token], first: int) -> int | None:
+    """Индекс отрицания перед словом `first` (на одно или два слова назад), иначе None."""
     for j in (first - 1, first - 2):
         if j >= 0 and tokens[j].lemma in NEGATIONS:
             # «не менее» — это сравнение, а не отрицание значения
             if tokens[j].lemma == "не" and _lemma_at(tokens, j + 1) in ("менее", "меньше", "более", "больше",
                                                                           "ниже", "выше"):
                 continue
-            return True
-    return False
+            # «мех не натуральный натуральная кожа»: «не» относится к первому «натуральный», а не к коже
+            if j == first - 2 and tokens[first - 1].lemma == tokens[first].lemma:
+                continue
+            return j
+    return None
+
+
+def _negated(tokens: list[Token], first: int) -> bool:
+    return _negation_at(tokens, first) is not None
 
 
 class Extractor:
@@ -900,8 +908,9 @@ class Extractor:
             if val is None:
                 continue
             idxs = list(hit) + post
-            if neg:
-                idxs += [j for j in (min(hit) - 1, min(hit) - 2) if j >= 0 and tokens[j].lemma in NEGATIONS]
+            j = _negation_at(tokens, min(hit))
+            if j is not None:
+                idxs.append(j)
             feats.append(self._feature(g, tokens, idxs, nq, value=val, negated=neg,
                                        note="логическое свойство: слова названия" + (" с отрицанием" if neg else "")))
         return feats

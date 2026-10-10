@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import time
+from dataclasses import replace
 from fractions import Fraction
 
 from . import __version__
@@ -31,7 +32,7 @@ from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
 from .catalog.scope import ref
-from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
+from .text import MORPH_MODE, STOPWORDS, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate, find_prop
 
@@ -107,7 +108,9 @@ class Engine:
                     issues.append(Issue(level="warning", code="typo_ambiguous",
                                         message=f"«{c.original}»: несколько вариантов исправления "
                                                 f"({', '.join(c.options)}) — выберите вариант"))
-        det = TypeDetection(["catalog"], []) if self.native else self.registry.detect(nq.tokens)
+        keys = set() if self.native else self._key_tokens(nq.tokens)
+        det = TypeDetection(["catalog"], []) if self.native else self.registry.detect(
+            [replace(t, kind="punct", lemma="") if t.i in keys else t for t in nq.tokens])
         alias_terms = det.alias_terms
         for b in det.basis:
             if b.startswith("алиас"):
@@ -262,9 +265,9 @@ class Engine:
         # характеристик, если в описании полностью названо более общее наименование («стул»)
         basis = name_basis or positions
         domain_name_lemmas = {l for p in basis for l in p.name_lemmas}
+        name_tok_idx = set() if self.native else self._name_tokens(nq.tokens, basis) | det.type_token_idx
         extractor = None if self.native else Extractor(
-            groups, self.known_terms - domain_name_lemmas,
-            name_tokens=self._name_tokens(nq.tokens, basis) | det.type_token_idx, type_heads=heads)
+            groups, self.known_terms - domain_name_lemmas, name_tokens=name_tok_idx, type_heads=heads)
         features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
         features = self._split_disjoint_ambiguous(features, positions)
         # значение, названное явно («вид товара: секция шкафа»), важнее значения из слова типа («шкаф»)
@@ -342,6 +345,15 @@ class Engine:
                 tok.used_by = "type"
             if tok.used_by is None and tok.i in det.alias_token_idx:
                 tok.used_by = "type"
+        # слова типа: наименование, найденное в описании, и слова признаков «Вид товара» из слова типа
+        type_feats = {f.id for f in features if f.from_type_name}
+        # слова — после исправления опечаток и раскладки («стулл» → «стул», «cnjk» → «стол»)
+        # первая часть скрытой строки: главное слово типа и все слова, не занятые характеристиками, по порядку
+        # (по ним ищется область; «носки/чулки» не теряются)
+        head_tok = {t.i for t in nq.tokens if t.kind == "word" and any(fuzzy_equal(t.lemma, h) for h in heads)}
+        type_text = " ".join(t.text for t in nq.tokens if t.kind in ("word", "code") and (
+            t.i in det.type_token_idx or t.i in head_tok or t.used_by == "type" or t.used_by in type_feats
+            or (t.used_by is None and t.lemma not in STOPWORDS)))
         # гипотеза модели, противоречащая всем конечным позициям области, не становится фильтром:
         # это сигнал об ошибке в описании (несуществующее значение), а не повод исключить всех кандидатов
         domain_finals = [p for p in positions if not p.is_template]
@@ -596,7 +608,7 @@ class Engine:
         tm["total"] = round((time.perf_counter() - t0) * 1000, 2)
         return SearchResponse(
             status=status, message=message, features=features, unrecognized=self._unrecognized(nq),
-            detected_types=heads, candidates=out, candidates_total=len(ranked), stages=stages, question=question,
+            type_text=type_text, detected_types=heads, candidates=out, candidates_total=len(ranked), stages=stages, question=question,
             properties=[DomainProperty(code=g.key if self.native else g.codes[0], codes=g.codes, ref=g.key if self.native else None, name=g.name, required=g.required,
                                        numeric=g.numeric, boolean=g.boolean,
                                        units=sorted(BY_KEY[k].title for k in g.unit_keys),
@@ -611,6 +623,23 @@ class Engine:
             additional=additional, **base)
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def _key_tokens(tokens) -> set[int]:
+        """Слова названия свойства в записи «ключ: значение» после первой части («шапка; Размер (обхват головы): 61»):
+        это не товар — «головы» не делает тип «головка». Первая часть не исключается («товар: стол»)."""
+        out, seg, first = set(), [], True
+        for t in [*tokens, None]:
+            if t is None or t.lemma in (",", ";"):
+                colon = next((k for k, x in enumerate(seg) if x.lemma == ":"), None)
+                if colon is not None and not first:
+                    out |= {x.i for x in seg[:colon]}
+                if seg:
+                    first = False
+                seg = []
+            else:
+                seg.append(t)
+        return out
+
     @staticmethod
     def _split_disjoint_ambiguous(features: list[Feature], positions: list[Position]) -> list[Feature]:
         """«брюки мужские»: «мужские» подходит к «Половой признак», «Назначение», «Половозрастная группа» разных

@@ -112,8 +112,16 @@ def make_cases(by_head, by_name, rnd: random.Random, n_types: int) -> list[dict]
     return cases
 
 
+CANONICAL = False
+
+
 def run_case(eng, c: dict) -> dict:
-    r = eng.search(SearchRequest(text=c["text"]))
+    if CANONICAL:      # поиск по скрытой строке «тип; ключ: значение» (docs/PARSE_INPUT_PLAN.md, P4)
+        from ktru_assist.canonical import process
+        from ktru_assist.models import Canonical
+        r = process(SearchRequest(text=c["text"], canonical=Canonical()), eng, eng.search)
+    else:
+        r = eng.search(SearchRequest(text=c["text"]))
     found, ref = set(r.compatible_codes), set(c["ref"])
     bound = {norm(f.property_name or "") for f in r.features if f.status == "bound"}
     missing_req = any(x.status == "missing" for x in r.required_characteristics)
@@ -152,7 +160,10 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--types", type=int, default=150)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--canonical", action="store_true", help="поиск по скрытой строке запроса")
     args = ap.parse_args()
+    global CANONICAL
+    CANONICAL = args.canonical
     eng = get_engine()
     by_head, by_name = finals_by_type(eng.catalog)
     cases = make_cases(by_head, by_name, random.Random(args.seed), args.types)

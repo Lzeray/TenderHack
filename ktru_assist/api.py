@@ -118,6 +118,10 @@ def health():
 def api_search(req: SearchRequest) -> SearchResponse:
     if get_engine().native and (req.session_id is None or req.revision is None):
         raise HTTPException(422, "session_id и revision обязательны для семантического пути")
+    if req.canonical is not None:
+        # скрытая строка «тип; ключ: значение» (docs/PARSE_INPUT_PLAN.md, P4)
+        from .canonical import process
+        return process(req, get_engine(), get_orchestrator().run)
     return get_orchestrator().run(req)
 
 

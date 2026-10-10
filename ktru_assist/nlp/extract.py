@@ -201,6 +201,10 @@ def value_aliases_version() -> str:
     return json.loads(path.read_text(encoding="utf-8"))["version"] if path.exists() else "-"
 
 
+def _name_key(name: str) -> str:
+    return " ".join(re.findall(r"\w+", norm(name)))
+
+
 @lru_cache(maxsize=4096)
 def _forms(word: str) -> tuple[tuple[str, frozenset], ...]:
     """Разборы слова: (часть речи, граммемы). Без словаря (snowball) — пусто: согласование не проверяется."""
@@ -469,6 +473,16 @@ class Extractor:
                     best.append(g)
         return sorted(best, key=lambda g: g.key)
 
+    def _exact_name(self, name: str, value: str) -> list[PropGroup]:
+        """Свойство с точно таким названием (без регистра и знаков препинания). У позиций одно название бывает под
+        разными кодами: тогда — группа, где есть это значение, иначе самая частая."""
+        key = _name_key(name)
+        same = [g for g in self.groups.values() if _name_key(g.name) == key]
+        if len(same) <= 1:
+            return same
+        with_value = [g for g in same if self._match_quality_text(g, value) is not None]
+        return [max(with_value or same, key=lambda g: (g.positions, g.key))]
+
     def _explicit_pairs(self, nq: NormalizedQuery) -> list[Feature]:
         tokens = nq.tokens
         feats = []
@@ -492,10 +506,13 @@ class Extractor:
             if not left or not right:
                 continue
             left_lemmas = [tokens[i].lemma for i in left if tokens[i].lemma not in STOPWORDS]
-            groups = [g for g in self._match_name(left_lemmas)
-                      if all(l in GENERIC_NAME_WORDS or any(fuzzy_equal(l, n) for n in content_lemmas(g.name))
-                             for l in left_lemmas)]
             raw_value = nq.text[tokens[right[0]].start:tokens[right[-1]].end]
+            # точное название свойства КТРУ («Тип: на раме», «Тип ткани/трикотажного полотна: смесовая») — сначала;
+            # скрытая строка запроса пишет именно так (docs/PARSE_INPUT_PLAN.md, P4)
+            exact = self._exact_name(nq.text[tokens[left[0]].start:tokens[left[-1]].end], raw_value)
+            groups = exact or [g for g in self._match_name(left_lemmas)
+                               if all(l in GENERIC_NAME_WORDS or any(fuzzy_equal(l, n) for n in content_lemmas(g.name))
+                                      for l in left_lemmas)]
             if not groups:
                 named = nq.text[tokens[left[0]].start:tokens[left[-1]].end]
                 feats.append(self._feature(None, tokens, left + [colon] + right, nq, status="unknown_property",
@@ -509,7 +526,9 @@ class Extractor:
                 continue
             g = groups[0]
             num = self._parse_number_expr(tokens, right[0], set(right))
-            if num is not None and g.numeric:
+            # диапазон у свойства с числовыми значениями-строками («Российский размер: от 48 до 50») — тоже диапазон
+            discrete = num is not None and num[0] == "between" and g.quality and                 all(re.fullmatch(r"[\d.,]+", k) for k in g.quality)
+            if num is not None and (g.numeric or discrete):
                 op, v1, v2, lo_inc, hi_inc, unit_key, used = num
                 feats.append(self._feature(g, tokens, left + [colon] + used, nq, op=op, value=fmt(v1),
                                            value_to=fmt(v2) if v2 is not None else None, min_inclusive=lo_inc,
@@ -518,7 +537,7 @@ class Extractor:
                 continue
             # «наличие мягкого сидения: нет» — значение «Нет», а не отрицание; отрицание — если после «не / нет / без»
             # есть само значение («материал: не лдсп»)
-            neg = tokens[right[0]].lemma in NEGATIONS and len(right) > 1
+            neg = tokens[right[0]].lemma in NEGATIONS and len(right) > 1                 and self._match_quality_text(g, raw_value) is None      # «Без рукавов» — значение КТРУ целиком
             val_idx = right[1:] if neg else right
             text_value = nq.text[tokens[val_idx[0]].start:tokens[val_idx[-1]].end] if val_idx else raw_value
             matched = self._match_quality_text(g, text_value)

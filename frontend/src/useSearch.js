@@ -12,6 +12,9 @@ export function useSearch() {
   const session = useRef(null);
   if (!session.current) session.current = newSession();
   const parameters = useRef(emptyParameters());
+  // Скрытая строка «тип; ключ: значение» (docs/PARSE_INPUT_PLAN.md, P4): поиск идёт по ней, видимая строка — только
+  // для ввода. Решения пользователя (ответы, выбор варианта, правки) хранятся в ней, пока их фрагмент есть в тексте.
+  const canonical = useRef({ items: [] });
   const query = useRef("");
   const timers = useRef([]);
   const mounted = useRef(true);
@@ -44,10 +47,22 @@ export function useSearch() {
     const kind = stage === "draft" ? "fast" : "model";
     setBusy(previous => ({ ...previous, [kind]: true }));
     if (stage === "submitted") s.pending.submitted = rev;
+    const sent = parameters.current;
     try {
-      const data = await post("/api/search", { text: input, session_id: s.sessionId, revision: rev, stage, action, ...parameters.current });
+      const data = await post("/api/search", { text: input, session_id: s.sessionId, revision: rev, stage, action, ...sent,
+        canonical: canonical.current });
       if (!mounted.current || !shouldApply(s, data)) return;
       markShown(s, data);
+      if (data.canonical) {
+        canonical.current = data.canonical;
+        // ответы и правки уже записаны в скрытую строку
+        if (parameters.current === sent) parameters.current = { ...sent, overrides: [], answers: [] };
+      }
+      // Enter: в строке ввода исправляется только орфография
+      if (stage === "submitted" && s.pending.enter === rev && data.corrected_text && query.current === input) {
+        query.current = data.corrected_text;
+        setText(data.corrected_text);
+      }
       resultRef.current = data;
       setResult(data);
       setError("");
@@ -71,13 +86,15 @@ export function useSearch() {
         ? "Дополнительный разбор недоступен. Быстрый поиск продолжает работать." : failure.message);
     } finally {
       if (s.pending.submitted === rev) delete s.pending.submitted;
+      if (stage === "submitted" && s.pending.enter === rev) delete s.pending.enter;
       if (mounted.current && rev === s.revision) setBusy(previous => ({ ...previous, [kind]: false }));
     }
   }, []);
 
   const changeText = useCallback(value => {
     clearTimers();
-    if (value !== query.current) parameters.current = emptyParameters();
+    // текст меняется — решения пользователя не сбрасываются: сервер сверит их с фрагментами текста
+    if (!value.trim()) { parameters.current = emptyParameters(); canonical.current = { items: [] }; }
     query.current = value;
     setText(value);
     setError("");
@@ -93,7 +110,11 @@ export function useSearch() {
     }
   }, [clearTimers, register, run]);
 
-  const submit = useCallback(() => { clearTimers(); run("draft"); run("submitted"); }, [clearTimers, run]);
+  const submit = useCallback(() => {
+    clearTimers();
+    session.current.pending.enter = session.current.revision;
+    run("draft"); run("submitted");
+  }, [clearTimers, run]);
   const mutate = useCallback(update => {
     clearTimers();
     parameters.current = update(parameters.current);

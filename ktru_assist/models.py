@@ -26,6 +26,27 @@ class Constraint(BaseModel):
 RunStage = Literal["draft", "submitted"]
 
 
+class CanonItem(BaseModel):
+    """Пара «ключ: значение» скрытой строки запроса (docs/PARSE_INPUT_PLAN.md, P4).
+
+    text — разобрано из видимого текста (пересчитывается при каждом запросе); answer / override — решение
+    пользователя (ответ на вопрос, выбор варианта, ручная правка): живёт, пока его фрагмент есть в видимом тексте
+    (evidence) или всегда, если фрагмента нет."""
+    source: Literal["text", "answer", "override"]
+    key: Optional[str] = Field(None, description="характеристика КТРУ или названное пользователем свойство")
+    value: Optional[str] = None
+    text: str = Field(description="запись в скрытой строке: «ключ: значение» или исходный фрагмент")
+    evidence: Optional[str] = Field(None, description="фрагмент видимого текста")
+    constraint: Optional["Constraint"] = Field(None, description="решение пользователя как ограничение")
+
+
+class Canonical(BaseModel):
+    """Скрытая строка запроса: «тип; ключ: значение; …». Поиск идёт по ней, видимая строка — только для ввода."""
+    type: Optional[str] = None
+    items: list[CanonItem] = Field(default_factory=list)
+    text: str = ""
+
+
 class SearchRequest(BaseModel):
     text: str = Field(max_length=2000)
     session_id: Optional[str] = Field(None, max_length=64, description="идентификатор сеанса интерфейса")
@@ -41,6 +62,8 @@ class SearchRequest(BaseModel):
     answers_query_hash: Optional[str] = Field(None, description="хеш нормализованного текста, к которому даны ответы")
     corrections: dict[str, str] = Field(default_factory=dict, description="выбор исправления опечатки: слово → вариант")
     top_k: Optional[int] = Field(None, ge=1, le=500)
+    canonical: Optional[Canonical] = Field(None, description="скрытая строка предыдущего ответа; если задана, поиск "
+                                                              "идёт по скрытой строке (docs/PARSE_INPUT_PLAN.md, P4)")
 
 
 class Step(BaseModel):
@@ -400,5 +423,12 @@ class SearchResponse(BaseModel):
         default_factory=list, description="обязательные характеристики КТРУ оставшихся позиций: сначала общие")
     optional_characteristics: list[Feature] = Field(
         default_factory=list, description="распознанные необязательные характеристики КТРУ (заполнять не предлагаются)")
+    type_text: str = Field("", description="слова описания, которыми назван тип товара")
+    canonical: Optional[Canonical] = Field(None, description="скрытая строка запроса для следующего запроса")
+    corrected_text: Optional[str] = Field(None, description="видимая строка с исправленной орфографией")
     additional: list[AdditionalCharacteristic] = Field(
         default_factory=list, description="характеристики вне КТРУ: из СТЕ, из памяти сессии или новые")
+
+
+CanonItem.model_rebuild()
+SearchRequest.model_rebuild()

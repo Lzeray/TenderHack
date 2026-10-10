@@ -92,6 +92,9 @@ class Feature(BaseModel):
     characteristic_ref: Optional[str] = None
     values: list[str] = Field(default_factory=list, max_length=30)
     named_property: Optional[str] = Field(None, description="название свойства из текста, которого нет в области КТРУ")
+    dims: list[dict[str, Any]] = Field(default_factory=list,
+                                       description="габариты: числа по порядку [{value, unit}] (docs/DIMENSIONS_PLAN.md)")
+    dims_axes: list[str] = Field(default_factory=list, description="оси из подписи «ДхШхВ», если есть")
 
 
 class Span(BaseModel):
@@ -237,7 +240,7 @@ class QuestionOption(BaseModel):
 
 
 class Question(BaseModel):
-    kind: Literal["property", "type", "manual_choice", "confirm"]
+    kind: Literal["property", "type", "manual_choice", "confirm", "dims"]
     property_code: Optional[str] = None
     property_name: Optional[str] = None
     text: str

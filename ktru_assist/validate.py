@@ -127,6 +127,13 @@ def conflicting_conditions(features: list[Feature], positions: list[Position], t
 WIDER_MARK = "значение КТРУ шире запроса"
 
 
+def _num(s: str | None) -> Decimal | None:
+    try:
+        return Decimal((s or "").replace(",", ".").strip())
+    except InvalidOperation:
+        return None
+
+
 def numeric_steps(comparable: list[Interval], U: Interval) -> tuple[list[Interval], list[Interval]]:
     """Ступени КТРУ для диапазона пользователя: (целиком внутри, пересекаются частично).
     Касание одной граничной точкой не считается пересечением."""
@@ -239,6 +246,15 @@ def check_feature(pos: Position, f: Feature) -> tuple[str, str, Prop | None]:
     if U is not None and prop.is_numeric:
         st, why = check_numeric(prop, f, U)
         return st, why, prop
+    if U is not None and not U.is_point and quality_values and not prop.is_boolean:
+        # дискретное свойство с числовыми значениями («Российский размер»: 44, 46 …): диапазон «48-50»
+        # подходит, если хотя бы одно значение позиции внутри него (docs/DIMENSIONS_PLAN.md, D5)
+        nums = [(v.text, _num(v.text)) for v in quality_values]
+        if all(x is not None for _, x in nums):
+            inside = [t for t, x in nums if U.contains_point(x)]
+            if inside:
+                return "valid", f"{describe_user(f)}: подходят значения КТРУ {', '.join(inside[:8])}", prop
+            return "invalid", f"{describe_user(f)}: среди допустимых ({', '.join(allowed[:12])}) нет значений в диапазоне", prop
     if f.op == "ne":
         others = [v for v in quality_values if not _quality_match(Prop("", "", None, None, False, [v]), f.value or "", f.strict_ref)]
         if quality_values and not others:

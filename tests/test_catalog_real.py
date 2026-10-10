@@ -75,3 +75,30 @@ def test_overall_axis_preferred_over_part(real_engine):
     r = real_engine.search(SearchRequest(text="стеллаж высота 2 м ширина 1 м глубина 40 см"))
     f = next(f for f in r.features if f.evidence and "глубина" in f.evidence)
     assert f.status == "bound" and f.property_name == "Глубина стеллажа"
+
+
+def test_dims_question_and_answer(real_engine):
+    t = "стол обеденный 120 на 80 на 75 см"
+    r = real_engine.search(SearchRequest(text=t))
+    assert r.question is not None and r.question.kind == "dims"
+    assert r.question.options[0].label == "длина 120 см, ширина 80 см, высота 75 см"
+    # пока раскладка не выбрана, габариты не участвуют в подборе
+    assert not any(f.status == "bound" and f.property_name and "столешниц" in f.property_name for f in r.features)
+    r2 = real_engine.search(SearchRequest(text=t, answers=r.question.options[0].answers, answers_query_hash=r.query_hash))
+    bound = {f.property_name: f.value for f in r2.features if f.status == "bound" and f.source == "answer"}
+    assert bound == {"Длина столешницы": "120", "Ширина столешницы": "80", "Высота до столешницы": "75"}
+
+
+def test_dims_packaging_and_missing_axes(real_engine):
+    r = real_engine.search(SearchRequest(text="стол письменный в упаковке 120х60х10 см"))
+    assert any(f.named_property == "размеры упаковки" for f in r.features)
+    r = real_engine.search(SearchRequest(text="сверло по металлу 6х100"))
+    assert any(f.named_property == "габариты" and f.status == "unknown_property" for f in r.features)
+
+
+def test_discrete_range_values(real_engine):
+    r = real_engine.search(SearchRequest(text="куртка зимняя из текстильных материалов женская размер 48-50"))
+    f = next(f for f in r.features if f.property_name == "Российский размер")
+    c = next(c for c in r.candidates if c.compatible)
+    k = next(k for k in c.checks if k.feature_id == f.id)
+    assert k.status == "valid" and "48" in k.reason and "50" in k.reason

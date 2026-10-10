@@ -91,3 +91,9 @@ def test_dimension_notation_normalization():
     assert "от 135 до 145 см" in normalize("длина 140±5 см").text
     assert "от 540 до 660 вт" in normalize("мощность 600 ± 10 % Вт").text
     assert "около 140" in normalize("~140 см").text
+
+
+def test_dimensions_separator_normalization():
+    assert "120 x 60 x 75 см" in normalize("стол 120 на 60 на 75 см").text
+    assert "120 см x 60 см" in normalize("стол 120 см на 60 см").text
+    assert "на 4 ножках" in normalize("стол на 4 ножках").text

@@ -22,6 +22,7 @@
 from __future__ import annotations
 
 import itertools
+import re
 import json
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -44,6 +45,18 @@ LE_WORDS = {("не", "более"), ("не", "больше"), ("не", "выше
             ("<=",), ("≤",), ("<",), ("максимум",)}
 STRICT = {("более",), ("больше",), ("свыше",), (">",), ("менее",), ("меньше",), ("<",)}
 BOUNDARY = {",", ";", ":", "(", ")"}
+def _as_number(s: str) -> Decimal | None:
+    try:
+        return Decimal(s.replace(",", "."))
+    except Exception:
+        return None
+
+
+# габариты: подпись осей «дхшхв», «шхгхв» (после нормализации — одно слово), общие слова и упаковка
+DIMS_LABEL = re.compile(r"[дшгв](?:[xх][дшгв]){1,2}")
+AXIS_LETTER = {"д": "длина", "ш": "ширина", "г": "глубина", "в": "высота"}
+DIMS_WORDS = lemma_set({"габарит", "габаритный", "размер"})
+PACKAGING_WORDS = lemma_set({"упаковка", "коробка", "тара"})
 # «около / примерно X»: у измеряемых величин — интервал ±5 % (Decimal, без округления)
 APPROX_WORDS = {"около", "примерно", "приблизительно", "порядка", "ориентировочно"}
 APPROX_LO, APPROX_HI = Decimal("0.95"), Decimal("1.05")
@@ -289,6 +302,7 @@ class Extractor:
         self._nq_text = nq.text
         feats: list[Feature] = []
         feats += self._explicit_pairs(nq)
+        feats += self._dimensions(nq)
         feats += self._numbers(nq)
         feats += self._booleans(nq)
         feats += self._value_aliases(nq)
@@ -296,6 +310,58 @@ class Extractor:
         self._bound_keys = {" ".join(tokenize(f.property_name)) for f in feats
                             if f.status == "bound" and f.property_name}
         feats += self._qualities(nq)
+        return feats
+
+    # габариты «120 x 60 x 75 см» ---------------------------------------------------
+    def _dimensions(self, nq: NormalizedQuery) -> list[Feature]:
+        """Габариты из 2–3 чисел через «x» (после нормализации: «х», «×», «*», «на»).
+
+        Признак остаётся неоднозначным: оси назначает движок (ktru_assist/dims.py::resolve) по общим размерам
+        типа, ступеням КТРУ и выгрузкам и спрашивает пользователя. Подпись «ДхШхВ» перед числами задаёт оси.
+        «В упаковке 120х60х10» — не размеры товара. docs/DIMENSIONS_PLAN.md, D4."""
+        tokens, n, feats = nq.tokens, len(nq.tokens), []
+        i = 0
+        while i < n:
+            if tokens[i].kind != "number" or tokens[i].used_by is not None:
+                i += 1
+                continue
+            nums, k = [(i, None)], i + 1
+            if k < n and tokens[k].kind == "unit":
+                nums[-1] = (i, k)
+                k += 1
+            while k + 1 < n and tokens[k].text == "x" and tokens[k + 1].kind == "number" and len(nums) < 3:
+                nums.append((k + 1, None))
+                k += 2
+                if k < n and tokens[k].kind == "unit":
+                    nums[-1] = (nums[-1][0], k)
+                    k += 1
+            if len(nums) < 2:
+                i += 1
+                continue
+            last_unit = next((u for _, u in reversed(nums) if u is not None), None)
+            dims = []
+            for j, u in nums:
+                ut = u if u is not None else last_unit
+                dims.append({"value": fmt(Decimal(tokens[j].lemma)),
+                             "unit": BY_KEY[tokens[ut].unit_key].title if ut is not None and tokens[ut].unit_key else None})
+            idxs = [j for j, _ in nums] + [u for _, u in nums if u is not None] +                 [x for x in range(i, k) if tokens[x].text == "x"]
+            back = [x for x in range(max(0, i - 4), i) if tokens[x].used_by is None]
+            label = next((x for x in back if DIMS_LABEL.fullmatch(tokens[x].text)), None)
+            axes = [AXIS_LETTER[c] for c in tokens[label].text[::2]] if label is not None else []
+            packaging = any(tokens[x].lemma in PACKAGING_WORDS for x in back)
+            generic = [x for x in back if tokens[x].lemma in DIMS_WORDS]
+            idxs += ([label] if label is not None else []) + generic
+            shown = "×".join(d["value"] for d in dims) + (f" {last_unit and BY_KEY[tokens[last_unit].unit_key].title}"
+                                                          if last_unit is not None else "")
+            if packaging:
+                feats.append(self._feature(None, tokens, idxs, nq, status="unknown_property", value=shown,
+                                           named_property="размеры упаковки",
+                                           note="размеры упаковки — не размеры товара, в подборе не участвуют"))
+            else:
+                feats.append(self._feature(None, tokens, idxs, nq, status="ambiguous", value=shown, dims=dims,
+                                           dims_axes=axes if len(axes) == len(dims) else [],
+                                           note="габариты: оси назначаются после подтверждения"))
+            i = k
         return feats
 
     # 5. алиасы значений --------------------------------------------------------
@@ -525,9 +591,12 @@ class Extractor:
                 return out
             explicit = named(cand, False) or named(numeric_groups, False) or \
                 named(cand, True) or named(numeric_groups, True)
-            if not explicit and unit is None and op == "eq":
-                # качественное свойство с числовыми значениями («Российский размер»: 44, 46 …)
-                textual = [g for g in self.groups.values() if not g.numeric and fmt(v1) in g.quality]
+            if not explicit and unit is None and op in ("eq", "between"):
+                # качественное свойство с числовыми значениями («Российский размер»: 44, 46 …); диапазон
+                # «размер 48-50» — значения свойства внутри диапазона (docs/DIMENSIONS_PLAN.md, D5)
+                lo_v, hi_v = v1, (v2 if v2 is not None else v1)
+                textual = [g for g in self.groups.values() if not g.numeric and any(
+                    (x := _as_number(q)) is not None and lo_v <= x <= hi_v for q in g.quality)]
                 explicit = named(textual, False) or named(textual, True)
             kw = dict(op=op, value=fmt(v1), value_to=fmt(v2) if v2 is not None else None,
                       min_inclusive=lo_inc, max_inclusive=hi_inc, unit=unit.title if unit else None)
@@ -583,6 +652,11 @@ class Extractor:
                                                note="рядом названия нескольких свойств", **kw))
             elif unit is not None and not dims_part:
                 same_dim = sorted(cand, key=lambda g: g.key)
+                if unit.dimension == "length":
+                    # длина без названия измерения («стол 120 см») не бывает толщиной: толщину нужно назвать явно.
+                    # Размеры частей не исключаются: «сверло 12 мм» — диаметр, «футболка 164 см» — рост
+                    # (docs/DIMENSIONS_PLAN.md)
+                    same_dim = [g for g in same_dim if not g.name.lower().startswith("толщина")]
                 if len(same_dim) == 1:
                     feats.append(self._feature(same_dim[0], tokens, used, nq,
                                                note=f"единственное свойство размерности «{unit.dimension}» в области",
@@ -591,6 +665,10 @@ class Extractor:
                     feats.append(self._feature(None, tokens, used, nq, status="ambiguous",
                                                options=[self._opt(g) for g in same_dim],
                                                note="несколько свойств такой размерности — укажите свойство", **kw))
+                elif unit.dimension == "length" and cand:
+                    feats.append(self._feature(None, tokens, used, nq, status="unknown_property",
+                                               note="размер без названия измерения: у позиций этого типа из "
+                                                    "размеров есть только толщины — их нужно назвать явно", **kw))
                 else:
                     other = [g for g in numeric_groups if g.dims]
                     feats.append(self._feature(None, tokens, used, nq, status="unknown_property",

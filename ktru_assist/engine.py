@@ -24,6 +24,7 @@ from .nlp.normalize import NormalizedQuery, normalize
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
 from . import empirical, suspicious
+from .dims import resolve as resolve_dims
 from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
@@ -252,6 +253,8 @@ class Engine:
         features = self._apply_constraints(features, [a for a in answers if a.property != TYPE_PROP], "answer",
                                            groups, issues)
         features = self._apply_constraints(features, req.overrides, "override", groups, issues)
+        # габариты «120×60×75»: раскладка по осям — только после выбора пользователя (docs/DIMENSIONS_PLAN.md, D4)
+        dims_question = None if self.native else resolve_dims(features, positions, heads, self.ste_stats)
         group_names = {c: g.key for g in groups.values() for c in g.codes}
         if self.native:
             from .resolver import MergeResult
@@ -468,6 +471,8 @@ class Engine:
                     question = None if self.native and not type_confirmed else choose_question(
                         finals_pos, constrained, type_confirmed, req_unknown,
                         type_first=bool(det.ambiguous_aliases) or weak_single_name, strict_refs=self.native)
+                if dims_question is not None and (question is None or question.kind != "type"):
+                    question = dims_question
                 if question is not None and question.kind == "manual_choice":
                     status = "manual_choice"
                     message = question.text

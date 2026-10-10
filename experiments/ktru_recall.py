@@ -29,9 +29,29 @@ sys.path.insert(0, str(ROOT))
 
 from ktru_assist.api import get_engine  # noqa: E402
 from ktru_assist.models import SearchRequest  # noqa: E402
-from ktru_assist.text import head_lemma, norm  # noqa: E402
+from ktru_assist.text import content_lemmas, norm  # noqa: E402
 
 KIND = "вид товара"
+PREPOSITIONS = {"для", "под", "к", "ко", "с", "со", "на", "из", "от", "по", "в", "во", "без", "при", "над", "о", "об",
+                "у", "за", "до"}
+
+
+def item_words(name: str, heads: set[str]) -> set[str]:
+    """Эталон без кода ядра: слова типа в наименовании, не стоящие после предлога в своей группе (до запятой, «/»,
+    скобки или начала) — решение команды (docs/QUESTIONS_PLAN.md, Q1)."""
+    import re
+    from ktru_assist.text import lemma
+    parts = re.findall(r"[а-яёa-z]+(?:-[а-яёa-z]+)*|[,/()]", name.lower())
+    out = set()
+    for i, w in enumerate(parts):
+        if w in ",/()" or lemma(w) not in heads:
+            continue
+        j = i - 1
+        while j >= 0 and parts[j] not in ",/()" and parts[j] not in PREPOSITIONS:
+            j -= 1
+        if j < 0 or parts[j] in ",/()":
+            out.add(lemma(w))
+    return out
 
 PROBES = ["стол", "шкаф", "стул", "куртка", "молоток", "пассатижи", "стол деревянный", "стол письменный",
           "стол письменный деревянный", "шкаф для одежды металлический", "куртка зимняя женская",
@@ -47,7 +67,14 @@ def finals_by_type(cat) -> tuple[dict[str, list], dict[str, list]]:
         p = pos[r["code"]]
         by_head[r["head"]].append(p)
         by_name[r["name"]].append(p)
-    return by_head, by_name
+    # эталонная область типа — как определено решением команды (docs/QUESTIONS_PLAN.md, Q1): главное слово и слова
+    # типа в наименовании не после предлога («Секция стульев многоместная» — стул); выборка запросов — по главному
+    heads = set(by_head)
+    by_type = collections.defaultdict(list)
+    for r in rows:
+        for h in {r["head"]} | item_words(r["name"], heads):
+            by_type[h].append(pos[r["code"]])
+    return by_head, by_name, by_type
 
 
 def quality_props(p) -> list:
@@ -56,10 +83,11 @@ def quality_props(p) -> list:
 
 
 def other_item(p, head: str) -> bool:
-    """«Вид товара» позиции — другое изделие («Секция шкафа» у типа «шкаф»): решение команды, K1."""
+    """«Вид товара» позиции — другое изделие: слова типа нет ни в одном значении («Тумба» у «стол»); «Секция стола» —
+    тоже стол (решение команды, docs/QUESTIONS_PLAN.md, Q1)."""
     pr = next((x for x in p.props.values() if norm(x.name) == KIND), None)
     vals = [v.text for v in pr.values if v.kind == "quality" and v.text] if pr else []
-    return bool(vals) and all(head_lemma(v) != head for v in vals)
+    return bool(vals) and all(head not in content_lemmas(v) for v in vals)
 
 
 def reference(universe: list, stated: list[tuple[str, str]], head: str) -> set[str]:
@@ -79,7 +107,7 @@ def reference(universe: list, stated: list[tuple[str, str]], head: str) -> set[s
     return out
 
 
-def make_cases(by_head, by_name, rnd: random.Random, n_types: int) -> list[dict]:
+def make_cases(by_head, by_name, rnd: random.Random, n_types: int, by_type=None) -> list[dict]:
     heads = sorted(h for h, ps in by_head.items() if len(ps) >= 2)
     rnd.shuffle(heads)
     cases = []
@@ -101,8 +129,10 @@ def make_cases(by_head, by_name, rnd: random.Random, n_types: int) -> list[dict]
             variants["mixed"] = rnd.sample(main, min(2, len(main))) + rnd.sample(other, 1)
         # по наименованию подходят и более частные наименования с теми же словами («Джинсы» → «Джинсы детские»)
         core = set(t.name_lemmas)
-        universe_n = [p for p in universe_h if core <= set(p.name_lemmas)]
-        for level, word, universe in (("head", h, universe_h), ("name", t.name, universe_n)):
+        # эталонная область — по определению типа (by_type); выборка запросов — по главному слову (как раньше)
+        universe_t = (by_type or {}).get(h) or universe_h
+        universe_n = [p for p in universe_t if core <= set(p.name_lemmas)]
+        for level, word, universe in (("head", h, universe_t), ("name", t.name, universe_n)):
             for var, chosen in variants.items():
                 stated = [(pr.name, rnd.choice([v.text for v in pr.values])) for pr in chosen]
                 text = ", ".join([word.lower()] + [f"{n.lower()} {v.lower()}" for n, v in stated])
@@ -165,8 +195,8 @@ def main() -> int:
     global CANONICAL
     CANONICAL = args.canonical
     eng = get_engine()
-    by_head, by_name = finals_by_type(eng.catalog)
-    cases = make_cases(by_head, by_name, random.Random(args.seed), args.types)
+    by_head, by_name, by_type = finals_by_type(eng.catalog)
+    cases = make_cases(by_head, by_name, random.Random(args.seed), args.types, by_type)
     rows = [{**c, "res": run_case(eng, c)} for c in cases]
     probes = []
     for t in PROBES:

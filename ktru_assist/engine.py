@@ -273,7 +273,19 @@ class Engine:
         # характеристик, если в описании полностью названо более общее наименование («стул»)
         basis = name_basis or positions
         domain_name_lemmas = {l for p in basis for l in p.name_lemmas}
-        name_tok_idx = set() if self.native else self._name_tokens(nq.tokens, basis) | det.type_token_idx
+        # слова типа: найденное наименование, слова распознанного типа и главное слово найденного типа в первой части
+        # описания («рукавица, …» — тип, а не «Вид: Рукавицы» у «Перчатки, рукавицы (варежки)»); дальше по тексту
+        # главное слово может быть значением («…, наименование изделия — брюки»)
+        # (только первое вхождение: «захвата тип — захват эксцентрикового типа» — второе уже значение)
+        first_part = next((t.i for t in nq.tokens if t.lemma in (",", ";")), len(nq.tokens))
+        head_first = {}
+        for tok in nq.tokens:
+            if tok.i < first_part and tok.kind == "word":
+                h = next((h for h in heads if fuzzy_equal(tok.lemma, h)), None)
+                if h is not None:
+                    head_first.setdefault(h, tok.i)
+        name_tok_idx = set() if self.native else (
+            self._name_tokens(nq.tokens, basis) | det.type_token_idx | set(head_first.values()))
         extractor = None if self.native else Extractor(
             groups, self.known_terms - domain_name_lemmas, name_tokens=name_tok_idx, type_heads=heads)
         features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
@@ -555,6 +567,15 @@ class Engine:
                     and any(a.property != TYPE_PROP for a in answers) and not self.native):
                 type_confirmed = True
             proven = single and type_confirmed and res_b.complete and not blocking_feats
+            # пользователь назвал характеристики КТРУ, а у единственной позиции нет ни одной из них: ни одна не
+            # проверена (unknown ≠ valid) — кода нет («Банкетка … без обивки» → «Стул (банкетка)» без этих свойств)
+            if single and not self.native:
+                stated = [f for f in features if f.status == "bound" and f.source == "text" and f.property_name
+                          and not f.from_type_name]
+                checks = {k.feature_id: k for k in ev0.checks if k.feature_id} if ev0 else {}
+                if stated and all(checks.get(f.id) is not None and checks[f.id].status == "unknown"
+                                  and checks[f.id].unknown_reason == "property_absent" for f in stated):
+                    gate.append("ни одна из указанных характеристик у позиции не проверяется")
             if proven and not gate:
                 code_res = CodeResolution(status="resolved", code=finals_pos[0].code, remaining=1,
                                           reason="единственная конечная позиция в полностью проверенной области "

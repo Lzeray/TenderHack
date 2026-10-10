@@ -142,3 +142,8 @@ def test_long_property_name_in_segment(real_engine):
     t = "пила ручная, вид пилы: обушковая, длина режущей части полотна (без учета предельного отклонения) 56,2 см"
     f = next(f for f in real_engine.search(SearchRequest(text=t)).features if f.unit == "см")
     assert f.status == "bound" and f.property_name.startswith("Длина режущей части полотна")
+
+
+def test_length_misspelling_binds_length_with_unit(real_engine):
+    f = next(f for f in real_engine.search(SearchRequest(text="молоток длинной от 200")).features if f.value == "200")
+    assert (f.status, f.property_name, f.op, f.unit, f.unit_inferred) == ("bound", "Длина рукоятки", "ge", "мм", True)

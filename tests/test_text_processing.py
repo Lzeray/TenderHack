@@ -105,3 +105,9 @@ def test_quotes_and_size_height_notation():
     assert "размер 48-50 рост 182-188 см" in normalize("Куртка 48-50/182-188").text
     assert "размер 54-56 рост 158-164 см" in normalize("Брюки р. 54-56/158-164см").text
     assert "12/24" in normalize("напряжение 12/24 В").text                     # не размер/рост
+
+
+def test_common_length_misspelling():
+    assert "длиной от 200" in normalize("молоток длинной от 200").text
+    assert "длина 300" in normalize("молоток длинна 300").text
+    assert "длинный молоток" in normalize("длинный молоток").text        # прилагательное не трогаем

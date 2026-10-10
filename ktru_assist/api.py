@@ -229,6 +229,15 @@ def api_position(code: str):
     }
 
 
+@app.middleware("http")
+async def no_cache_ui(request, call_next):
+    """Интерфейс без кэша браузера: после обновления кода страница и скрипты сразу новые."""
+    response = await call_next(request)
+    if request.url.path == "/" or request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.get("/")
 def index():
     return FileResponse(WEB / "index.html")

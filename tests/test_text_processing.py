@@ -131,3 +131,27 @@ def test_typo_stem_fallback_and_ending():
     # «кругой»: окончание «-ой» есть только у «круглой» (а не у «круг», «дуга»)
     res = tc.correct(normalize("стол кругой").tokens, {})
     assert res[0].status == "corrected" and res[0].corrected == "круглой"
+
+
+def test_merged_and_split_words():
+    tc = TypoCorrector(["шкаф для одежды", "шуруповерт аккумуляторный", "кресло с подлокотниками"])
+    nq = normalize("шкафдля одежды")
+    res = tc.correct(nq.tokens, {})
+    assert res[0].corrected == "шкаф для" and [t.text for t in nq.tokens] == ["шкаф", "для", "одежды"]
+    assert [t.i for t in nq.tokens] == [0, 1, 2]                          # перенумерованы
+    assert nq.tokens[0].start == 0 and nq.tokens[1].end == 7              # координаты внутри исходного токена
+    nq = normalize("шуруп оверт аккумуляторный 18 в")
+    res = tc.correct(nq.tokens, {})
+    assert res[0].corrected == "шуруповерт" and nq.tokens[0].text == "шуруповерт" and nq.tokens[1].text == "аккумуляторный"
+    assert [t.i for t in nq.tokens] == list(range(len(nq.tokens)))
+    # пользователь оставил раздельно — не склеиваем
+    nq = normalize("шуруп оверт")
+    assert tc.correct(nq.tokens, {"шуруп оверт": "шуруп оверт"}) == []
+    # два настоящих слова не склеиваются, даже если вместе — слово каталога
+    tc2 = TypoCorrector(["подставка"])
+    nq = normalize("под ставка")
+    assert tc2.correct(nq.tokens, {}) == [] and len(nq.tokens) == 2
+    # выбор пользователя с пробелом разбивает токен
+    nq = normalize("креслосподлокотниками")
+    tc.correct(nq.tokens, {"креслосподлокотниками": "кресло с подлокотниками"})
+    assert [t.text for t in nq.tokens] == ["кресло", "с", "подлокотниками"]

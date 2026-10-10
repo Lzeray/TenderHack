@@ -121,8 +121,8 @@ def corrupt(text: str, kind: str, rnd: random.Random) -> str | None:
         w2 = w[:k] + " " + w[k:]
     else:
         raise ValueError(kind)
-    if w2 == w or is_known_word(w2.replace(" ", "")):
-        return None                      # получилось настоящее слово — это другой класс ошибок
+    if w2 == w or (" " not in w2 and is_known_word(w2)) or (" " in w2 and all(map(is_known_word, w2.split()))):
+        return None                      # получилось настоящее слово (слова) — это другой класс ошибок
     return " ".join(words[:i] + [w2] + words[i + 1:])
 
 

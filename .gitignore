@@ -16,3 +16,5 @@ data/models/
 data/cache/
 data/logs/
 reports/runs/
+data/portal_characteristics.json
+benchmark/local_suites/

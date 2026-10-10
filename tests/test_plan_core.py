@@ -238,3 +238,55 @@ def test_dimension_error_is_explicit_issue(engine):
     assert "Вт" in i.message and i.level == "error"
     r2 = search(engine, "дрель ручная электрическая от сети мощность 600 вт")
     assert not any(i.code == "dimension_mismatch" for i in r2.issues)
+
+
+# --- слова наименования, единицы КТРУ, источник характеристики ------------------------
+def test_name_words_do_not_choose_position(engine):
+    text = "перчатки швейные для защиты от внешних воздействий, вид защиты: от пониженных температур"
+    r = search(engine, text)
+    assert r.status == "matched" and r.final_code == "14.12.30.150-96000002"
+    dropped = [f for f in r.features if f.status == "removed" and "наименования" in f.note]
+    assert dropped and dropped[0].value == "От механических воздействий"
+
+
+def test_name_words_alone_do_not_give_code(engine):
+    r = search(engine, "перчатки швейные для защиты от внешних воздействий")
+    assert r.final_code is None and r.status == "clarification_needed"
+
+
+def test_name_value_compatible_with_all_is_kept(engine):
+    # «Стул на металлическом каркасе»: значения из наименования, совместимые со всеми, не снимаются
+    r = search(engine, "стул на металлическом каркасе без мягкого сиденья")
+    assert r.final_code == "31.01.11.150-91000002"
+
+
+def test_value_in_ktru_unit(engine):
+    r = search(engine, "пассатижи рыбацкие длина 17,5 см")
+    f = feat(r, "Длина")[0]
+    assert (f.value, f.unit, f.ktru_value, f.ktru_unit) == ("17,5", "см", "175", "мм")
+
+
+def test_characteristic_source_ktru_portal_new(engine, tmp_path, monkeypatch):
+    import json
+    from ktru_assist.portal import characteristics as pc
+    idx = tmp_path / "portal.json"
+    idx.write_text(json.dumps({"index": {"tools": {"Цвет": {"name": "Цвет", "lemmas": ["цвет"]}}}},
+                              ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(pc, "INDEX", idx)
+    pc.lookup_index.cache_clear()
+    try:
+        r = search(engine, "пассатижи слесарные 190 мм, цвет: красный, абракадабра: 5")
+        src = {(f.evidence or "").split(":")[0]: f.char_source for f in r.features}
+        assert src["цвет"] == "portal" and src["абракадабра"] == "new"
+        assert feat(r, "Вид пассатижей")[0].char_source == "ktru"
+    finally:
+        pc.lookup_index.cache_clear()
+
+
+def test_explicit_value_beats_name_words(engine):
+    # «… для защиты от внешних воздействий, вид защиты: от пониженных температур» — явное значение главнее
+    r = search(engine, "перчатки швейные для защиты от внешних воздействий, вид защиты: от пониженных температур")
+    vals = [f.value for f in feat(r, "Вид защиты") if f.status == "bound"]
+    assert vals == ["От пониженных температур"]
+    # настоящее противоречие (оба значения названы явно, не словами наименования) остаётся противоречием
+    assert search(engine, "пассатижи слесарные рыбацкие 170 мм").status == "conflict"

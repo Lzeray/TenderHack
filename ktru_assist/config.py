@@ -17,7 +17,7 @@ VERSIONS = {
     "validator": "1.1",       # семантика требования (intent=requirement)
     "ranking": "1.0",
     "clarifier": "1.1",       # сначала тип при неоднозначном алиасе
-    "engine": "2.1",          # 2.0 реестр типов, защита завершения, code_resolution; 2.1 dimension_mismatch
+    "engine": "2.2",          # 2.1 dimension_mismatch; 2.2 слова наименования, единицы КТРУ, источник характеристики
     "type_registry": "1.0",
     "resolver": "1.0",
     "plausibility": "1.0",

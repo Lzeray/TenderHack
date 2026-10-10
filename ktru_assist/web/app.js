@@ -166,16 +166,21 @@ function renderFeatures(d) {
         prop = `<select data-amb="${i}"><option value="">выберите свойство…</option>${f.options.map((o, k) => `<option value="${k}">${esc(o.property_name)}${o.value ? " = " + esc(o.value) : ""}</option>`).join("")}</select>`;
       }
       const editable = f.status === "bound" && f.property_name && f.source !== "model";
-      const val = editable ? `<input data-edit="${i}" value="${esc(featureValue(f))}" size="10">` : `<span class="${dim ? "strike" : ""}">${esc(featureValue(f))}</span>`;
+      let val = editable ? `<input data-edit="${i}" value="${esc(featureValue(f))}" size="10">` : `<span class="${dim ? "strike" : ""}">${esc(featureValue(f))}</span>`;
+      if (f.ktru_value && (f.ktru_value !== f.value || f.ktru_unit !== f.unit)) {
+        val += `<div class="ev unified" title="значение в единице характеристики КТРУ">→ ${esc(f.ktru_value)} ${esc(f.ktru_unit)} (по КТРУ)</div>`;
+      }
       const ev = f.evidence ? `<div class="ev">«${esc(f.evidence)}»</div>` : "";
       const note = f.note ? `<div class="ev">${esc(f.note)}</div>` : "";
       const conf = f.source === "model" ? (f.confirmation === "tentative" ? ' <span class="tag tag--warn">не подтверждено</span>' : "")
         : (f.source !== "text" ? ' <span class="tag tag--answer">подтверждено</span>' : "");
       const sup = f.supported_by?.length ? ` <span class="tag tag--muted" title="источники, согласные с трактовкой">+ ${esc(f.supported_by.join(", "))}</span>` : "";
+      const SRCK = { ktru: ["КТРУ", "tag--text"], portal: ["портал", "tag--override"], new: ["новая", "tag--warn"] };
+      const csrc = f.char_source ? ` <span class="tag ${SRCK[f.char_source][1]}" title="источник характеристики">${SRCK[f.char_source][0]}</span>` : "";
       const intent = f.intent === "requirement" ? ' <span class="tag tag--muted">требование</span>' : f.intent === "preference" ? ' <span class="tag tag--muted">предпочтение</span>' : "";
       const del = f.property_name && f.status === "bound" && f.source !== "model" ? `<button class="btn btn--danger btn--small" data-del="${i}" title="удалить">✕</button>` : "";
       return `<tr><td>${prop}${ev}</td><td>${val}${note}</td><td>${esc(f.unit || "")}</td>
-        <td><span class="tag ${srcC}">${srcT}${f.source === "model" ? " (" + esc(f.origin) + ")" : ""}</span>${conf}${sup}${intent} ${stT ? `<span class="tag ${stC}">${stT}</span>` : ""} ${f.status === "bound" ? checkStatus(d, f) : ""}</td><td>${del}</td></tr>`;
+        <td><span class="tag ${srcC}">${srcT}${f.source === "model" ? " (" + esc(f.origin) + ")" : ""}</span>${csrc}${conf}${sup}${intent} ${stT ? `<span class="tag ${stC}">${stT}</span>` : ""} ${f.status === "bound" ? checkStatus(d, f) : ""}</td><td>${del}</td></tr>`;
     }).join("");
   }
   tb.querySelectorAll("input[data-edit]").forEach((inp) => inp.onchange = () => {
@@ -249,9 +254,25 @@ function upsertOverride(c) {
 }
 
 function renderFinal(d) {
-  $("final").innerHTML = d.final_code ? `<div class="card final"><div class="muted small">Конечная позиция КТРУ</div>
-    <div class="final__code">${esc(d.final_code)}</div><div>${esc(d.final_name)}</div>
-    <div class="small muted" style="margin-top:6px">Все условия проверены в полной области типа; обязательные свойства заполнены.</div></div>` : "";
+  if (d.final_code) {
+    $("final").innerHTML = `<div class="card final"><div class="muted small">Конечная позиция КТРУ</div>
+      <div class="final__code">${esc(d.final_code)}</div><div>${esc(d.final_name)}</div>
+      <div class="small muted" style="margin-top:6px">Все условия проверены в полной области типа; обязательные свойства заполнены.</div></div>`;
+    return;
+  }
+  // код уже однозначен, не хватает только обязательных характеристик СТЕ — показываем код сразу
+  const cr = d.code_resolution, cc = d.characteristics_completion;
+  if (cr && cr.status === "resolved" && cr.code) {
+    const name = (d.candidates.find((c) => c.code === cr.code) || {}).name || "";
+    const miss = cc && cc.missing.length ? `Для заполнения СТЕ укажите: <b>${cc.missing.map(esc).join(", ")}</b>` : "";
+    const unch = cc && cc.unchecked.length ? ` Не проверено: ${cc.unchecked.map(esc).join(", ")}.` : "";
+    $("final").innerHTML = `<div class="card final final--partial"><div class="muted small">Код КТРУ определён</div>
+      <div class="final__code">${esc(cr.code)}</div><div>${esc(name)}</div>
+      <div class="small" style="margin-top:6px">${miss}${unch}</div>
+      <div class="small muted">Код однозначен в полной области типа; ответ на вопрос ниже дозаполнит характеристики.</div></div>`;
+    return;
+  }
+  $("final").innerHTML = "";
 }
 
 function renderQuestion(d) {

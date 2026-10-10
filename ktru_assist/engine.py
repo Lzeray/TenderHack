@@ -25,7 +25,7 @@ from .rank import components, name_match, term_coverage
 from .registry import TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import SearchBackend
-from .text import fuzzy_equal, norm, tokenize
+from .text import content_lemmas, fuzzy_equal, norm, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate
 
@@ -43,6 +43,8 @@ class Engine:
         self.registry = TypeRegistry(catalog.search_documents())
         self.head_vocab = self.registry.head_vocab
         self.known_terms = catalog.property_core_terms()
+        from .portal.characteristics import lookup_index
+        lookup_index()   # индекс характеристик портала (если собран) загружается при старте, а не на запросе
 
     # ------------------------------------------------------------------
     def versions(self) -> dict[str, str]:
@@ -216,6 +218,7 @@ class Engine:
         domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
         extractor = Extractor(groups, self.known_terms - domain_name_lemmas)
         features = extractor.extract(nq)
+        self._drop_name_values(nq, features, positions)
         self._mark_intent(nq, features)
         features = self._apply_constraints(features, req.overrides, "override", groups, issues)
         features = self._apply_constraints(features, [a for a in answers if a.property != TYPE_PROP], "answer",
@@ -223,6 +226,7 @@ class Engine:
         group_names = {c: g.key for g in groups.values() for c in g.codes}
         merge = merge_model_features(features, model_features or [], group_names, set(req.rejected), issues)
         features = merge.features
+        self._label_sources(features, {p.category for p in positions if p.category})
         for f in features:
             if f.status == "ambiguous":
                 issues.append(Issue(level="warning", code="feature_ambiguous",
@@ -292,6 +296,7 @@ class Engine:
         out = [c for _, c, _ in finals][:MAX_CANDIDATES_OUT]
         out += [c for _, c, p in compatible if p.is_template][:20]
         out += [c for _, c, _ in ranked if not c.compatible][:30]
+        self._unify_units(features, groups)
         # ошибка размерности — отдельное предупреждение с обоснованием, а не только причина исключения
         for f in features:
             if f.status != "bound" or not f.unit:
@@ -450,6 +455,82 @@ class Engine:
                     f.note += "; предпочтение («желательно») — не жёсткое условие подбора"
             elif f.op in ("ge", "gt", "le", "lt", "between") or before & REQUIREMENT_WORDS:
                 f.intent = "requirement"
+
+    @staticmethod
+    def _drop_name_values(nq: NormalizedQuery, features: list[Feature], positions: list[Position]) -> None:
+        """Слова наименования, общего для всех позиций области, не выбирают позицию.
+
+        «Перчатки швейные для защиты от внешних воздействий» — наименование всех кандидатов, поэтому
+        «внешних воздействий» в описании не означает «Вид защиты = От механических воздействий».
+        Значение из одних только слов наименования, совпавшее с ними лишь частично, снимается, если оно
+        противоречит хотя бы одной конечной позиции области (делает выбор, на который у наименования нет
+        оснований). Полностью названное значение («шкаф» → «Шкаф», не «Секция шкафа») остаётся.
+        Значение, совместимое со всеми («на металлическом каркасе» → «Тип каркаса = Металлический»),
+        остаётся: оно заполняет характеристику, но никого не исключает.
+        """
+        names = {p.name for p in positions}
+        finals = [p for p in positions if not p.is_template]
+        if len(names) != 1 or not finals:
+            return
+        name_lemmas = set(positions[0].name_lemmas)
+        # свойства, значение которых названо явно («вид товара: секция шкафа»), — явное значение главнее
+        explicit = {f.property_name for f in features if f.source == "text" and f.status == "bound"
+                    and "характеристика: значение" in f.note}
+        for f in features:
+            if f.source != "text" or f.status != "bound" or f.span is None:
+                continue
+            toks = [t for t in nq.tokens if t.start >= f.span[0] and t.end <= f.span[1]
+                    and t.kind == "word" and t.significant]
+            if not toks or not all(any(fuzzy_equal(t.lemma, n) for n in name_lemmas) for t in toks):
+                continue
+            # значение, названное полностью («шкаф» → «Шкаф», а не «Секция шкафа»), — осознанный выбор;
+            # снимается только частичное совпадение («внешних воздействий» → «От механических воздействий»)
+            overridden = f.property_name in explicit and "характеристика: значение" not in f.note
+            if not overridden and all(any(fuzzy_equal(v, t.lemma) for t in toks)
+                                      for v in content_lemmas(f.value or "")):
+                continue
+            if any(check_feature(p, f)[0] == "invalid" for p in finals):
+                f.status = "removed"
+                f.note += ("; слова наименования, общего для всех позиций, — не значение характеристики "
+                           "(значение не применено)")
+                for t in toks:
+                    t.used_by = "type"
+
+    def _label_sources(self, features: list[Feature], categories: set[str]) -> None:
+        """Источник характеристики: КТРУ → портал → новая (порядок из брифинга организаторов)."""
+        from .portal.characteristics import available, lookup
+        for f in features:
+            if f.status in ("bound", "overridden", "removed", "proposed") and f.property_code:
+                f.char_source = "ktru"
+            elif f.status == "unknown_property" and available():
+                hit = lookup(f.evidence or f.property_name or "", categories)
+                if hit:
+                    f.char_source = "portal"
+                    f.note += f"; на портале есть характеристика «{hit}» — её можно указать как портальную"
+                else:
+                    f.char_source = "new"
+                    f.note += "; ни в КТРУ, ни среди характеристик портала её нет — это новая характеристика"
+
+    @staticmethod
+    def _unify_units(features: list[Feature], groups: dict[str, PropGroup]) -> None:
+        """Число в единице КТРУ рядом с исходным: «2,2 см» → «22 мм» (унифицированный вид)."""
+        from .units import convert, fmt, lookup
+        from decimal import Decimal, InvalidOperation
+        by_name = {g.name: g for g in groups.values()}
+        for f in features:
+            g = by_name.get(f.property_name or "")
+            if f.status != "bound" or not f.unit or g is None:
+                continue
+            uu = lookup(f.unit)
+            target = [BY_KEY[k] for k in sorted(g.unit_keys) if uu and BY_KEY[k].dimension == uu.dimension]
+            if uu is None or len(target) != 1:
+                continue
+            try:
+                vals = [convert(Decimal(v.replace(",", ".")), uu, target[0]) for v in (f.value, f.value_to) if v]
+            except InvalidOperation:
+                continue
+            f.ktru_value = "–".join(fmt(v) for v in vals)
+            f.ktru_unit = target[0].title
 
     @staticmethod
     def _completion(p: Position, ev) -> CharacteristicsCompletion:

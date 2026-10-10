@@ -4,7 +4,7 @@
   python -m benchmark.compare reports/bench/core.json reports/bench/core_sem_b.json
 
 Наборы (benchmark/suites/*.jsonl), формат кейса — benchmark/README.md. Для каждого набора считаются:
-pass_rate, status_accuracy, auto_coverage, auto_correct, auto_incorrect, auto_precision,
+pass_rate, status_accuracy, status_counts, auto_coverage, auto_correct, auto_incorrect, auto_precision,
 required_auto_hit, forbidden_auto_violations, forbidden_code_hits, compatible_recall, checks_pass,
 dialog_resolved, dialog_steps_mean, latency p50/p95/max, errors, determinism (при --repeat ≥ 2),
 error_upper95 («правило трёх» при 0 ошибочных автоматических решений).
@@ -37,7 +37,8 @@ def load_adapter(spec: str):
 
 
 def load_suites(names: list[str], split: str | None) -> dict[str, list[dict]]:
-    files = sorted(SUITES_DIR.glob("*.jsonl")) if names == ["all"] else [SUITES_DIR / f"{n}.jsonl" for n in names]
+    files = sorted(SUITES_DIR.glob("*.jsonl")) if names == ["all"] else \
+        [Path(n) if n.endswith(".jsonl") else SUITES_DIR / f"{n}.jsonl" for n in names]
     out = {}
     for f in files:
         cases = [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -88,7 +89,8 @@ def evaluate_case(case: dict, pred: dict, predict_cached) -> dict:
     acc = set(case.get("acceptable_codes") or [])
     matched = pred["status"] == "matched"
     auto = case.get("auto", "allowed")
-    incorrect = matched and pred["final_code"] not in acc
+    # неразмеченный кейс (живой запрос без эталона): верность кода не оценивается
+    incorrect = matched and pred["final_code"] not in acc and not case.get("unlabeled")
     if auto == "required":
         auto_ok = matched and not incorrect
     elif auto == "forbidden":
@@ -124,8 +126,11 @@ def summarize(rows: list[dict], lat: list[float], errors: int, determinism) -> d
     dl = [r for r in rows if "dialog" in r]
     dls = [r for r in dl if r["dialog"] is not None]
     ratio = lambda a, b: round(a / b, 3) if b else None  # noqa: E731
+    statuses: dict[str, int] = {}
+    for r in rows:
+        statuses[r["status"]] = statuses.get(r["status"], 0) + 1
     return {
-        "cases": n, "errors": errors,
+        "cases": n, "errors": errors, "status_counts": dict(sorted(statuses.items())),
         "pass_rate": ratio(sum(r["pass"] for r in rows), n),
         "status_accuracy": ratio(sum(r["status_ok"] for r in st), len(st)),
         "auto_coverage": ratio(len(m), n),

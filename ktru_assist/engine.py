@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import hashlib
 import time
+from fractions import Fraction
 
 from . import __version__
 from .catalog.repository import Catalog, Position
+from .catalog.scope import CatalogScope, identity_groups
 from .clarify import TYPE_PROP, choose_question
 from .components import components_version
 from .config import VERSIONS, Settings
@@ -22,9 +24,9 @@ from .nlp.normalize import NormalizedQuery, normalize
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
 from .rank import components, name_match, term_coverage
-from .registry import TypeRegistry
+from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
-from .search.base import SearchBackend
+from .search.base import Hit, SearchBackend, SearchResult
 from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate
@@ -39,11 +41,13 @@ class Engine:
         self.catalog = catalog
         self.backend = backend
         self.settings = settings
-        self.typos = TypoCorrector(catalog.vocabulary_texts())
-        self.registry = TypeRegistry(catalog.search_documents())
-        self.head_vocab = self.registry.head_vocab
+        self.native = settings.recognition_mode in ("semantic", "hybrid")
+        self.catalog_scope = CatalogScope(catalog)
+        self.typos = None if self.native else TypoCorrector(catalog.vocabulary_texts())
+        self.registry = None if self.native else TypeRegistry(catalog.search_documents())
+        self.head_vocab = [] if self.native else self.registry.head_vocab
         self._head_set = frozenset(self.head_vocab)
-        self.known_terms = catalog.property_core_terms()
+        self.known_terms = set() if self.native else catalog.property_core_terms()
 
     # ------------------------------------------------------------------
     def versions(self) -> dict[str, str]:
@@ -52,10 +56,12 @@ class Engine:
         v["catalog_snapshot"] = str(self.catalog.meta.get("snapshot"))
         v["catalog_as_of"] = str(self.catalog.meta.get("as_of"))
         v["search_backend"] = self.backend.name
-        v["components_lexicon"] = components_version()
-        v["value_aliases"] = value_aliases_version()
-        v["plausibility_rules"] = plausibility_version()
+        v["recognition_mode"] = self.settings.recognition_mode
         v["morph"] = MORPH_MODE
+        if not self.native:
+            v["components_lexicon"] = components_version()
+            v["value_aliases"] = value_aliases_version()
+            v["plausibility_rules"] = plausibility_version()
         return v
 
     @property
@@ -65,7 +71,8 @@ class Engine:
 
     # ------------------------------------------------------------------
     def search(self, req: SearchRequest, model_features: list[Feature] | None = None,
-               model_type: str | None = None) -> SearchResponse:
+               model_type: str | None = None, candidate_codes: list[str] | None = None,
+               search_features: list[Feature] | None = None, scope_verified: bool = False) -> SearchResponse:
         t0 = time.perf_counter()
         tm: dict[str, float] = {}
 
@@ -76,8 +83,8 @@ class Engine:
 
         issues: list[Issue] = []
         stages: list[Stage] = []
-        nq = normalize(req.text)
-        corrections = self.typos.correct(nq.tokens, req.corrections, type_heads=self._head_set)
+        nq = NormalizedQuery(req.text, req.text, [], offsets=[(i, i + 1) for i in range(len(req.text))]) if self.native else normalize(req.text)
+        corrections = [] if self.native else self.typos.correct(nq.tokens, req.corrections, type_heads=self._head_set)
         if corrections:
             fixed = [c for c in corrections if c.corrected]
             if fixed:
@@ -89,7 +96,7 @@ class Engine:
                     issues.append(Issue(level="warning", code="typo_ambiguous",
                                         message=f"«{c.original}»: несколько вариантов исправления "
                                                 f"({', '.join(c.options)}) — выберите вариант"))
-        det = self.registry.detect(nq.tokens)
+        det = TypeDetection(["catalog"], []) if self.native else self.registry.detect(nq.tokens)
         alias_terms = det.alias_terms
         for b in det.basis:
             if b.startswith("алиас"):
@@ -99,7 +106,7 @@ class Engine:
             issues.append(Issue(level="warning", code="type_alias_ambiguous",
                                 message=f"«{a}» допускает несколько типов товара — тип нужно подтвердить"))
         terms = nq.lemmas() + alias_terms
-        qhash = hashlib.sha256(" ".join(t.lemma for t in nq.tokens).encode()).hexdigest()[:16]
+        qhash = hashlib.sha256((req.text if self.native else " ".join(t.lemma for t in nq.tokens)).encode()).hexdigest()[:16]
         answers = list(req.answers)
         if answers and req.answers_query_hash and req.answers_query_hash != qhash:
             issues.append(Issue(level="warning", code="stale_answers",
@@ -108,7 +115,7 @@ class Engine:
         t = lap("normalize", t0)
 
         top_k = req.top_k or self.settings.top_k
-        res_a = self.backend.search(terms, top_k)
+        res_a = SearchResult([], 0, "semantic") if self.native else self.backend.search(terms, top_k)
         stages.append(Stage(stage="поиск по названию и словоформам", remaining=len(res_a.hits),
                             note=f"{self.backend.name}: найдено {res_a.total}, показано top-{top_k}"))
         heads, modifiers = det.heads, det.modifiers
@@ -116,12 +123,12 @@ class Engine:
         # тип, выбранный вручную, задаёт главное слово
         type_choice = next((c for c in [*req.overrides, *answers] if c.property == TYPE_PROP and not c.remove), None)
         type_tentative = False
-        if type_choice is None and model_type:
+        if not self.native and type_choice is None and model_type:
             type_choice = Constraint(property=TYPE_PROP, value=model_type)
             type_tentative = True
         if type_choice is not None:
-            chosen = self.catalog.get(type_choice.value or "")
-            h = chosen.head if chosen is not None and chosen.head else self._head_of_name(type_choice.value or "")
+            chosen = None if self.native else self.catalog.get(type_choice.value or "")
+            h = "catalog" if self.native else (chosen.head if chosen is not None and chosen.head else self._head_of_name(type_choice.value or ""))
             if h:
                 heads = [h]
                 type_basis.append(("предложен моделью: " if type_tentative else "выбран пользователем: ")
@@ -153,11 +160,16 @@ class Engine:
                                   scope=Scope(note="тип товара не определён; область не выбрана"),
                                   timings=tm, elapsed_ms=tm["total"], **base)
 
-        res_b = self.backend.by_heads(heads, self.settings.type_fetch_limit)
+        selected_type = self.catalog_scope.selected(type_choice.value) if self.native and type_choice else None
+        if self.native:
+            codes = candidate_codes if candidate_codes is not None else selected_type.codes if selected_type else self.catalog_scope.codes
+            res_b = SearchResult([Hit(c, 0.0) for c in codes], len(codes), "catalogue-scope")
+        else:
+            res_b = self.backend.by_heads(heads, self.settings.type_fetch_limit)
         domain = self.catalog.get_many([h.code for h in res_b.hits])
         scores = {h.code: h.score for h in res_a.hits}
         positions = [domain[c] for c in sorted(domain)]
-        inactive = self.catalog.inactive_count_by_heads(heads)
+        inactive = 0 if self.native else self.catalog.inactive_count_by_heads(heads)
         stages.append(Stage(stage=f"все активные позиции типа «{', '.join(heads)}»", remaining=len(positions),
                             note=f"исчерпывающая выборка по главному слову ({res_b.total} в индексе); "
                                  f"неактивных/вне срока исключено: {inactive}"))
@@ -174,7 +186,7 @@ class Engine:
         q_lemmas = [t.lemma for t in nq.tokens if t.kind in ("word", "code")] + det.unique_alias_terms
         if type_choice is not None:
             v = type_choice.value or ""
-            sel = [p for p in positions if p.code == v or norm(p.name) == norm(v)]
+            sel = positions if selected_type else ([] if self.native else [p for p in positions if p.code == v or norm(p.name) == norm(v)])
             if sel:
                 stages.append(Stage(stage="тип предложен моделью" if type_tentative else "тип выбран пользователем",
                                     remaining=len(sel), removed=len(positions) - len(sel), note=v))
@@ -184,7 +196,7 @@ class Engine:
                 issues.append(Issue(level="warning", code="type_choice_unknown",
                                     message=f"Выбранный тип «{v}» не найден в области поиска"))
                 type_tentative = False
-        if not type_confirmed:
+        if not type_confirmed and not self.native:
             by_name: dict[str, list[Position]] = {}
             for p in positions:
                 by_name.setdefault(p.name, []).append(p)
@@ -219,19 +231,42 @@ class Engine:
             if type_confirmed:
                 confirmed_scope = positions[0].name if positions else None
                 type_basis.append(f"наименование позиции: {confirmed_scope}")
+        if candidate_codes is not None:
+            type_confirmed = scope_verified
+            confirmed_scope = "область, распознанная из описания" if scope_verified else None
         t = lap("retrieval", t)
 
-        groups = build_groups(positions)
+        groups = identity_groups(positions) if self.native else build_groups(positions)
         domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
-        extractor = Extractor(groups, self.known_terms - domain_name_lemmas,
-                              name_tokens=self._name_tokens(nq.tokens, positions) | det.type_token_idx)
-        features = extractor.extract(nq)
+        extractor = None if self.native else Extractor(
+            groups, self.known_terms - domain_name_lemmas,
+            name_tokens=self._name_tokens(nq.tokens, positions) | det.type_token_idx)
+        features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
         self._mark_intent(nq, features)
-        features = self._apply_constraints(features, req.overrides, "override", groups, issues)
         features = self._apply_constraints(features, [a for a in answers if a.property != TYPE_PROP], "answer",
                                            groups, issues)
+        features = self._apply_constraints(features, req.overrides, "override", groups, issues)
         group_names = {c: g.key for g in groups.values() for c in g.codes}
-        merge = merge_model_features(features, model_features or [], group_names, set(req.rejected), issues)
+        if self.native:
+            from .resolver import MergeResult
+            # Model suggestions are visible but NEVER evaluated as constraints before confirmation.
+            manual_codes = {(f.property_code, f.property_name) for f in features if f.status in ("bound", "proposed")}
+            manual_evidence = {f.proposal_key for f in features if f.source in ("answer", "override")}
+            suggestions = []
+            for f in model_features or []:
+                if f.proposal_key in manual_evidence or "ignore:" + (f.proposal_key or "") in req.rejected:
+                    continue
+                if (f.property_code, f.property_name) in manual_codes:
+                    continue
+                changes = {"status": "unknown_property" if f.status == "unknown_property" else "proposed",
+                           "confirmation": "tentative", "strict_ref": True}
+                if f.proposal_key in req.rejected:
+                    changes.update(status="unknown_property", property_code=None, property_name=None,
+                                   characteristic_ref=None, note="Привязка отклонена; исходный фрагмент сохранён для ручного ввода")
+                suggestions.append(f.model_copy(update=changes))
+            merge = MergeResult(features + suggestions)
+        else:
+            merge = merge_model_features(features, model_features or [], group_names, set(req.rejected), issues)
         features = merge.features
         for f in features:
             if f.status == "ambiguous":
@@ -262,7 +297,7 @@ class Engine:
                                                 "ни у одной позиции области КТРУ. Проверьте описание."))
         # правдоподобие: предупреждения, не исключения
         categories = {p.category for p in positions if p.category}
-        findings = plausibility_check(features, categories)
+        findings = [] if self.native else plausibility_check(features, categories)
         plaus_block = []
         for fd in findings:
             confirmed = fd.key in req.confirmed
@@ -277,7 +312,7 @@ class Engine:
         ranked = []
         for p in positions:
             ev = evals[p.code]
-            tier, ncov, matched = name_match(p, q_lemmas)
+            tier, ncov, matched = (0, Fraction(0), set()) if self.native else name_match(p, q_lemmas)
             ok_ids = {c.feature_id for c in ev.checks if c.status == "valid" and c.feature_id}
             tcov = term_coverage(nq.tokens, matched, ok_ids)
             rc, key = components(p, tier, ncov, tcov, ev.valid, ev.unknown, scores.get(p.code))
@@ -299,9 +334,12 @@ class Engine:
                             note="укрупнённые позиции (шаблоны) не являются конечным результатом"))
         for i, (_, c, _) in enumerate(finals, 1):
             c.rank = i
-        out = [c for _, c, _ in finals][:MAX_CANDIDATES_OUT]
-        out += [c for _, c, p in compatible if p.is_template][:20]
-        out += [c for _, c, _ in ranked if not c.compatible][:30]
+        if self.settings.recognition_mode == "hybrid":
+            out = [c for _, c, _ in finals]
+        else:
+            out = [c for _, c, _ in finals][:MAX_CANDIDATES_OUT]
+            out += [c for _, c, p in compatible if p.is_template][:20]
+            out += [c for _, c, _ in ranked if not c.compatible][:30]
         # ошибка размерности — отдельное предупреждение с обоснованием, а не только причина исключения
         for f in features:
             if f.status != "bound" or not f.unit:
@@ -333,17 +371,17 @@ class Engine:
                                         f"несовместимых значений: {vals}. У товара одно значение этого свойства "
                                         "— укажите верное"))
             blocking_feats.append(None)
-        constrained = {" ".join(tokenize(f.property_name)) for f in features
+        constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
                        if f.status == "bound" and f.property_name}
-        tentative = [f for f in features if f.status == "bound" and f.confirmation == "tentative"]
+        tentative = [f for f in features if f.status in ("bound", "proposed", "unknown_property") and f.confirmation == "tentative"]
         final_code = final_name = None
         question = None
         completeness = Completeness(
             backend=self.backend.name, retrieval_total_hits=res_a.total, retrieval_returned=len(res_a.hits),
             retrieval_complete=res_a.complete, type_domain_total=res_b.total, type_domain_returned=len(res_b.hits),
             type_domain_complete=res_b.complete, type_confirmed=type_confirmed and not type_tentative,
-            note="область = все активные позиции с тем же главным словом наименования; "
-                 "top-K поиска используется только для выбора типа")
+            note=("область = все активные позиции подтверждённого обозначения каталога; без подтверждения — все три группы. Поисковый top-K не сужает область."
+                  if self.native else "область = все активные позиции с тем же главным словом наименования; top-K поиска используется только для выбора типа"))
         finals_pos = [p for _, _, p in finals]
         # гарантии, которые модели и подозрительные значения не могут обойти
         gate: list[str] = []
@@ -355,6 +393,8 @@ class Engine:
             gate.append("подозрительные значения не подтверждены")
         if merge.disagreements:
             gate.append("расхождение разбора правилами и модели")
+        if self.native and any(f.status == "unknown_property" for f in features):
+            gate.append("есть признаки без подтверждённой привязки к полной схеме")
         code_res: CodeResolution
         ev0 = evals[finals_pos[0].code] if finals else None
         if not finals:
@@ -397,7 +437,7 @@ class Engine:
                 message = (f"Определена конечная позиция {final_code}: все условия проверены в полной области "
                            f"типа ({len(positions)} поз.)")
             else:
-                if proven and gate:
+                if (proven or self.native) and gate:
                     question = self._confirm_question(tentative, type_choice if type_tentative else None,
                                                       plaus_block, merge.disagreements, len(finals))
                 elif det.ambiguous_aliases and not type_confirmed and len({p.name for p in finals_pos}) > 1:
@@ -411,8 +451,9 @@ class Engine:
                         p = finals_pos[0]
                         req_unknown = [p.props[c.property_code] for c in ev.checks
                                        if c.status == "unknown" and c.required and c.property_code in p.props]
-                    question = choose_question(finals_pos, constrained, type_confirmed, req_unknown,
-                                               type_first=bool(det.ambiguous_aliases) or weak_single_name)
+                    question = None if self.native and not type_confirmed else choose_question(
+                        finals_pos, constrained, type_confirmed, req_unknown,
+                        type_first=bool(det.ambiguous_aliases) or weak_single_name, strict_refs=self.native)
                 if question is not None and question.kind == "manual_choice":
                     status = "manual_choice"
                     message = question.text
@@ -453,21 +494,28 @@ class Engine:
                       confirmed_scope=confirmed_scope if type_confirmed and not type_tentative else None,
                       scope_complete=bool(res_b.complete and type_confirmed and not type_tentative),
                       registry_complete=True,
-                      note="реестр типов построен по всем активным позициям направлений MVP в снимке")
+                       note="обозначения каталога: группа + точное название; членство хранится по кодам" if self.native else "реестр типов построен по всем активным позициям направлений MVP в снимке")
+        if self.native:
+            heads = [selected_type.ref] if selected_type else []
+            scope.detected_types = heads
+            stages[0].stage = "семантические предложения (отдельно от подтверждённой области)"
+            stages[1].stage = "полная область каталога"
+            stages[1].note = completeness.note
         lap("decide", t)
         tm["total"] = round((time.perf_counter() - t0) * 1000, 2)
         return SearchResponse(
             status=status, message=message, features=features, unrecognized=self._unrecognized(nq),
             detected_types=heads, candidates=out, candidates_total=len(ranked), stages=stages, question=question,
-            properties=[DomainProperty(code=g.codes[0], codes=g.codes, name=g.name, required=g.required,
+            properties=[DomainProperty(code=g.key if self.native else g.codes[0], codes=g.codes, ref=g.key if self.native else None, name=g.name, required=g.required,
                                        numeric=g.numeric, boolean=g.boolean,
                                        units=sorted(BY_KEY[k].title for k in g.unit_keys),
-                                       values=sorted(g.quality.values())[:50], positions=g.positions)
+                                        values=sorted(g.quality.values()) if self.native else sorted(g.quality.values())[:50], positions=g.positions)
                         for g in sorted(groups.values(), key=lambda g: (-g.positions, g.key))],
             final_code=final_code, final_name=final_name, issues=issues, completeness=completeness,
             assertions=self._assertions(nq, features, merge), code_resolution=code_res,
             characteristics_completion=completion, scope=scope, timings=tm,
-            elapsed_ms=tm["total"], **base)
+            elapsed_ms=tm["total"], recognition_mode=self.settings.recognition_mode,
+            compatible_codes=[p.code for p in finals_pos], **base)
 
     # ------------------------------------------------------------------
     @staticmethod
@@ -528,13 +576,13 @@ class Engine:
                 assertion_id=f"a-{f.id}", source=origin, span=span, component_raw=f.component,
                 property_raw=None, raw_value=f.value, raw_value_to=f.value_to, raw_unit=f.unit,
                 predicate=Predicate(kind=kind, operator=f.op), negated=f.negated, intent=f.intent,
-                proposed_property_ref=f.property_code, alternatives=f.options,
+                proposed_property_ref=f.characteristic_ref or f.property_code, alternatives=f.options,
                 confirmation=conf, feature_id=f.id, status=status))
         return out
 
     @staticmethod
     def _confirm_question(tentative: list[Feature], type_choice, plaus, disagreements, n: int) -> Question:
-        answers = [Constraint(property=f.property_code or f.property_name or "", op=f.op, value=f.value,
+        answers = [Constraint(property=f.characteristic_ref or f.property_code or f.property_name or "", op=f.op, value=f.value, values=f.values,
                               value_to=f.value_to, min_inclusive=f.min_inclusive, max_inclusive=f.max_inclusive,
                               unit=f.unit) for f in tentative]
         if type_choice is not None:
@@ -653,7 +701,7 @@ class Engine:
                 continue
             g = self._resolve_group(c.property, groups)
             for f in features:
-                same = g is not None and f.property_name and " ".join(tokenize(f.property_name)) == g.key
+                same = g is not None and (f.characteristic_ref == g.key if self.native else f.property_name and " ".join(tokenize(f.property_name)) == g.key)
                 if same and f.status == "bound":
                     f.status = "removed" if c.remove else "overridden"
                     f.note = (f.note + "; " if f.note else "") + (
@@ -671,21 +719,30 @@ class Engine:
                 issues.append(Issue(level="warning", code="unknown_property",
                                     message=f"Свойство «{c.property}» отсутствует у позиций области поиска"))
                 features.append(Feature(id=f"{source[0]}{k + 1}", source=source, status="unknown_property",
+                                        origin="manual",
                                         property_name=c.property, op=c.op, value=c.value, value_to=c.value_to,
                                         unit=c.unit, note="свойство не найдено"))
                 continue
-            features.append(Feature(id=f"{source[0]}{k + 1}", source=source, status="bound",
-                                    property_code=g.codes[0], property_name=g.name, op=c.op, value=c.value,
+            features.append(Feature(id=f"{source[0]}{k + 1}", source=source, status="proposed" if c.intent == "preference" else "bound",
+                                    origin="manual",
+                                    intent=c.intent,
+                                    property_code=g.codes[0], property_name=g.name, op=c.op, value=c.value, values=c.values,
                                     value_to=c.value_to, min_inclusive=c.min_inclusive,
                                     max_inclusive=c.max_inclusive, unit=c.unit,
+                                    strict_ref=self.native,
+                                    characteristic_ref=g.key if self.native else None,
+                                    proposal_key=c.evidence_key,
                                     note="ручное редактирование (приоритет над текстом)" if source == "override"
                                     else "ответ на уточняющий вопрос"))
         return features
 
     @staticmethod
     def _resolve_group(prop: str, groups: dict[str, PropGroup]) -> PropGroup | None:
-        for g in groups.values():
-            if prop in g.codes:
-                return g
+        if prop in groups:
+            return groups[prop]
+        code_matches = [g for g in groups.values() if prop in g.codes]
+        if code_matches:
+            return code_matches[0] if len(code_matches) == 1 else None
         key = " ".join(tokenize(prop))
-        return groups.get(key)
+        matches = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
+        return matches[0] if len(matches) == 1 else None

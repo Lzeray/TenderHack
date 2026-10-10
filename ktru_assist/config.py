@@ -9,18 +9,20 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Версии правил: меняются вручную при изменении соответствующего модуля.
 VERSIONS = {
-    "api": "2.0",
+    "api": "3.1",
     "importer": "1.0",
     "normalizer": "1.3",
     "typos": "1.1",
     "extractor": "1.7",
-    "validator": "1.1",
+    "validator": "1.3",       # конфликтующие условия запроса по всей области каталога (aydar)
     "ranking": "1.0",
-    "clarifier": "1.2",
-    "engine": "2.6",
+    "clarifier": "1.3",       # 1.3 слияние: полные списки вариантов, свойства по идентичности (aydar) + подтверждение наименования
+    "engine": "2.7",          # 2.7 слияние с aydar: живой поиск, двухветочный структурный поиск
     "type_registry": "1.3",
     "resolver": "1.0",
     "plausibility": "1.1",
+    "live_search": "1.1",
+    "ste_search": "1.0",
 }
 # История изменений правил (подробности и замеры — docs/EXPERIMENTS.md):
 # normalizer 1.1 карта координат исходного текста, отрицательные числа; 1.2 режим KTRU_MORPH (pymorphy | snowball),
@@ -70,6 +72,7 @@ class Settings:
     cache_dir: Path = ROOT / "data" / "cache"
     ollama_url: str = "http://127.0.0.1:11434"
     llm_model: str = "qwen3:4b-instruct-2507-q4_K_M"
+    recognition_mode: str = "rules"
 
     @staticmethod
     def from_env() -> "Settings":
@@ -84,4 +87,5 @@ class Settings:
             cache_dir=Path(os.environ.get("CACHE_DIR", str(ROOT / "data" / "cache"))),
             ollama_url=os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434"),
             llm_model=os.environ.get("LLM_MODEL", "qwen3:4b-instruct-2507-q4_K_M"),
+            recognition_mode=os.environ.get("RECOGNITION_MODE", "rules"),
         )

@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .clarify import TYPE_PROP
-from .models import Issue, ProviderStatus, Question, QuestionOption, SearchRequest, SearchResponse
+from .models import Candidate, Issue, ProviderStatus, Question, QuestionOption, SearchRequest, SearchResponse
 from .resolver import describe
 
 
@@ -47,7 +47,7 @@ class OrchestratorConfig:
             b_timeout_s=float(os.environ.get("LLM_TIMEOUT_S", "20")),
             b_include_draft=os.environ.get("LLM_INCLUDE_DRAFT", "1") == "1",
             semantic=os.environ.get("SEMANTIC", "0") == "1",
-            event_log=os.environ.get("EVENT_LOG") or None,
+            event_log=os.environ.get("EVENT_LOG") or ("data/cache/semantic-events.jsonl" if os.environ.get("RECOGNITION_MODE") == "semantic" else None),
         )
 
 
@@ -109,7 +109,12 @@ class Orchestrator:
         self.sess_lock = threading.Lock()
         self.a_cache = LRU(self.cfg.cache_size)
         self.b_cache = LRU(self.cfg.cache_size)
+        self.validated_cache = LRU(self.cfg.cache_size)
         self.log_lock = threading.Lock()
+        self.native_digest = self.llm.digest() if self.engine.native and self.llm is not None else None
+        if self.engine.native and self.llm is not None and hasattr(self.llm, "expected_digest"):
+            self.llm.expected_digest = self.native_digest
+        self.extraction_log: dict[str, dict] = {}
 
     # --- версии запросов ---------------------------------------------------
     def _register(self, req: SearchRequest) -> None:
@@ -127,15 +132,22 @@ class Orchestrator:
 
     def versions(self) -> dict[str, str]:
         v = self.engine.versions()
-        v["orchestrator"] = "1.0"
+        v["orchestrator"] = "3.0"
         v["llm_mode"] = self.cfg.b_mode
         if self.semantic is not None:
             v["semantic_encoder"] = self.semantic.revision
         if self.llm is not None and self.cfg.b_mode != "off":
-            from .llm.extractor import PROMPT_VERSION, SCHEMA_HASH
-            v["llm_model"] = f"{self.llm.model}@{self.llm.digest()[:19]}"
+            if self.engine.settings.recognition_mode == "hybrid":
+                from .llm.description import PROMPT_VERSION, SCHEMA
+                SCHEMA_HASH = hashlib.sha256(json.dumps(SCHEMA, sort_keys=True).encode()).hexdigest()
+            elif self.engine.native:
+                from .llm.catalog_extractor import PROMPT_VERSION, SCHEMA_HASH
+            else:
+                from .llm.extractor import PROMPT_VERSION, SCHEMA_HASH
+            v["llm_model"] = f"{self.llm.model}@{self.native_digest or self.llm.digest()}"
             v["llm_prompt"] = PROMPT_VERSION
             v["llm_schema"] = SCHEMA_HASH
+            v["llm_options"] = json.dumps(getattr(self.llm, "options", {}), sort_keys=True)
         return v
 
     # --- ядро -----------------------------------------------------------------
@@ -150,6 +162,10 @@ class Orchestrator:
 
     # --- основной вход -----------------------------------------------------------
     def run(self, req: SearchRequest) -> SearchResponse:
+        if self.engine.settings.recognition_mode == "hybrid":
+            return self._run_live(req)
+        if self.engine.native:
+            return self._run_native(req)
         t0 = time.perf_counter()
         run_id = uuid.uuid4().hex[:12]
         self._register(req)
@@ -191,6 +207,228 @@ class Orchestrator:
         resp.stale = self.is_stale(req)
         resp.timings["end_to_end"] = round((time.perf_counter() - t0) * 1000, 2)
         self._log(req, resp)
+        return resp
+
+    def _run_live(self, req):
+        from .live_search import LiveSearch
+        self._register(req)
+        if not hasattr(self, "live"):
+            with self.core_lock:
+                if not hasattr(self, "live"):
+                    self.live = LiveSearch(self)
+        expected = hashlib.sha256(req.text.encode()).hexdigest()[:16]
+        if req.answers and req.answers_query_hash != expected:
+            req = req.model_copy(update={"answers": []})
+        t0 = time.perf_counter()
+        key = "live:" + self._a_key(req) + json.dumps(self.versions(), sort_keys=True)
+        hit = self.a_cache.get(key)
+        if hit:
+            fast, positions, facts, verified = hit[0].model_copy(deep=True), hit[1], hit[2], hit[3]
+        else:
+            fast, positions, facts, verified = self.live.fast(req)
+            self.a_cache.put(key, (fast.model_copy(deep=True), positions, facts, verified))
+        response = self.live.full(req, fast, positions, facts, verified) if req.stage == "submitted" else fast
+        response.session_id, response.revision, response.stage = req.session_id, req.revision, req.stage
+        response.run_id = uuid.uuid4().hex[:12]
+        response.stale = self.is_stale(req)
+        response.versions = self.versions()
+        response.timings["end_to_end"] = round((time.perf_counter() - t0) * 1000, 2)
+        self._log(req, response)
+        return response
+
+    def _run_native(self, req: SearchRequest) -> SearchResponse:
+        """Reuse the real engine for confirmed constraints; lexical parsing is bypassed."""
+        from .llm import catalog_extractor as extract
+        t0 = time.perf_counter()
+        self._register(req)
+        providers = []
+        bkey = None
+        expected_hash = hashlib.sha256(req.text.encode()).hexdigest()[:16]
+        if req.answers and req.answers_query_hash != expected_hash:
+            req = req.model_copy(update={"answers": []})
+        scope = self.engine.catalog_scope
+        type_choice = next((c for c in [*req.overrides, *req.answers] if c.property == TYPE_PROP and not c.remove), None)
+        selected = scope.selected(type_choice.value) if type_choice else None
+        akey = self._a_key(req) + json.dumps(self.versions(), sort_keys=True)
+        cached = self.a_cache.get(akey)
+        if cached is None:
+            resp = self._core(req)
+            if self.semantic is not None and self.cfg.semantic and not self.is_stale(req):
+                ts = time.perf_counter()
+                try:
+                    resp.proposals = self.semantic.propose(resp, req.text, set(req.rejected))
+                    resp.completeness.retrieval_total_hits = len(scope.types)
+                    resp.completeness.retrieval_returned = len(resp.proposals)
+                    resp.completeness.retrieval_complete = len(resp.proposals) == len(scope.types)
+                    resp.stages[0].remaining = len(resp.proposals)
+                    resp.stages[0].note = "Предложения типов; не изменяют подтверждённую область каталога"
+                    providers.append(ProviderStatus(name="semantic", enabled=True, used=True, status="ok"))
+                except Exception as e:
+                    providers.append(ProviderStatus(name="semantic", enabled=True, status="error", detail=str(e)))
+                resp.timings["semantic"] = round((time.perf_counter() - ts) * 1000, 2)
+            else:
+                providers.append(ProviderStatus(name="semantic", enabled=self.cfg.semantic,
+                                                status="error" if self.cfg.semantic else "off", detail="энкодер не загружен"))
+            if not selected:
+                seen_codes = set()
+                previews = []
+                for proposal in resp.proposals:
+                    if proposal.kind != "type" or proposal.answer is None:
+                        continue
+                    for p in scope.positions(proposal.answer.value):
+                        if p.is_template or p.code in seen_codes:
+                            continue
+                        seen_codes.add(p.code)
+                        previews.append(Candidate(code=p.code, name=p.name, version=p.version,
+                            okpd2=p.okpd2_code, category=p.category, is_template=False, active=p.active,
+                            parent_code=p.parent_code, no_new_features=p.no_new_features, compatible=True,
+                            rank=len(previews) + 1, checks=[]))
+                resp.preview_candidates = previews[:50]
+                resp.preview_total = len(previews)
+                resp.question = Question(kind="type", text="Подтвердите обозначение товара из каталога",
+                    current_remaining=len(scope.codes), worst_case_remaining=len(scope.codes),
+                    options=[QuestionOption(label=p.label, remaining=len(scope.types[p.answer.value].codes), answer=p.answer)
+                             for p in resp.proposals if p.kind == "type"],
+                    reason="Предложения не сужают область; полный список доступен через поиск типа, также можно выбрать «ни один».")
+                # The full catalogue schema remains in the server, not a giant draft payload.
+                resp.properties = []
+            self.a_cache.put(akey, (resp.model_copy(deep=True), list(providers)))
+        else:
+            resp, providers = cached[0].model_copy(deep=True), list(cached[1])
+            resp.timings["a_cache_hit"] = 1.0
+        llm_out = None
+        validated_key = hashlib.sha256(json.dumps([req.text, selected.ref if selected else None, self.versions()], sort_keys=True).encode()).hexdigest()
+        if req.stage == "submitted" and selected and self.llm is not None and self.cfg.b_mode != "off" and not req.manual_only:
+            ctx = extract.build_context(scope, selected.ref, req.text, self.semantic,
+                                        [c.model_dump() for c in [*req.answers, *req.overrides]])
+            bkey = extract.cache_key(req.text, ctx, self.native_digest, getattr(self.llm, "options", {}))
+            reply = self.b_cache.get(bkey)
+            previous = self.validated_cache.get(validated_key) if req.action == "confirm" else None
+            if previous:
+                reply, ctx = previous
+            status = "cached" if reply is not None else "ok"
+            ms = 0.0
+            if reply is None and req.action != "confirm":
+                # Waiting old tasks never enter the model once a newer revision is registered.
+                with self.llm_lock:
+                    if not self.is_stale(req):
+                        reply = self.b_cache.get(bkey)
+                        if reply is not None:
+                            status = "cached"
+                        else:
+                            llm_out = self.llm.complete(extract.messages_for(req.text, ctx), extract.schema_for(ctx))
+                if llm_out is not None:
+                    self.extraction_log[bkey] = {"context": ctx.payload, "reply": llm_out.text,
+                                                "id_map": {"properties": ctx.property_ids, "values": ctx.value_ids},
+                                                "meta": llm_out.meta, "error": llm_out.error}
+                if llm_out is not None and llm_out.ok and llm_out.meta.get("done_reason") != "length":
+                    reply, ms = llm_out.text, llm_out.elapsed_ms
+                elif llm_out is not None:
+                    providers.append(ProviderStatus(name="llm", enabled=True, used=True,
+                        status="timeout" if llm_out.kind == "timeout" else "error", detail=llm_out.error or "обрезанный ответ",
+                        elapsed_ms=llm_out.elapsed_ms))
+                    resp.issues.append(Issue(level="warning", code="llm_unavailable", message="Разбор недоступен: введите характеристики вручную."))
+                    if resp.status == "matched":
+                        resp.status, resp.final_code, resp.final_name = "clarification_needed", None, None
+            if reply is not None and not self.is_stale(req):
+                result = extract.parse_and_validate(req.text, reply, ctx)
+                providers.append(ProviderStatus(name="llm", enabled=True, used=True,
+                    status=status if result.valid else "invalid", detail=result.error, elapsed_ms=ms))
+                if result.valid:
+                    self.validated_cache.put(validated_key, (reply, ctx))
+                    if status != "cached":
+                        self.b_cache.put(bkey, reply)
+                    type_proposals = resp.proposals
+                    if self.semantic is not None:
+                        for feature in result.features:
+                            if feature.property_code is None:
+                                refs = self.semantic.rank_properties(feature.evidence or feature.value or "", list(ctx.all_groups))[:5]
+                                feature.options = [{"property_code": r, "property_name": ctx.all_groups[r].name}
+                                                   for r in refs]
+                                feature.note += "; варианты найдены в полной схеме, привязку выбирает пользователь"
+                    resp = self._core(req, model_features=result.features)
+                    resp.completeness.retrieval_total_hits = len(scope.types)
+                    resp.completeness.retrieval_returned = len(type_proposals)
+                    resp.completeness.retrieval_complete = len(type_proposals) == len(scope.types)
+                    for proposal in result.proposals:
+                        for f in resp.features:
+                            if f.source in ("answer", "override") and f.status == "bound" and f.characteristic_ref == proposal.characteristic_ref \
+                                    and f.value == proposal.answer.value and f.values == proposal.answer.values:
+                                f.evidence = proposal.quote
+                                f.raw_span = (proposal.span.start, proposal.span.end) if proposal.span else None
+                                f.supported_by = ["llm"]
+                                raw = next((x for x in result.features if x.proposal_key == proposal.key), None)
+                                for assertion in resp.assertions:
+                                    if assertion.feature_id == f.id:
+                                        assertion.span = proposal.span
+                                        if raw:
+                                            assertion.raw_value, assertion.raw_unit = raw.value, raw.unit
+                    manual_codes = {f.characteristic_ref for f in resp.features if f.source in ("answer", "override") and f.status in ("bound", "proposed")}
+                    pending = [p for p in result.proposals if p.key not in req.rejected and p.answer.property not in manual_codes]
+                    resp.proposals = type_proposals + pending
+                    if pending and len({p.answer.property for p in pending}) == len(pending):
+                        resp.question = Question(kind="confirm", text="Подтвердите трактовки характеристик",
+                            current_remaining=len(resp.compatible_codes),
+                            worst_case_remaining=len(resp.compatible_codes),
+                            options=[QuestionOption(label="Подтвердить все показанные трактовки", remaining=len(resp.compatible_codes),
+                                answers=[p.answer for p in pending])], reason="; ".join(p.label for p in pending))
+                    review_key = "parse-review:" + validated_key
+                    if review_key not in req.confirmed:
+                        if resp.question and resp.question.kind == "confirm" and pending:
+                            resp.question.options[0].confirm.append(review_key)
+                        else:
+                            resp.question = Question(kind="confirm", text="Подтвердите результат разбора описания",
+                                current_remaining=len(resp.compatible_codes), worst_case_remaining=len(resp.compatible_codes),
+                                options=[QuestionOption(label="Разбор проверен, перейти к проверке КТРУ", remaining=len(resp.compatible_codes),
+                                                        confirm=[review_key])],
+                                reason="Проверьте извлечённые и пропущенные характеристики; пустой ответ модели не доказывает их отсутствие.")
+                        if resp.status == "matched":
+                            resp.status, resp.final_code, resp.final_name = "clarification_needed", None, None
+                            if resp.code_resolution:
+                                resp.code_resolution.status = "unconfirmed"
+                    resp.unrecognized = list(dict.fromkeys(result.unresolved))
+                    for reason in result.rejected:
+                        resp.issues.append(Issue(level="warning", code="llm_item_rejected", message=reason))
+                    if result.unresolved or result.rejected or result.ambiguities:
+                        if resp.status == "matched":
+                            resp.status, resp.final_code, resp.final_name = "clarification_needed", None, None
+                            resp.message = "Остались неразобранные или неоднозначные фрагменты; уточните их вручную."
+                            if resp.code_resolution:
+                                resp.code_resolution.status = "unconfirmed"
+                    if ctx.omitted:
+                        resp.issues.append(Issue(level="info", code="llm_context_truncated",
+                            message=f"Контекст обрезан ({len(ctx.omitted)} элементов); полная схема доступна для ручной привязки."))
+                    self.extraction_log[bkey] = {"context": ctx.payload, "reply": reply, "rejected": result.rejected,
+                                                "id_map": {"properties": ctx.property_ids, "values": ctx.value_ids},
+                                                "meta": llm_out.meta if llm_out is not None else self.extraction_log.get(bkey, {}).get("meta", {})}
+                    if len(self.extraction_log) > self.cfg.cache_size:
+                        self.extraction_log.pop(next(iter(self.extraction_log)))
+                    resp.timings["llm"] = ms
+                else:
+                    resp.issues.append(Issue(level="warning", code="llm_invalid", message=result.error))
+                    if resp.status == "matched":
+                        resp.status, resp.final_code, resp.final_name = "clarification_needed", None, None
+        else:
+            providers.append(ProviderStatus(name="llm", enabled=self.cfg.b_mode != "off", status="off" if self.cfg.b_mode == "off" else "skipped",
+                detail="выбран явный ручной ввод" if req.manual_only else "LLM вызывается только после Enter и подтверждения типа"))
+            if req.manual_only:
+                resp.issues.append(Issue(level="info", code="manual_only", message="Проверены только явно введённые пользователем характеристики; модельный разбор не применяется."))
+            elif req.stage == "submitted" and selected and (self.llm is None or self.cfg.b_mode == "off") and resp.status == "matched":
+                resp.status, resp.final_code, resp.final_name = "clarification_needed", None, None
+                resp.message = "Полный разбор недоступен: выберите явный ручной ввод и проверьте характеристики."
+        if req.stage == "draft":
+            # A draft cannot be a completed classification, including an exact manual scope.
+            if resp.status == "matched":
+                resp.status, resp.final_code, resp.final_name = "clarification_needed", None, None
+                resp.message = "Предварительная проверка; нажмите Enter для завершения."
+                if resp.code_resolution:
+                    resp.code_resolution.status = "unconfirmed"
+        resp.run_id = uuid.uuid4().hex[:12]
+        resp.session_id, resp.revision, resp.stage = req.session_id, req.revision, req.stage
+        resp.preliminary, resp.stale = req.stage == "draft", self.is_stale(req)
+        resp.providers, resp.versions = providers, self.versions()
+        resp.timings["end_to_end"] = round((time.perf_counter() - t0) * 1000, 2)
+        self._log(req, resp, self.extraction_log.get(bkey))
         return resp
 
     # --- B ------------------------------------------------------------------------
@@ -341,7 +579,7 @@ class Orchestrator:
             reason="смысловые предложения (rubert-tiny2); близость — не вероятность; выберите или уточните описание")
 
     # --- журнал --------------------------------------------------------------------
-    def _log(self, req: SearchRequest, resp: SearchResponse) -> None:
+    def _log(self, req: SearchRequest, resp: SearchResponse, extraction=None) -> None:
         if not self.cfg.event_log:
             return
         ev = {"ts": time.time(), "run_id": resp.run_id, "session": req.session_id, "revision": req.revision,
@@ -352,7 +590,9 @@ class Orchestrator:
               "versions": resp.versions,
               "features": [{"property": f.property_name, "value": f.value, "unit": f.unit, "status": f.status,
                             "origin": f.origin, "confirmation": f.confirmation} for f in resp.features],
-              "answers": [a.model_dump() for a in req.answers], "overrides": [o.model_dump() for o in req.overrides]}
+               "answers": [a.model_dump() for a in req.answers], "overrides": [o.model_dump() for o in req.overrides]}
+        if self.engine.native:
+            ev.update(request=req.model_dump(mode="json"), response=resp.model_dump(mode="json"), extraction=extraction)
         p = Path(self.cfg.event_log)
         p.parent.mkdir(parents=True, exist_ok=True)
         with self.log_lock, p.open("a", encoding="utf-8") as fh:

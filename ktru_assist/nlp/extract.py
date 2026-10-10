@@ -31,7 +31,7 @@ from ..catalog.repository import Position, Prop
 from ..components import canonical_key, component_of_lemma, property_component
 from ..config import ROOT
 from ..models import Feature
-from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_set, norm, tokenize
+from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_of_literal, lemma_set, norm, tokenize
 from ..units import BY_KEY, fmt
 from .normalize import NormalizedQuery, Token
 
@@ -156,7 +156,7 @@ def _terms_present(terms: list[str], tokens: list[Token], idxs: list[int]) -> li
 
 
 # Синонимы слов в названиях свойств (проверенные вручную по каталогу).
-PROPERTY_SYNONYMS = {lemma("вес"): lemma("масса")}
+PROPERTY_SYNONYMS = {lemma_of_literal("вес"): lemma_of_literal("масса")}
 
 
 @dataclass(frozen=True)

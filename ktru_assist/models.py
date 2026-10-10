@@ -5,7 +5,7 @@ from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
-Op = Literal["eq", "ne", "ge", "gt", "le", "lt", "between"]
+Op = Literal["eq", "ne", "ge", "gt", "le", "lt", "between", "in"]
 
 
 class Constraint(BaseModel):
@@ -18,6 +18,9 @@ class Constraint(BaseModel):
     max_inclusive: bool = True
     unit: Optional[str] = None
     remove: bool = Field(False, description="удалить извлечённое из текста значение этого свойства")
+    values: list[str] = Field(default_factory=list, max_length=30)
+    intent: Literal["fact", "requirement", "preference", "unknown"] = "fact"
+    evidence_key: Optional[str] = None
 
 
 RunStage = Literal["draft", "submitted"]
@@ -28,6 +31,8 @@ class SearchRequest(BaseModel):
     session_id: Optional[str] = Field(None, max_length=64, description="идентификатор сеанса интерфейса")
     revision: Optional[int] = Field(None, ge=0, description="версия состояния: растёт при любом изменении ввода")
     stage: RunStage = Field("draft", description="draft — черновик A при вводе; submitted — Enter, допускает разбор B")
+    action: Literal["search", "confirm"] = "search"
+    manual_only: bool = False
     rejected: list[str] = Field(default_factory=list, description="ключи отклонённых пользователем предложений")
     confirmed: list[str] = Field(default_factory=list,
                                  description="ключи подтверждённых предупреждений правдоподобия")
@@ -83,6 +88,9 @@ class Feature(BaseModel):
     raw_span: Optional[tuple[int, int]] = Field(None, description="координаты в исходном тексте (code points)")
     supported_by: list[str] = Field(default_factory=list, description="источники, согласные с трактовкой")
     proposal_key: Optional[str] = Field(None, description="ключ предложения модели (для подтверждения/отказа)")
+    strict_ref: bool = False
+    characteristic_ref: Optional[str] = None
+    values: list[str] = Field(default_factory=list, max_length=30)
 
 
 class Span(BaseModel):
@@ -128,6 +136,8 @@ class Proposal(BaseModel):
     answer: Optional[Constraint] = Field(None, description="что отправить в answers при подтверждении")
     score: Optional[float] = Field(None, description="косинусная близость/сигнал модели — не вероятность")
     reason: str = ""
+    characteristic_ref: Optional[str] = None
+    value_ref: Optional[str] = None
 
 
 class CodeResolution(BaseModel):
@@ -261,6 +271,7 @@ class DomainProperty(BaseModel):
     units: list[str]
     values: list[str] = Field(default_factory=list, description="качественные значения (до 50)")
     positions: int
+    ref: Optional[str] = None
 
 
 class SearchResponse(BaseModel):
@@ -298,3 +309,11 @@ class SearchResponse(BaseModel):
     changes: list[str] = Field(default_factory=list, description="что изменилось после расширенного разбора")
     timings: dict[str, float] = Field(default_factory=dict, description="мс по этапам")
     effective_at: Optional[str] = Field(None, description="дата проверки активности позиций (снимок)")
+    recognition_mode: str = "rules"
+    compatible_codes: list[str] = Field(default_factory=list, description="Полный набор совместимых конечных кодов проверенной области")
+    preview_candidates: list[Candidate] = Field(default_factory=list, description="Поисковые предложения, не проверенное соответствие")
+    preview_total: int = 0
+    query_profile: dict[str, Any] = Field(default_factory=dict)
+    model_pending: bool = False
+    results_total: int = 0
+    ste_results: dict[str, Any] = Field(default_factory=dict)

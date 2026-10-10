@@ -9,7 +9,7 @@ for f in config.json tokenizer.json tokenizer_config.json special_tokens_map.jso
          1_Pooling/config.json; do
   curl -fsSL -o "$DST/$f" "https://huggingface.co/cointegrated/rubert-tiny2/resolve/$REV/$f"
 done
-echo "26ebb6db2a68593c54c74902d7a74f332da66297693f965cc9f1b0af4abf3894  $DST/model.safetensors" | sha256sum -c -
+"${PYTHON:-python3}" -c 'import hashlib; from pathlib import Path; p=Path("data/models/rubert-tiny2/model.safetensors"); assert hashlib.sha256(p.read_bytes()).hexdigest()=="26ebb6db2a68593c54c74902d7a74f332da66297693f965cc9f1b0af4abf3894", "Unexpected encoder weights"'
 # Qwen3-4B-Instruct-2507 (Apache 2.0), квантизация Q4_K_M, через локальный Ollama.
 # Закреплённый digest проверяется в ответе API (versions.llm_model).
 ollama pull qwen3:4b-instruct-2507-q4_K_M

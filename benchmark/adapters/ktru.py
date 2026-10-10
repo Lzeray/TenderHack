@@ -21,6 +21,7 @@ CONFIGS = {
     "core_b_always": dict(b_mode="always", semantic=False),
     "core_sem_b": dict(b_mode="escalate", semantic=True),
     "core_b_nodraft": dict(b_mode="escalate", semantic=True, b_include_draft=False),
+    "semantic_catalog": dict(b_mode="always", semantic=True),
 }
 _session = itertools.count(1)
 
@@ -29,7 +30,7 @@ def normalize(r: dict) -> dict:
     return {
         "status": STATUS.get(r["status"], "error"),
         "final_code": r.get("final_code"),
-        "compatible_codes": [c["code"] for c in r.get("candidates", []) if c["compatible"] and not c["is_template"]],
+        "compatible_codes": r.get("compatible_codes") or [c["code"] for c in r.get("candidates", []) if c["compatible"] and not c["is_template"]],
         "features": [{"property": f.get("property_name"), "value": f.get("value"), "unit": f.get("unit"),
                       "op": f.get("op")} for f in r.get("features", [])
                      if f.get("status") in ("bound", "overridden") and f.get("property_name")],
@@ -88,7 +89,18 @@ class KtruInProcess(_Dialog, Adapter):
                 raise ValueError("в этой версии ktru_assist нет моделей: доступна только конфигурация core")
             self.o, self.engine = None, get_engine()
         else:
-            self.o = build_orchestrator(get_engine(), OrchestratorConfig(cache_size=512, **CONFIGS[config]))
+            if config == "semantic_catalog":
+                from dataclasses import replace
+                from ktru_assist.api import make_backend
+                from ktru_assist.catalog.repository import Catalog
+                from ktru_assist.config import Settings
+                from ktru_assist.engine import Engine
+                s = replace(Settings.from_env(), recognition_mode="semantic")
+                cat = Catalog(s.db_path)
+                engine = Engine(cat, make_backend(s, cat), s)
+            else:
+                engine = get_engine()
+            self.o = build_orchestrator(engine, OrchestratorConfig(cache_size=512, **CONFIGS[config]))
             self.engine = self.o.engine
 
     def info(self):

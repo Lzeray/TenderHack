@@ -16,12 +16,15 @@ from functools import lru_cache
 MORPH_MODE = os.environ.get("KTRU_MORPH", "pymorphy")
 if MORPH_MODE not in ("pymorphy", "snowball"):
     raise ValueError(f"KTRU_MORPH={MORPH_MODE}: допустимо pymorphy или snowball")
-if MORPH_MODE == "pymorphy":
-    import pymorphy3
-    _MORPH = pymorphy3.MorphAnalyzer()
-else:
+if MORPH_MODE == "snowball":
     from . import morph as _stemmer
-    _MORPH = None
+
+
+@lru_cache(maxsize=1)
+def _morph():
+    """Словарь pymorphy3 загружается лениво: нужен только словарному режиму и старому лексическому пути."""
+    import pymorphy3
+    return pymorphy3.MorphAnalyzer()
 
 TOKEN_RE = re.compile(
     r"\d+(?:[.,]\d+)?"          # число
@@ -56,23 +59,32 @@ def lemma(word: str) -> str:
         return w
     if "-" in w:  # «дрель-шуруповерт» → леммы частей через дефис
         return "-".join(lemma(p) for p in w.split("-") if p)
-    if _MORPH is None:
+    if MORPH_MODE == "snowball":
         return _stemmer.stem(w)
-    return norm(_MORPH.parse(w)[0].normal_form)
+    return norm(_morph().parse(w)[0].normal_form)
 
 
 @lru_cache(maxsize=200_000)
 def is_known_word(word: str) -> bool:
     """Слово есть в словаре русского языка (без словаря — неизвестно, считаем «нет»)."""
-    return _MORPH.word_is_known(norm(word)) if _MORPH is not None else False
+    return _morph().word_is_known(norm(word)) if MORPH_MODE == "pymorphy" else False
 
 
 def lemma_set(words) -> set[str]:
-    """Набор служебных слов, приведённый к текущей нормализации (лемма или основа)."""
-    return {lemma(w) for w in words} | set(words)
+    """Набор служебных слов, приведённый к текущей нормализации.
+
+    Литералы в коде записаны в словарной форме, поэтому в режиме pymorphy они уже леммы и словарь
+    не загружается при импорте модулей (его ленивость нужна семантическому режиму)."""
+    words = set(words)
+    return words if MORPH_MODE == "pymorphy" else {lemma(w) for w in words} | words
 
 
-STOPWORDS |= lemma_set(list(STOPWORDS))   # стоп-слова сравниваются с леммами/основами токенов
+def lemma_of_literal(word: str) -> str:
+    """Литерал в словарной форме → текущая нормализация (без загрузки словаря в режиме pymorphy)."""
+    return word if MORPH_MODE == "pymorphy" else lemma(word)
+
+
+STOPWORDS |= lemma_set(STOPWORDS)   # стоп-слова сравниваются с леммами/основами токенов
 
 
 def content_lemmas(s: str) -> list[str]:
@@ -93,7 +105,7 @@ def head_lemma(name: str) -> str | None:
 
     Для «Стул на металлическом каркасе» → «стул», «Одежда специальная …» → «одежда».
     """
-    if _MORPH is None:
+    if MORPH_MODE == "snowball":
         # без морфологии: первое значимое слово, не похожее на прилагательное
         words = [t for t in tokenize(name) if not t[0].isdigit() and lemma(t) not in STOPWORDS]
         for t in words:
@@ -103,7 +115,7 @@ def head_lemma(name: str) -> str | None:
     for t in tokenize(name):
         if t[0].isdigit():
             continue
-        p = _MORPH.parse(t)[0]
+        p = _morph().parse(t)[0]
         lem = norm(p.normal_form)
         if lem in STOPWORDS:
             continue

@@ -402,6 +402,10 @@ class Engine:
         level2 = [] if self.native else [e for f in features
                                          for e in [empirical.assess(f, heads, self.ste_stats)
                                                    or empirical.presence(f, heads, self.ste_stats)] if e is not None]
+        value_gone = self._value_support(features, positions, evals)
+        if value_gone and not any(evals[p.code].invalid == 0 and p.code not in value_gone
+                                  for p in positions if not p.is_template):
+            value_gone = {}   # отбор по значению не обнуляет ответ: тогда решают только противоречия
         ranked = []
         for p in positions:
             ev = evals[p.code]
@@ -411,11 +415,13 @@ class Engine:
             rc, key = components(p, tier, ncov, tcov, ev.valid, ev.unknown, scores.get(p.code))
             # позиция исключается только противоречием; свойство, которого у позиции нет или которое в ней
             # необязательно, её не исключает (docs/KTRU_SEARCH_PLAN.md, K2)
-            compatible = ev.invalid == 0
+            # исключение — противоречие или значение, которого у позиции нет ни в одной характеристике
+            compatible = ev.invalid == 0 and p.code not in value_gone
             c = Candidate(code=p.code, name=p.name, version=p.version, okpd2=p.okpd2_code, category=p.category,
                           is_template=p.is_template, active=p.active, parent_code=p.parent_code,
                           no_new_features=p.no_new_features, compatible=compatible,
-                          excluded_reason="; ".join(ev.invalid_reasons) if not compatible else None,
+                          excluded_reason="; ".join(ev.invalid_reasons + value_gone.get(p.code, []))
+                          if not compatible else None,
                           rank_components=rc, checks=ev.checks)
             ranked.append((key, c, p))
         ranked.sort(key=lambda x: x[0])
@@ -674,6 +680,72 @@ class Engine:
                 seg = []
             else:
                 seg.append(t)
+        return out
+
+    @staticmethod
+    def _value_support(features: list[Feature], positions: list[Position], evals) -> dict[str, list[str]]:
+        """Качественное значение из описания («угловой»), которого нет в найденном свойстве позиции.
+
+        * Значение есть у позиции под другой характеристикой («Конфигурация стола: Угловой» вместо «Тип конструкции
+          стола: Угловая») — проверка засчитывается по ней (valid), а не «свойства нет в позиции».
+        * У позиции такого значения нет ни в одной характеристике, а у других позиций области оно есть — позиция
+          не подходит описанию и исключается с причиной.
+        Слова наименования типа («стол» → «Вид товара: Стол») и «Да/Нет» сюда не относятся. Если значение не
+        выражается ни в одной позиции, ничего не исключается (unknown ≠ invalid, область не обнуляется)."""
+        finals = [p for p in positions if not p.is_template]
+        out: dict[str, list[str]] = {}
+        # слово типа («стол» → «Вид товара: Стол») у позиции без этой характеристики подтверждено её наименованием
+        for f in features:
+            if f.status != "bound" or not f.from_type_name or not f.value:
+                continue
+            lem = set(content_lemmas(f.value))
+            for p in positions:
+                k = next((k for k in evals[p.code].checks if k.feature_id == f.id and k.status == "unknown"
+                          and k.unknown_reason == "property_absent"), None)
+                if k is not None and lem and lem <= set(p.name_lemmas):
+                    k.status, k.property_name, k.unknown_reason = "valid", "Наименование", None
+                    k.reason = f"«{f.value}» — в наименовании позиции «{p.name}»"
+                    evals[p.code].unknown -= 1
+                    evals[p.code].valid += 1
+        for f in features:
+            if f.status != "bound" or f.op != "eq" or f.unit or not f.value or f.from_type_name \
+                    or f.confirmation != "confirmed" or norm(f.value) in ("да", "нет"):
+                continue
+            lem = set(content_lemmas(f.value))
+            if not lem:
+                continue
+            own, alt, ok = {}, {}, set()
+            for p in positions:
+                pr = find_prop(p, f)
+                if pr is not None:
+                    own[p.code] = True
+                    if any(k.feature_id == f.id and k.status == "valid" for k in evals[p.code].checks):
+                        ok.add(p.code)
+                    continue
+                hit = next((pr2 for pr2 in p.props.values() if any(
+                    v.kind == "quality" and v.lemmas and lem <= set(v.lemmas) for v in pr2.values)), None)
+                if hit is not None:
+                    alt[p.code] = hit
+            # значение должно реально подтверждаться хотя бы у одной конечной позиции, иначе отбор ничего не доказывает
+            if not any(p.code in ok or p.code in alt for p in finals):
+                continue
+            for p in positions:
+                if p.code in own:
+                    continue
+                ev = evals[p.code]
+                check = next((k for k in ev.checks if k.feature_id == f.id and k.status == "unknown"), None)
+                hit = alt.get(p.code)
+                if hit is not None:
+                    if check is not None:
+                        val = next(v.label for v in hit.values if v.kind == "quality" and v.lemmas and lem <= set(v.lemmas))
+                        check.status, check.property_name, check.property_code = "valid", hit.name, hit.code
+                        check.reason = f"«{f.value}» есть в характеристике «{hit.name}» этой позиции: {val}"
+                        check.unknown_reason = None
+                        ev.unknown, ev.valid = ev.unknown - 1, ev.valid + 1
+                    continue
+                if not p.is_template:
+                    out.setdefault(p.code, []).append(
+                        f"{f.property_name}: у позиции нет значения «{f.value}» ни в одной характеристике")
         return out
 
     @staticmethod

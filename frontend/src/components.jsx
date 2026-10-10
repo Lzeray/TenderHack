@@ -34,10 +34,10 @@ export function ProductArt({ category, name = "" }) {
     <span className="art-orbit" /><span className="art-dot" />
     <svg viewBox="0 0 240 180" role="img" aria-label="Иллюстрация категории товара">
       <ellipse cx="121" cy="155" rx="68" ry="9" fill="currentColor" opacity=".09" />
-      {shirt ? <g stroke="#6171b8" strokeWidth="2.5" strokeLinejoin="round">
-        <path d="m88 32-28 15-27 36 30 18 14-18v66h88V83l14 18 30-18-27-36-28-15c-8 21-28 21-37 0Z" fill="#e2e7ff" />
+      {shirt ? <g stroke="#b86165" strokeWidth="2.5" strokeLinejoin="round">
+        <path d="m88 32-28 15-27 36 30 18 14-18v66h88V83l14 18 30-18-27-36-28-15c-8 21-28 21-37 0Z" fill="#fcebec" />
         <path d="M88 32c9 22 29 22 37 0m-5 23v94m-41-67 9-31m76 31-9-31" fill="none" />
-        <path d="M88 109h21v22H88z" fill="#bac6ff" /><path d="M138 109h18v22h-18z" fill="#bac6ff" />
+        <path d="M88 109h21v22H88z" fill="#ffbabd" /><path d="M138 109h18v22h-18z" fill="#ffbabd" />
         <path d="M114 72h12m-12 16h12m-12 16h12" />
       </g> : furniture ? table ? <g stroke="#8a6b4e" strokeWidth="3" strokeLinejoin="round">
         <path d="m40 69 122-22 41 31-123 25Z" fill="#eed7be" /><path d="M40 69v11l40 32 123-25V78L80 103Z" fill="#d4b08b" />
@@ -47,11 +47,11 @@ export function ProductArt({ category, name = "" }) {
         <path d="m71 91 91-1 17 26H56l15-25Z" fill="#ead8c6" />
         <path d="M65 116v39m104-39v39M81 117l-9 30m81-30 11 30" stroke="#6b7285" strokeWidth="8" />
         <path d="M73 83V42m91 40V42" fill="none" />
-      </g> : <g transform="rotate(-29 120 90)" stroke="#52677f" strokeWidth="2.5" strokeLinejoin="round">
+      </g> : <g transform="rotate(-29 120 90)" stroke="#6d6464" strokeWidth="2.5" strokeLinejoin="round">
         <path d="M111 52h19v90a9 9 0 0 1-19 0V52Z" fill="#dfad67" />
-        <path d="M82 31h67l17 15-17 17H82V31Z" fill="#9aadc3" /><path d="M82 31h16v32H82Z" fill="#c8d5e5" />
-        <path d="M109 103h23v39a11 11 0 0 1-23 0v-39Z" fill="#3155e7" stroke="#2945b8" />
-        <path d="m114 113 13 7m-13 6 13 7m-13 6 13 7" stroke="#8da4ff" />
+        <path d="M82 31h67l17 15-17 17H82V31Z" fill="#b2abab" /><path d="M82 31h16v32H82Z" fill="#e5c8c9" />
+        <path d="M109 103h23v39a11 11 0 0 1-23 0v-39Z" fill="#e7313a" stroke="#b82930" />
+        <path d="m114 113 13 7m-13 6 13 7m-13 6 13 7" stroke="#ff8d93" />
       </g>}
     </svg>
   </div>;

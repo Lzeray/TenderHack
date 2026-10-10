@@ -194,3 +194,16 @@ def test_lone_no_value_is_not_negation(real_engine):
     r = real_engine.search(SearchRequest(text="стол; вид материала столешницы: не лдсп"))
     f = next(f for f in r.features if f.property_name == "Вид материала столешницы")
     assert f.op == "ne" and f.value == "ЛДСП"
+
+
+def test_value_without_property_is_checked_by_other_characteristic(real_engine):
+    # «стол угловой»: у позиции нет «Тип конструкции стола», но есть «Конфигурация стола: Угловой» — проверка
+    # засчитывается по ней; позиции, где «угловой» нет ни в одной характеристике, не подходят
+    r = real_engine.search(SearchRequest(text="стол угловой"))
+    f = next(f for f in r.features if f.status == "bound" and f.value and "углов" in f.value.lower())
+    finals = [c for c in r.candidates if c.compatible and not c.is_template]
+    assert finals
+    for c in finals:
+        k = next(k for k in c.checks if k.feature_id == f.id)
+        assert k.status == "valid", (c.code, k.reason)
+    assert any(not c.compatible and "ни в одной характеристике" in (c.excluded_reason or "") for c in r.candidates)

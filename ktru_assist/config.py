@@ -9,20 +9,20 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Версии правил: меняются вручную при изменении соответствующего модуля.
 VERSIONS = {
-    "api": "3.1",
+    "api": "4.0",
     "importer": "1.0",
     "normalizer": "1.1",      # карта координат исходного текста, отрицательные числа
     "typos": "1.0",
-    "extractor": "1.1",       # алиасы значений, части товара, «не менее» = ≥ (ошибка 1.0: было <)
+    "extractor": "1.2",       # complete evidence for multiword catalogue values
     "validator": "1.3",       # conflicting request conditions across the whole catalogue scope
     "ranking": "1.0",
     "clarifier": "1.2",       # full option lists, identity-based properties
-    "engine": "2.2",          # complete live results and structured two-branch search
+    "engine": "2.3",          # manual priority over rule facts in the hybrid identity scope
     "type_registry": "1.0",
     "resolver": "1.0",
     "plausibility": "1.0",
-    "live_search": "1.1",
-    "ste_search": "1.0",
+    "live_search": "1.2",
+    "ste_search": "1.1",
 }
 
 # Направления MVP. Критерий — префикс ОКПД2 (см. docs/DATA.md, почему не рубрикатор).

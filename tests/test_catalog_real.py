@@ -37,3 +37,22 @@ def test_real_terminated_not_offered(real_engine):
     # 31.01.11.121-00000002 в снимке TERMINATED
     r = real_engine.search(SearchRequest(text="шкаф для одежды металлический"))
     assert "31.01.11.121-00000002" not in {c.code for c in r.candidates}
+
+
+def test_real_generic_gloves_need_protection_clarification(real_engine):
+    r = real_engine.search(SearchRequest(text="перчатки швейные для защиты от внешних воздействий"))
+    assert r.final_code is None and r.question is not None
+    assert len(r.compatible_codes) > 1
+    assert not any(f.value == "От механических воздействий" for f in r.features)
+
+
+def test_real_gloves_specific_protection_does_not_conflict(real_engine):
+    r = real_engine.search(SearchRequest(text=
+        "перчатки швейные для защиты от внешних воздействий, вид защиты: от пониженных температур"))
+    assert r.status == "matched" and r.final_code == "14.12.30.150-00000006"
+
+
+def test_real_long_property_name_preserves_quantity_binding(real_engine):
+    r = real_engine.search(SearchRequest(text="ключ гаечный разводной, тип исполнения: b, "
+        "длина разводного ключа 25,1 см, размер максимального разведения губок разводного ключа 1,4 см"))
+    assert r.status == "matched" and r.final_code == "25.73.30.171-00000001"

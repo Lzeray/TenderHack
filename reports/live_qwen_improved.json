@@ -1,0 +1,663 @@
+{
+  "kind": "real_model_integration_not_independent_accuracy",
+  "machine": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "versions": {
+    "api": "3.2",
+    "importer": "1.0",
+    "normalizer": "1.1",
+    "typos": "1.0",
+    "extractor": "1.2",
+    "validator": "1.3",
+    "ranking": "1.0",
+    "clarifier": "1.2",
+    "engine": "2.3",
+    "type_registry": "1.0",
+    "resolver": "1.0",
+    "plausibility": "1.0",
+    "live_search": "1.2",
+    "ste_search": "1.1",
+    "package": "0.1.0",
+    "catalog_snapshot": "nsiKTRUNew_all_actual_20261003020003",
+    "catalog_as_of": "2026-10-09",
+    "search_backend": "catalogue-scope",
+    "recognition_mode": "hybrid",
+    "orchestrator": "3.0",
+    "llm_mode": "always",
+    "llm_model": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593eac1aa2be9c7d06c432dcf81945adca5eca2f27662c18f168ba0",
+    "llm_prompt": "description-1.3",
+    "llm_schema": "e8955e12f66551932b619f03d472a38731bcb416b235ec164607426e51d97bf7",
+    "llm_options": "{\"num_ctx\": 4096, \"num_predict\": 768, \"seed\": 0, \"temperature\": 0}"
+  },
+  "cases": [
+    {
+      "text": "Молоток слесарный 500 г",
+      "fast_status": "matched",
+      "status": "matched",
+      "final_code": "25.73.30.141-00000012",
+      "fast_codes": [
+        "25.73.30.141-00000012"
+      ],
+      "compatible_codes": [
+        "25.73.30.141-00000012"
+      ],
+      "wall_ms": 2224.58,
+      "provider": {
+        "name": "qwen",
+        "enabled": true,
+        "used": true,
+        "status": "ok",
+        "detail": "независимый разбор предмета и характеристик",
+        "elapsed_ms": 2203.7
+      },
+      "features": [
+        {
+          "id": "f1",
+          "source": "text",
+          "status": "bound",
+          "property_code": "f78c450e-2",
+          "property_name": "Масса молотка",
+          "op": "eq",
+          "value": "500",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": "г",
+          "evidence": "500 г",
+          "span": [
+            18,
+            23
+          ],
+          "negated": false,
+          "options": [],
+          "note": "несколько свойств такой размерности — укажите свойство; величина относится к самому предмету по названию характеристики КТРУ",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": null,
+          "canonical_key": null,
+          "intent": "fact",
+          "raw_span": [
+            18,
+            23
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        },
+        {
+          "id": "f2",
+          "source": "text",
+          "status": "bound",
+          "property_code": "86d2b111-f",
+          "property_name": "Тип",
+          "op": "eq",
+          "value": "Слесарный",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": null,
+          "evidence": "слесарный",
+          "span": [
+            8,
+            17
+          ],
+          "negated": false,
+          "options": [],
+          "note": "значение из справочника допустимых значений",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": null,
+          "canonical_key": "тип",
+          "intent": "fact",
+          "raw_span": [
+            8,
+            17
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        }
+      ],
+      "issues": [],
+      "model_description": {
+        "item": "молоток",
+        "item_quote": "Молоток слесарный 500 г",
+        "catalogue_type": null,
+        "attributes": [],
+        "unresolved": []
+      },
+      "confirmation": null
+    },
+    {
+      "text": "Стул на металлическом каркасе с мягким сиденьем и мягкой спинкой",
+      "fast_status": "matched",
+      "status": "matched",
+      "final_code": "31.01.11.150-00000003",
+      "fast_codes": [
+        "31.01.11.150-00000003"
+      ],
+      "compatible_codes": [
+        "31.01.11.150-00000003"
+      ],
+      "wall_ms": 6669.22,
+      "provider": {
+        "name": "qwen",
+        "enabled": true,
+        "used": true,
+        "status": "ok",
+        "detail": "независимый разбор предмета и характеристик",
+        "elapsed_ms": 6640.4
+      },
+      "features": [
+        {
+          "id": "f1",
+          "source": "text",
+          "status": "bound",
+          "property_code": "8e50a5cd-4",
+          "property_name": "Наличие мягкого сидения",
+          "op": "eq",
+          "value": "Да",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": null,
+          "evidence": "мягким сиденьем",
+          "span": [
+            32,
+            47
+          ],
+          "negated": false,
+          "options": [],
+          "note": "логическое свойство: слова названия",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": "seat",
+          "canonical_key": "seat.мягкий",
+          "intent": "fact",
+          "raw_span": [
+            32,
+            47
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        },
+        {
+          "id": "f2",
+          "source": "text",
+          "status": "bound",
+          "property_code": "cf3a76b9-4",
+          "property_name": "Наличие мягкой спинки",
+          "op": "eq",
+          "value": "Да",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": null,
+          "evidence": "мягкой спинкой",
+          "span": [
+            50,
+            64
+          ],
+          "negated": false,
+          "options": [],
+          "note": "логическое свойство: слова названия",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": "back",
+          "canonical_key": "back.мягкий",
+          "intent": "fact",
+          "raw_span": [
+            50,
+            64
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        }
+      ],
+      "issues": [
+        {
+          "level": "info",
+          "code": "model_fragment_rejected",
+          "message": "Не удалось однозначно привязать цитату: стул"
+        },
+        {
+          "level": "info",
+          "code": "model_fragment_rejected",
+          "message": "Исходное значение отсутствует в цитате: с мягким сиденьем"
+        },
+        {
+          "level": "info",
+          "code": "model_fragment_rejected",
+          "message": "Не удалось однозначно привязать цитату: с мягкой спинкой"
+        }
+      ],
+      "model_description": {
+        "item": "стул",
+        "item_quote": "стул",
+        "catalogue_type": null,
+        "attributes": [
+          {
+            "name": "Материал",
+            "value": "металлическом",
+            "quote": "металлическом каркасе",
+            "canonical_value": "металлический",
+            "unit": null,
+            "op": "eq",
+            "value_to": null
+          },
+          {
+            "name": "Вид/назначение",
+            "value": "стул",
+            "quote": "стул",
+            "canonical_value": "стул",
+            "unit": null,
+            "op": "eq",
+            "value_to": null
+          },
+          {
+            "name": "Сиденье",
+            "value": "мягкое",
+            "quote": "с мягким сиденьем",
+            "canonical_value": "мягкое",
+            "unit": null,
+            "op": "eq",
+            "value_to": null
+          },
+          {
+            "name": "Спинка",
+            "value": "мягкая",
+            "quote": "с мягкой спинкой",
+            "canonical_value": "мягкая",
+            "unit": null,
+            "op": "eq",
+            "value_to": null
+          }
+        ],
+        "unresolved": []
+      },
+      "confirmation": null
+    },
+    {
+      "text": "перчатки швейные для защиты от внешних воздействий, вид защиты: от пониженных температур",
+      "fast_status": "matched",
+      "status": "matched",
+      "final_code": "14.12.30.150-00000006",
+      "fast_codes": [
+        "14.12.30.150-00000006"
+      ],
+      "compatible_codes": [
+        "14.12.30.150-00000006"
+      ],
+      "wall_ms": 1951.66,
+      "provider": {
+        "name": "qwen",
+        "enabled": true,
+        "used": true,
+        "status": "ok",
+        "detail": "независимый разбор предмета и характеристик",
+        "elapsed_ms": 1929.0
+      },
+      "features": [
+        {
+          "id": "f1",
+          "source": "text",
+          "status": "bound",
+          "property_code": "66d25658-e",
+          "property_name": "Вид защиты",
+          "op": "eq",
+          "value": "От пониженных температур",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": null,
+          "evidence": "вид защиты: от пониженных температур",
+          "span": [
+            52,
+            88
+          ],
+          "negated": false,
+          "options": [],
+          "note": "конструкция «характеристика: значение»",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": null,
+          "canonical_key": "защита",
+          "intent": "fact",
+          "raw_span": [
+            52,
+            88
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        }
+      ],
+      "issues": [],
+      "model_description": {
+        "item": "перчатки швейные",
+        "item_quote": "перчатки швейные для защиты от внешних воздействий, вид защиты: от пониженных температур",
+        "catalogue_type": null,
+        "attributes": [],
+        "unresolved": [
+          "вид защиты: от пониженных температур"
+        ]
+      },
+      "confirmation": null
+    },
+    {
+      "text": "Пассатижи слесарные 190 мм, заточка есть",
+      "fast_status": "matched",
+      "status": "matched",
+      "final_code": "25.73.30.163-00000005",
+      "fast_codes": [
+        "25.73.30.163-00000005"
+      ],
+      "compatible_codes": [
+        "25.73.30.163-00000005"
+      ],
+      "wall_ms": 1472.63,
+      "provider": {
+        "name": "qwen",
+        "enabled": true,
+        "used": true,
+        "status": "ok",
+        "detail": "независимый разбор предмета и характеристик",
+        "elapsed_ms": 1453.0
+      },
+      "features": [
+        {
+          "id": "f1",
+          "source": "text",
+          "status": "bound",
+          "property_code": "ee94fa19-1",
+          "property_name": "Длина",
+          "op": "eq",
+          "value": "190",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": "мм",
+          "evidence": "190 мм",
+          "span": [
+            20,
+            26
+          ],
+          "negated": false,
+          "options": [],
+          "note": "единственное свойство размерности «length» в области",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": null,
+          "canonical_key": "длина",
+          "intent": "fact",
+          "raw_span": [
+            20,
+            26
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        },
+        {
+          "id": "f2",
+          "source": "text",
+          "status": "bound",
+          "property_code": "240afbab-9",
+          "property_name": "Вид пассатижей",
+          "op": "eq",
+          "value": "Слесарные",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": null,
+          "evidence": "пассатижи слесарные",
+          "span": [
+            0,
+            19
+          ],
+          "negated": false,
+          "options": [],
+          "note": "значение из справочника допустимых значений",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": null,
+          "canonical_key": "пассатижи",
+          "intent": "fact",
+          "raw_span": [
+            0,
+            19
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        }
+      ],
+      "issues": [],
+      "model_description": {
+        "item": "пассатижи",
+        "item_quote": "Пассатижи слесарные 190 мм, заточка есть",
+        "catalogue_type": null,
+        "attributes": [],
+        "unresolved": []
+      },
+      "confirmation": null
+    },
+    {
+      "text": "Стул, подлокотники имеются",
+      "fast_status": "clarification_needed",
+      "status": "clarification_needed",
+      "final_code": null,
+      "fast_codes": [
+        "31.01.11.150-00000001",
+        "31.01.11.150-00000002",
+        "31.01.11.150-00000003",
+        "31.01.11.150-00000014",
+        "31.01.11.150-00000019",
+        "31.01.12.160-00000001",
+        "31.01.12.160-00000002",
+        "31.01.12.160-00000003",
+        "31.01.12.160-00000007",
+        "31.09.14.110-00000001",
+        "31.01.11.150-00000012"
+      ],
+      "compatible_codes": [
+        "31.01.11.150-00000001",
+        "31.01.11.150-00000002",
+        "31.01.11.150-00000003",
+        "31.01.11.150-00000014",
+        "31.01.11.150-00000019",
+        "31.01.12.160-00000001",
+        "31.01.12.160-00000002",
+        "31.01.12.160-00000003",
+        "31.01.12.160-00000007",
+        "31.09.14.110-00000001",
+        "31.01.11.150-00000012"
+      ],
+      "wall_ms": 2392.35,
+      "provider": {
+        "name": "qwen",
+        "enabled": true,
+        "used": true,
+        "status": "ok",
+        "detail": "независимый разбор предмета и характеристик",
+        "elapsed_ms": 2348.6
+      },
+      "features": [
+        {
+          "id": "f1",
+          "source": "text",
+          "status": "bound",
+          "property_code": "14f69742-c",
+          "property_name": "Наличие подлокотников",
+          "op": "eq",
+          "value": "Да",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": null,
+          "evidence": "подлокотники",
+          "span": [
+            6,
+            18
+          ],
+          "negated": false,
+          "options": [],
+          "note": "логическое свойство: слова названия",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": "armrest",
+          "canonical_key": "armrest.подлокотник",
+          "intent": "fact",
+          "raw_span": [
+            6,
+            18
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        }
+      ],
+      "issues": [],
+      "model_description": {
+        "item": "стул",
+        "item_quote": "Стул, подлокотники имеются",
+        "catalogue_type": null,
+        "attributes": [
+          {
+            "name": "Наличие подлокотников",
+            "value": "имеются",
+            "quote": "подлокотники имеются",
+            "canonical_value": "имеются",
+            "unit": null,
+            "op": "eq",
+            "value_to": null
+          }
+        ],
+        "unresolved": []
+      },
+      "confirmation": null
+    },
+    {
+      "text": "Молоток слесарный не менее 500 г",
+      "fast_status": "matched",
+      "status": "matched",
+      "final_code": "25.73.30.141-00000012",
+      "fast_codes": [
+        "25.73.30.141-00000012"
+      ],
+      "compatible_codes": [
+        "25.73.30.141-00000012"
+      ],
+      "wall_ms": 1542.99,
+      "provider": {
+        "name": "qwen",
+        "enabled": true,
+        "used": true,
+        "status": "ok",
+        "detail": "независимый разбор предмета и характеристик",
+        "elapsed_ms": 1525.0
+      },
+      "features": [
+        {
+          "id": "f1",
+          "source": "text",
+          "status": "bound",
+          "property_code": "f78c450e-2",
+          "property_name": "Масса молотка",
+          "op": "ge",
+          "value": "500",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": "г",
+          "evidence": "не менее 500 г",
+          "span": [
+            18,
+            32
+          ],
+          "negated": false,
+          "options": [],
+          "note": "несколько свойств такой размерности — укажите свойство; величина относится к самому предмету по названию характеристики КТРУ",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": null,
+          "canonical_key": null,
+          "intent": "requirement",
+          "raw_span": [
+            18,
+            32
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        },
+        {
+          "id": "f2",
+          "source": "text",
+          "status": "bound",
+          "property_code": "86d2b111-f",
+          "property_name": "Тип",
+          "op": "eq",
+          "value": "Слесарный",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": null,
+          "evidence": "слесарный",
+          "span": [
+            8,
+            17
+          ],
+          "negated": false,
+          "options": [],
+          "note": "значение из справочника допустимых значений",
+          "origin": "rule",
+          "confirmation": "confirmed",
+          "component": null,
+          "canonical_key": "тип",
+          "intent": "fact",
+          "raw_span": [
+            8,
+            17
+          ],
+          "supported_by": [],
+          "proposal_key": null,
+          "strict_ref": false,
+          "characteristic_ref": null,
+          "values": []
+        }
+      ],
+      "issues": [],
+      "model_description": {
+        "item": "молоток слесарный",
+        "item_quote": "Молоток слесарный не менее 50",
+        "catalogue_type": null,
+        "attributes": [],
+        "unresolved": [
+          "не менее 500 г"
+        ]
+      },
+      "confirmation": null
+    }
+  ],
+  "contract_failures": []
+}

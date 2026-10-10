@@ -11,14 +11,14 @@
     <bpmn:serviceTask id="t_typo" name="Исправление опечаток по словарю каталога"/>
     <bpmn:exclusiveGateway id="g_typo" name="Исправления однозначны?"/>
     <bpmn:userTask id="t_typo_choice" name="Выбор варианта исправления"/>
-    <bpmn:serviceTask id="t_search" name="Поиск кандидатов (OpenSearch / BM25)"/>
+    <bpmn:serviceTask id="t_search" name="Быстрый поиск предмета (словарный разбор / BM25)"/>
     <bpmn:exclusiveGateway id="g_type" name="Тип товара распознан?"/>
     <bpmn:endEvent id="e_notfound" name="Не найдено"/>
     <bpmn:serviceTask id="t_domain" name="Все активные позиции типа (исчерпывающе)"/>
     <bpmn:serviceTask id="t_extract" name="Извлечение и привязка характеристик"/>
     <bpmn:serviceTask id="t_apply" name="Применение ручных правок и ответов"/>
     <bpmn:serviceTask id="t_validate" name="Проверка: valid / invalid / unknown"/>
-    <bpmn:serviceTask id="t_rank" name="Исключение несовместимых и шаблонов, ранжирование"/>
+    <bpmn:serviceTask id="t_rank" name="Фильтрация КТРУ; отдельный поиск примеров СТЕ"/>
     <bpmn:exclusiveGateway id="g_result" name="Результат"/>
     <bpmn:endEvent id="e_match" name="Конечный код (matched)"/>
     <bpmn:endEvent id="e_conflict" name="Противоречие (conflict)"/>
@@ -45,6 +45,24 @@
     <bpmn:sequenceFlow id="f18" name="нужно уточнение" sourceRef="g_result" targetRef="t_question"/>
     <bpmn:sequenceFlow id="f19" sourceRef="t_question" targetRef="t_answer"/>
     <bpmn:sequenceFlow id="f20" name="структурированный ответ" sourceRef="t_answer" targetRef="t_apply"/>
+  </bpmn:process>
+
+  <bpmn:process id="model_enrichment" name="Дополнительный локальный разбор; основной поиск не ждёт модель" isExecutable="false">
+    <bpmn:startEvent id="m_start" name="Пауза ввода 1 с / Enter"/>
+    <bpmn:serviceTask id="m_extract" name="Локальная Qwen: признаки и точные цитаты"/>
+    <bpmn:serviceTask id="m_check" name="Проверка чисел, единиц, отрицаний и ревизии"/>
+    <bpmn:exclusiveGateway id="m_valid" name="Ответ пригоден?"/>
+    <bpmn:endEvent id="m_error" name="Сохранить быстрый результат; пояснить сбой"/>
+    <bpmn:userTask id="m_confirm" name="Подтвердить или исправить предложения"/>
+    <bpmn:serviceTask id="m_apply" name="Повторная проверка КТРУ без новой генерации"/>
+    <bpmn:endEvent id="m_end" name="Обновить коды, вопросы и объяснения"/>
+    <bpmn:sequenceFlow id="mf1" sourceRef="m_start" targetRef="m_extract"/>
+    <bpmn:sequenceFlow id="mf2" sourceRef="m_extract" targetRef="m_check"/>
+    <bpmn:sequenceFlow id="mf3" sourceRef="m_check" targetRef="m_valid"/>
+    <bpmn:sequenceFlow id="mf4" name="нет / устарел" sourceRef="m_valid" targetRef="m_error"/>
+    <bpmn:sequenceFlow id="mf5" name="да, только предложения" sourceRef="m_valid" targetRef="m_confirm"/>
+    <bpmn:sequenceFlow id="mf6" sourceRef="m_confirm" targetRef="m_apply"/>
+    <bpmn:sequenceFlow id="mf7" sourceRef="m_apply" targetRef="m_end"/>
   </bpmn:process>
 
   <bpmndi:BPMNDiagram id="d1">
@@ -89,6 +107,25 @@
       <bpmndi:BPMNEdge id="e18" bpmnElement="f18"><di:waypoint x="1585" y="245"/><di:waypoint x="1585" y="310"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e19" bpmnElement="f19"><di:waypoint x="1585" y="390"/><di:waypoint x="1585" y="470"/><di:waypoint x="1440" y="470"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e20" bpmnElement="f20"><di:waypoint x="1330" y="470"/><di:waypoint x="1185" y="470"/><di:waypoint x="1185" y="260"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+  <bpmndi:BPMNDiagram id="model_diagram">
+    <bpmndi:BPMNPlane id="model_plane" bpmnElement="model_enrichment">
+      <bpmndi:BPMNShape id="ms_start" bpmnElement="m_start"><dc:Bounds x="40" y="150" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ms_extract" bpmnElement="m_extract"><dc:Bounds x="120" y="128" width="150" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ms_check" bpmnElement="m_check"><dc:Bounds x="310" y="128" width="150" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ms_valid" bpmnElement="m_valid" isMarkerVisible="true"><dc:Bounds x="510" y="143" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ms_error" bpmnElement="m_error"><dc:Bounds x="517" y="300" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ms_confirm" bpmnElement="m_confirm"><dc:Bounds x="610" y="128" width="150" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ms_apply" bpmnElement="m_apply"><dc:Bounds x="810" y="128" width="150" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ms_end" bpmnElement="m_end"><dc:Bounds x="1010" y="150" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="me1" bpmnElement="mf1"><di:waypoint x="76" y="168"/><di:waypoint x="120" y="168"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="me2" bpmnElement="mf2"><di:waypoint x="270" y="168"/><di:waypoint x="310" y="168"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="me3" bpmnElement="mf3"><di:waypoint x="460" y="168"/><di:waypoint x="510" y="168"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="me4" bpmnElement="mf4"><di:waypoint x="535" y="193"/><di:waypoint x="535" y="300"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="me5" bpmnElement="mf5"><di:waypoint x="560" y="168"/><di:waypoint x="610" y="168"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="me6" bpmnElement="mf6"><di:waypoint x="760" y="168"/><di:waypoint x="810" y="168"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="me7" bpmnElement="mf7"><di:waypoint x="960" y="168"/><di:waypoint x="1010" y="168"/></bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

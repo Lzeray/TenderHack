@@ -11,7 +11,7 @@ from ktru_assist.catalog.ste_search import build, SteSearch
 from ktru_assist.engine import Engine
 from ktru_assist.llm.description import validate
 from ktru_assist.llm.provider import FakeProvider
-from ktru_assist.models import SearchRequest
+from ktru_assist.models import Constraint, SearchRequest
 from ktru_assist.orchestrator import Orchestrator, OrchestratorConfig
 
 
@@ -56,6 +56,57 @@ def test_quantity_from_model_cannot_be_changed():
         {"name": "масса", "value": "50", "unit": "г", "quote": "500 г"}]}
     parsed, accepted, rejected = validate("молоток 500 г", json.dumps(reply))
     assert not accepted and rejected
+
+
+@pytest.mark.parametrize("quote,attribute", [
+    ("не менее 500 г", {"value": "500", "unit": "г", "op": "eq"}),
+    ("от 500 до 600 г", {"value": "500", "value_to": "650", "unit": "г", "op": "between"}),
+    ("не красный", {"value": "красный", "op": "eq"}),
+])
+def test_model_cannot_change_comparison_range_or_negation(quote, attribute):
+    reply = {"item": "молоток", "item_quote": "молоток", "attributes": [{"name": "Признак", "quote": quote, **attribute}]}
+    _, accepted, rejected = validate("молоток " + quote, json.dumps(reply))
+    assert not accepted and rejected
+
+
+@pytest.mark.parametrize("quote,attribute", [
+    ("не менее 500 г", {"value": "500", "unit": "г", "op": "ge"}),
+    ("от 500 до 600 г", {"value": "500", "value_to": "600", "unit": "г", "op": "between"}),
+    ("не красный", {"value": "красный", "op": "ne"}),
+])
+def test_model_preserving_original_conditions_is_accepted(quote, attribute):
+    reply = {"item": "молоток", "item_quote": "молоток", "attributes": [{"name": "Признак", "quote": quote, **attribute}]}
+    _, accepted, rejected = validate("молоток " + quote, json.dumps(reply))
+    assert len(accepted) == 1 and not rejected
+
+
+def test_model_proposal_requires_confirmation_and_does_not_filter(live):
+    text = "пассатижи слесарные 190 мм, заточка есть"
+    live.cfg.b_mode = "always"
+    live.llm = FakeProvider({"item": "пассатижи", "item_quote": "пассатижи", "attributes": [
+        {"name": "Режущие кромки", "value": "есть", "canonical_value": "Да", "quote": "заточка есть"}]})
+    fast = live.run(request(text))
+    full = live.run(request(text, stage="submitted"))
+    assert full.compatible_codes == fast.compatible_codes
+    assert full.final_code is None and full.code_resolution.status != "resolved"
+    f = next(f for f in full.features if f.origin == "llm")
+    assert f.confirmation == "tentative" and f.status == "proposed"
+    assert full.question.kind == "confirm"
+    confirmed = live.run(SearchRequest(text=text, session_id="live", revision=2, stage="submitted",
+        answers=full.question.options[0].answers, answers_query_hash=full.query_hash))
+    assert confirmed.status == "matched"
+    assert not any(f.confirmation == "tentative" for f in confirmed.features)
+    assert len(live.llm.calls) == 1  # confirmation reuses the validated extraction
+    removed = live.run(SearchRequest(text=text, session_id="live", revision=3, stage="submitted",
+        overrides=[Constraint(property=f.characteristic_ref, remove=True)]))
+    assert removed.status == "matched" and not any(f.origin == "llm" for f in removed.features)
+
+
+def test_hybrid_manual_override_replaces_rule_constraint(live):
+    r = live.run(SearchRequest(text="пассатижи слесарные 150 мм", session_id="live", revision=1,
+                              overrides=[Constraint(property="p-len", value="190", unit="мм")]))
+    assert r.status == "matched"
+    assert next(f for f in r.features if f.source == "text" and f.property_code == "p-len").status == "overridden"
 
 
 def test_product_filters_use_exact_decimal_units_and_pagination(tmp_path):

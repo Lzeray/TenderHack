@@ -135,3 +135,13 @@ class KtruHttp(_Dialog, Adapter):
     def predict(self, text):
         return normalize(self._call({"text": text, "stage": "submitted", "session_id": f"bench-{next(_session)}",
                                      "revision": 1}))
+
+
+class KtruDraftHttp(KtruHttp):
+    """Actual running service, typing branch; never calls the generative model."""
+    def __init__(self, base: str = "http://127.0.0.1:8000"):
+        super().__init__(base)
+        self.name = f"ktru_draft_http:{self.base}"
+
+    def _call(self, payload):
+        return super()._call(dict(payload, stage="draft"))

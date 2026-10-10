@@ -41,3 +41,26 @@ services:
       - OPENSEARCH_URL=http://opensearch:9200
     volumes: ["./data:/app/data:ro"]
     ports: ["8000:8000"]
+
+  # Current live path: no OpenSearch dependency; uses pre-imported SQLite files.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["live"]
+    volumes: ["ollama_models:/root/.ollama"]
+
+  hybrid-app:
+    build: .
+    profiles: ["live"]
+    depends_on: [ollama]
+    environment:
+      - KTRU_DB=/app/data/ktru.sqlite
+      - RECOGNITION_MODE=hybrid
+      - SEMANTIC=0
+      - LLM_MODE=always
+      - OLLAMA_URL=http://ollama:11434
+      - EVENT_LOG=/tmp/ktru-events.jsonl
+    volumes: ["./data:/app/data:ro"]
+    ports: ["8000:8000"]
+
+volumes:
+  ollama_models:

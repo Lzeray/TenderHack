@@ -16,3 +16,5 @@ data/models/
 data/cache/
 data/logs/
 reports/runs/
+frontend/node_modules/
+frontend/dist/

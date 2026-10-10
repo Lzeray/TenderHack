@@ -229,7 +229,8 @@ class Engine:
 
         groups = identity_groups(positions) if self.native else build_groups(positions)
         domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
-        extractor = None if self.native else Extractor(groups, self.known_terms - domain_name_lemmas)
+        extractor = None if self.native else Extractor(groups, self.known_terms - domain_name_lemmas,
+                                                     product_names=[p.name for p in positions])
         features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
         self._mark_intent(nq, features)
         features = self._apply_constraints(features, [a for a in answers if a.property != TYPE_PROP], "answer",
@@ -241,8 +242,12 @@ class Engine:
             # Model suggestions are visible but NEVER evaluated as constraints before confirmation.
             manual_codes = {(f.property_code, f.property_name) for f in features if f.status in ("bound", "proposed")}
             manual_evidence = {f.proposal_key for f in features if f.source in ("answer", "override")}
+            removed_refs = {g.key for c in req.overrides if c.remove
+                            and (g := self._resolve_group(c.property, groups)) is not None}
             suggestions = []
             for f in model_features or []:
+                if f.characteristic_ref in removed_refs:
+                    continue
                 if f.proposal_key in manual_evidence or "ignore:" + (f.proposal_key or "") in req.rejected:
                     continue
                 if (f.property_code, f.property_name) in manual_codes:
@@ -434,6 +439,8 @@ class Engine:
                     if single and ev.blocking:
                         parts.append("не проверено: " + "; ".join(ev.blocking[:3]))
                     message = ". ".join(parts)
+        if status == "conflict":
+            issues.append(Issue(level="error", code="catalogue_conflict", message=message))
         completion = self._completion(finals_pos[0], ev0) if len(finals) == 1 else \
             CharacteristicsCompletion(complete=False, missing=[], unchecked=[])
         if tentative and status == "matched":  # защита: недостижимо при корректной логике выше
@@ -587,7 +594,9 @@ class Engine:
                 continue
             g = self._resolve_group(c.property, groups)
             for f in features:
-                same = g is not None and (f.characteristic_ref == g.key if self.native else f.property_name and " ".join(tokenize(f.property_name)) == g.key)
+                same = g is not None and ((f.characteristic_ref == g.key or
+                    (f.property_code in g.codes and f.property_name == g.name)) if self.native else
+                    f.property_name and " ".join(tokenize(f.property_name)) == g.key)
                 if same and f.status == "bound":
                     f.status = "removed" if c.remove else "overridden"
                     f.note = (f.note + "; " if f.note else "") + (

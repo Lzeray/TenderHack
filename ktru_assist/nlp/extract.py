@@ -237,8 +237,11 @@ def _negated(tokens: list[Token], first: int) -> bool:
 
 
 class Extractor:
-    def __init__(self, groups: dict[str, PropGroup], known_terms: set[str] | None = None):
+    def __init__(self, groups: dict[str, PropGroup], known_terms: set[str] | None = None,
+                 product_names: list[str] | None = None):
         self.groups = groups
+        self.product_names = {tuple(content_lemmas(name)) for name in product_names or []}
+        self.explicit_properties: set[str] = set()
         # ключевые слова названий свойств по всему каталогу MVP: чтобы отличать «нет такого
         # свойства у этого типа» от «непонятного слова»
         self.known_terms = known_terms or set()
@@ -271,6 +274,7 @@ class Extractor:
         self._nq_text = nq.text
         feats: list[Feature] = []
         feats += self._explicit_pairs(nq)
+        self.explicit_properties = {f.property_name for f in feats if f.status == "bound"}
         feats += self._numbers(nq)
         feats += self._booleans(nq)
         feats += self._value_aliases(nq)
@@ -464,7 +468,10 @@ class Extractor:
             dims_part = (i + 1 < len(tokens) and tokens[i + 1].text in ("x", "х")) or \
                         (i > 0 and tokens[i - 1].text in ("x", "х"))
             anchor = max(used)
-            win = _window(tokens, min(used), 4, 0) + _window(tokens, anchor, 0, 3)
+            # Long catalogue property names (e.g. maximum jaw opening of a wrench)
+            # must fit in the window; punctuation/other numbers still bound the segment.
+            back = max(4, max((len(g.terms) + 2 for g in numeric_groups), default=4))
+            win = _window(tokens, min(used), back, 0) + _window(tokens, anchor, 0, 3)
             # кандидаты по размерности
             if unit is not None:
                 cand = [g for g in numeric_groups if unit.dimension in g.dims]
@@ -601,10 +608,16 @@ class Extractor:
             if g.boolean or not g.quality:
                 continue
             for nval, lem in sorted(g.value_lemmas.items()):
+                value_terms = tuple(content_lemmas(g.quality[nval]))
+                designation = value_terms in self.product_names or ("товар" in g.terms and any(
+                    set(value_terms) <= set(name) for name in self.product_names))
+                if g.name in self.explicit_properties and designation:
+                    # A generic catalogue designation ("стол для переговоров") does not
+                    # contradict an explicit subtype ("вид товара: секция стола ...").
+                    continue
                 lem = tuple(x for x in lem if x not in STOPWORDS and len(x) >= 3)
                 if not lem:
                     continue
-                others = {x for k, l2 in g.value_lemmas.items() if k != nval for x in l2}
                 occ = {x: [t.i for t in tokens if t.kind == "word" and t.used_by is None and fuzzy_equal(t.lemma, x)]
                        for x in lem}
                 present = [x for x in lem if occ[x]]
@@ -615,11 +628,14 @@ class Extractor:
                                  key=lambda cmb: (max(cmb) - min(cmb), cmb))
                 found = dict(zip(present, best_combo))
                 full = len(found) == len(lem)
-                unique = [x for x in found if x not in others]
-                if not (full or unique):
+                # A word unique to an enum value is not evidence for the whole value:
+                # «внешние воздействия» must not imply «механические воздействия».
+                # Short/colloquial variants belong in the explicit, reviewed alias table.
+                if not full:
                     continue
                 idxs = sorted(found.values())
-                if max(idxs) - min(idxs) > 3:
+                if max(idxs) - min(idxs) > max(3, len(lem) + 1) or any(
+                        tokens[i].lemma in BOUNDARY for i in range(min(idxs), max(idxs) + 1)):
                     continue
                 by_token.setdefault(idxs[0], []).append((g, g.quality[nval], idxs))
         for first in sorted(by_token):

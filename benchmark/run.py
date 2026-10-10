@@ -24,7 +24,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 SUITES_DIR = Path(__file__).resolve().parent / "suites"
 SHORTCUTS = {"ktru": ("benchmark.adapters.ktru", "KtruInProcess"),
-             "ktru_http": ("benchmark.adapters.ktru", "KtruHttp")}
+             "ktru_http": ("benchmark.adapters.ktru", "KtruHttp"),
+             "ktru_draft_http": ("benchmark.adapters.ktru", "KtruDraftHttp")}
 
 
 def load_adapter(spec: str):

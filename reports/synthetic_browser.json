@@ -1,0 +1,1672 @@
+{
+  "source": "benchmark/suites/synthetic.jsonl",
+  "selection": "up to 2 cases per category/variant, in file order",
+  "cases": 35,
+  "rendered": 35,
+  "statusMatches": 30,
+  "rapidInputGuard": true,
+  "conflict": true,
+  "recovery": true,
+  "javascriptErrors": 0,
+  "rows": [
+    {
+      "id": "S-31.09.13.190-00000014-base",
+      "text": "тумба под телевизор, тип каркаса: деревянный, количество полок 1 шт",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 1,
+      "status": "matched",
+      "finalCode": "31.09.13.190-00000014",
+      "total": 1,
+      "visibleCodes": [
+        "31.09.13.190-00000014"
+      ],
+      "compatible": [
+        "31.09.13.190-00000014"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "Деревянный",
+            "raw_unit": null,
+            "value": "Деревянный",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: деревянный",
+            "op": "eq"
+          },
+          {
+            "name": "Количество полок",
+            "raw_value": "1",
+            "raw_unit": "шт",
+            "value": "1",
+            "unit": "шт",
+            "source": "rule",
+            "status": "bound",
+            "quote": "полок 1 шт",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "полка",
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-31.09.13.190-00000014-perm",
+      "text": "тумба под телевизор, количество полок 1 шт, тип каркаса: деревянный",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 2,
+      "status": "matched",
+      "finalCode": "31.09.13.190-00000014",
+      "total": 1,
+      "visibleCodes": [
+        "31.09.13.190-00000014"
+      ],
+      "compatible": [
+        "31.09.13.190-00000014"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "Деревянный",
+            "raw_unit": null,
+            "value": "Деревянный",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: деревянный",
+            "op": "eq"
+          },
+          {
+            "name": "Количество полок",
+            "raw_value": "1",
+            "raw_unit": "шт",
+            "value": "1",
+            "unit": "шт",
+            "source": "rule",
+            "status": "bound",
+            "quote": "полок 1 шт",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "полка",
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-31.09.13.190-00000014-missing",
+      "text": "тумба под телевизор",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 3,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 2,
+      "visibleCodes": [
+        "31.09.13.190-00000013",
+        "31.09.13.190-00000014"
+      ],
+      "compatible": [
+        "31.09.13.190-00000013",
+        "31.09.13.190-00000014"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [],
+        "item_terms": [
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-31.09.13.190-00000014-conflict",
+      "text": "тумба под телевизор, тип каркаса: деревянный и металлический",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 4,
+      "status": "conflict",
+      "finalCode": null,
+      "total": 0,
+      "visibleCodes": [],
+      "compatible": [],
+      "resultsHidden": true,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "деревянный и металлический",
+            "raw_unit": null,
+            "value": "деревянный и металлический",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: деревянный и металлический",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-31.09.13.190-00000013-base",
+      "text": "тумба под телевизор, тип каркаса: металлический, глубина тумбы 399 мм",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 5,
+      "status": "matched",
+      "finalCode": "31.09.13.190-00000013",
+      "total": 1,
+      "visibleCodes": [
+        "31.09.13.190-00000013"
+      ],
+      "compatible": [
+        "31.09.13.190-00000013"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "Металлический",
+            "raw_unit": null,
+            "value": "Металлический",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: металлический",
+            "op": "eq"
+          },
+          {
+            "name": "Глубина тумбы",
+            "raw_value": "399",
+            "raw_unit": "мм",
+            "value": "399",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "глубина тумбы 399 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-31.09.13.190-00000013-perm",
+      "text": "тумба под телевизор, глубина тумбы 399 мм, тип каркаса: металлический",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 6,
+      "status": "matched",
+      "finalCode": "31.09.13.190-00000013",
+      "total": 1,
+      "visibleCodes": [
+        "31.09.13.190-00000013"
+      ],
+      "compatible": [
+        "31.09.13.190-00000013"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "Металлический",
+            "raw_unit": null,
+            "value": "Металлический",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: металлический",
+            "op": "eq"
+          },
+          {
+            "name": "Глубина тумбы",
+            "raw_value": "399",
+            "raw_unit": "мм",
+            "value": "399",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "глубина тумбы 399 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-31.09.13.190-00000013-missing",
+      "text": "тумба под телевизор",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 7,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 2,
+      "visibleCodes": [
+        "31.09.13.190-00000013",
+        "31.09.13.190-00000014"
+      ],
+      "compatible": [
+        "31.09.13.190-00000013",
+        "31.09.13.190-00000014"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [],
+        "item_terms": [
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-31.09.13.190-00000013-conflict",
+      "text": "тумба под телевизор, тип каркаса: металлический и деревянный",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 8,
+      "status": "conflict",
+      "finalCode": null,
+      "total": 0,
+      "visibleCodes": [],
+      "compatible": [],
+      "resultsHidden": true,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Тумба под телевизор"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "металлический и деревянный",
+            "raw_unit": null,
+            "value": "металлический и деревянный",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: металлический и деревянный",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "тумба"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000001-base",
+      "text": "дрель ручная механическая, тип конструкции: двухскоростная, максимальный диаметр зажима патрона 17 мм",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 9,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 1,
+      "visibleCodes": [
+        "25.73.30.182-00000001"
+      ],
+      "compatible": [
+        "25.73.30.182-00000001"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [
+          {
+            "name": "Тип конструкции",
+            "raw_value": "Двухскоростная",
+            "raw_unit": null,
+            "value": "Двухскоростная",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип конструкции: двухскоростная",
+            "op": "eq"
+          },
+          {
+            "name": "Максимальный диаметр зажима патрона",
+            "raw_value": "17",
+            "raw_unit": "мм",
+            "value": "17",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "максимальный диаметр зажима патрона 17 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000001-perm",
+      "text": "дрель ручная механическая, максимальный диаметр зажима патрона 17 мм, тип конструкции: двухскоростная",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 10,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 1,
+      "visibleCodes": [
+        "25.73.30.182-00000001"
+      ],
+      "compatible": [
+        "25.73.30.182-00000001"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [
+          {
+            "name": "Тип конструкции",
+            "raw_value": "Двухскоростная",
+            "raw_unit": null,
+            "value": "Двухскоростная",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип конструкции: двухскоростная",
+            "op": "eq"
+          },
+          {
+            "name": "Максимальный диаметр зажима патрона",
+            "raw_value": "17",
+            "raw_unit": "мм",
+            "value": "17",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "максимальный диаметр зажима патрона 17 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000001-missing",
+      "text": "дрель ручная механическая",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 11,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 2,
+      "visibleCodes": [
+        "25.73.30.182-00000001",
+        "25.73.30.182-00000002"
+      ],
+      "compatible": [
+        "25.73.30.182-00000001",
+        "25.73.30.182-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000001-conflict",
+      "text": "дрель ручная механическая, тип конструкции: двухскоростная и односкоростная",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 12,
+      "status": "conflict",
+      "finalCode": null,
+      "total": 0,
+      "visibleCodes": [],
+      "compatible": [],
+      "resultsHidden": true,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [
+          {
+            "name": "Тип конструкции",
+            "raw_value": "двухскоростная и односкоростная",
+            "raw_unit": null,
+            "value": "двухскоростная и односкоростная",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип конструкции: двухскоростная и односкоростная",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000002-base",
+      "text": "дрель ручная механическая, тип конструкции: односкоростная, максимальный диаметр зажима патрона 11 мм, минимальный диаметр зажима патрона 3,5 мм",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 13,
+      "status": "matched",
+      "finalCode": "25.73.30.182-00000002",
+      "total": 1,
+      "visibleCodes": [
+        "25.73.30.182-00000002"
+      ],
+      "compatible": [
+        "25.73.30.182-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [
+          {
+            "name": "Тип конструкции",
+            "raw_value": "Односкоростная",
+            "raw_unit": null,
+            "value": "Односкоростная",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип конструкции: односкоростная",
+            "op": "eq"
+          },
+          {
+            "name": "Максимальный диаметр зажима патрона",
+            "raw_value": "11",
+            "raw_unit": "мм",
+            "value": "11",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "максимальный диаметр зажима патрона 11 мм",
+            "op": "eq"
+          },
+          {
+            "name": "Минимальный диаметр зажима патрона",
+            "raw_value": "3,5",
+            "raw_unit": "мм",
+            "value": "3.5",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "минимальный диаметр зажима патрона 3,5 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000002-perm",
+      "text": "дрель ручная механическая, минимальный диаметр зажима патрона 3,5 мм, максимальный диаметр зажима патрона 11 мм, тип конструкции: односкоростная",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 14,
+      "status": "matched",
+      "finalCode": "25.73.30.182-00000002",
+      "total": 1,
+      "visibleCodes": [
+        "25.73.30.182-00000002"
+      ],
+      "compatible": [
+        "25.73.30.182-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [
+          {
+            "name": "Тип конструкции",
+            "raw_value": "Односкоростная",
+            "raw_unit": null,
+            "value": "Односкоростная",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип конструкции: односкоростная",
+            "op": "eq"
+          },
+          {
+            "name": "Минимальный диаметр зажима патрона",
+            "raw_value": "3,5",
+            "raw_unit": "мм",
+            "value": "3.5",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "минимальный диаметр зажима патрона 3,5 мм",
+            "op": "eq"
+          },
+          {
+            "name": "Максимальный диаметр зажима патрона",
+            "raw_value": "11",
+            "raw_unit": "мм",
+            "value": "11",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "максимальный диаметр зажима патрона 11 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000002-missing",
+      "text": "дрель ручная механическая",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 15,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 2,
+      "visibleCodes": [
+        "25.73.30.182-00000001",
+        "25.73.30.182-00000002"
+      ],
+      "compatible": [
+        "25.73.30.182-00000001",
+        "25.73.30.182-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.30.182-00000002-conflict",
+      "text": "дрель ручная механическая, тип конструкции: односкоростная и двухскоростная",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 16,
+      "status": "conflict",
+      "finalCode": null,
+      "total": 0,
+      "visibleCodes": [],
+      "compatible": [],
+      "resultsHidden": true,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Дрель ручная механическая"
+        ],
+        "attributes": [
+          {
+            "name": "Тип конструкции",
+            "raw_value": "односкоростная и двухскоростная",
+            "raw_unit": null,
+            "value": "односкоростная и двухскоростная",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип конструкции: односкоростная и двухскоростная",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "дрель"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.60.111-00000001-typo",
+      "text": "механичесикй захват, тип: магнитный захват",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 17,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 9,
+      "visibleCodes": [
+        "25.73.60.111-00000001",
+        "25.73.60.111-00000002",
+        "25.73.60.111-00000003",
+        "25.73.60.111-00000004",
+        "25.73.60.111-00000005",
+        "25.73.60.111-00000006",
+        "25.73.60.111-00000007",
+        "25.73.60.111-00000008",
+        "25.73.60.111-00000009"
+      ],
+      "compatible": [
+        "25.73.60.111-00000001",
+        "25.73.60.111-00000002",
+        "25.73.60.111-00000003",
+        "25.73.60.111-00000004",
+        "25.73.60.111-00000005",
+        "25.73.60.111-00000006",
+        "25.73.60.111-00000007",
+        "25.73.60.111-00000008",
+        "25.73.60.111-00000009"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Механический захват"
+        ],
+        "attributes": [
+          {
+            "name": "Неоднозначная характеристика",
+            "raw_value": "магнитный захват",
+            "raw_unit": null,
+            "value": "магнитный захват",
+            "unit": null,
+            "source": "rule",
+            "status": "unknown_property",
+            "quote": "тип: магнитный захват",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "захват"
+        ]
+      }
+    },
+    {
+      "id": "S-25.73.60.111-00000003-typo",
+      "text": "мехаинческий захват, тип: штыревой захват",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 18,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 9,
+      "visibleCodes": [
+        "25.73.60.111-00000001",
+        "25.73.60.111-00000002",
+        "25.73.60.111-00000003",
+        "25.73.60.111-00000004",
+        "25.73.60.111-00000005",
+        "25.73.60.111-00000006",
+        "25.73.60.111-00000007",
+        "25.73.60.111-00000008",
+        "25.73.60.111-00000009"
+      ],
+      "compatible": [
+        "25.73.60.111-00000001",
+        "25.73.60.111-00000002",
+        "25.73.60.111-00000003",
+        "25.73.60.111-00000004",
+        "25.73.60.111-00000005",
+        "25.73.60.111-00000006",
+        "25.73.60.111-00000007",
+        "25.73.60.111-00000008",
+        "25.73.60.111-00000009"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Механический захват"
+        ],
+        "attributes": [
+          {
+            "name": "Неоднозначная характеристика",
+            "raw_value": "штыревой захват",
+            "raw_unit": null,
+            "value": "штыревой захват",
+            "unit": null,
+            "source": "rule",
+            "status": "unknown_property",
+            "quote": "тип: штыревой захват",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "захват"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000002-base",
+      "text": "джемпер, половой признак: мужской, рост 1700 мм",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 19,
+      "status": "matched",
+      "finalCode": "14.39.10.110-00000002",
+      "total": 1,
+      "visibleCodes": [
+        "14.39.10.110-00000002"
+      ],
+      "compatible": [
+        "14.39.10.110-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "Мужской",
+            "raw_unit": null,
+            "value": "Мужской",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: мужской",
+            "op": "eq"
+          },
+          {
+            "name": "Рост",
+            "raw_value": "1700",
+            "raw_unit": "мм",
+            "value": "170",
+            "unit": "см",
+            "source": "rule",
+            "status": "bound",
+            "quote": "рост 1700 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000002-typo",
+      "text": "джемепр, половой признак: мужской, рост 1700 мм",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 20,
+      "status": "matched",
+      "finalCode": "14.39.10.110-00000002",
+      "total": 1,
+      "visibleCodes": [
+        "14.39.10.110-00000002"
+      ],
+      "compatible": [
+        "14.39.10.110-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "Мужской",
+            "raw_unit": null,
+            "value": "Мужской",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: мужской",
+            "op": "eq"
+          },
+          {
+            "name": "Рост",
+            "raw_value": "1700",
+            "raw_unit": "мм",
+            "value": "170",
+            "unit": "см",
+            "source": "rule",
+            "status": "bound",
+            "quote": "рост 1700 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000002-perm",
+      "text": "джемпер, рост 1700 мм, половой признак: мужской",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 21,
+      "status": "matched",
+      "finalCode": "14.39.10.110-00000002",
+      "total": 1,
+      "visibleCodes": [
+        "14.39.10.110-00000002"
+      ],
+      "compatible": [
+        "14.39.10.110-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "Мужской",
+            "raw_unit": null,
+            "value": "Мужской",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: мужской",
+            "op": "eq"
+          },
+          {
+            "name": "Рост",
+            "raw_value": "1700",
+            "raw_unit": "мм",
+            "value": "170",
+            "unit": "см",
+            "source": "rule",
+            "status": "bound",
+            "quote": "рост 1700 мм",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000002-missing",
+      "text": "джемпер",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 22,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 2,
+      "visibleCodes": [
+        "14.39.10.110-00000001",
+        "14.39.10.110-00000002"
+      ],
+      "compatible": [
+        "14.39.10.110-00000001",
+        "14.39.10.110-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000002-conflict",
+      "text": "джемпер, половой признак: мужской и женский",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 23,
+      "status": "conflict",
+      "finalCode": null,
+      "total": 0,
+      "visibleCodes": [],
+      "compatible": [],
+      "resultsHidden": true,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "мужской и женский",
+            "raw_unit": null,
+            "value": "мужской и женский",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: мужской и женский",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000001-base",
+      "text": "джемпер, половой признак: женский, рост 182 см",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 24,
+      "status": "matched",
+      "finalCode": "14.39.10.110-00000001",
+      "total": 1,
+      "visibleCodes": [
+        "14.39.10.110-00000001"
+      ],
+      "compatible": [
+        "14.39.10.110-00000001"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "Женский",
+            "raw_unit": null,
+            "value": "Женский",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: женский",
+            "op": "eq"
+          },
+          {
+            "name": "Рост",
+            "raw_value": "182",
+            "raw_unit": "см",
+            "value": "182",
+            "unit": "см",
+            "source": "rule",
+            "status": "bound",
+            "quote": "рост 182 см",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000001-typo",
+      "text": "джепмер, половой признак: женский, рост 182 см",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 25,
+      "status": "matched",
+      "finalCode": "14.39.10.110-00000001",
+      "total": 1,
+      "visibleCodes": [
+        "14.39.10.110-00000001"
+      ],
+      "compatible": [
+        "14.39.10.110-00000001"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "Женский",
+            "raw_unit": null,
+            "value": "Женский",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: женский",
+            "op": "eq"
+          },
+          {
+            "name": "Рост",
+            "raw_value": "182",
+            "raw_unit": "см",
+            "value": "182",
+            "unit": "см",
+            "source": "rule",
+            "status": "bound",
+            "quote": "рост 182 см",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000001-perm",
+      "text": "джемпер, рост 182 см, половой признак: женский",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 26,
+      "status": "matched",
+      "finalCode": "14.39.10.110-00000001",
+      "total": 1,
+      "visibleCodes": [
+        "14.39.10.110-00000001"
+      ],
+      "compatible": [
+        "14.39.10.110-00000001"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "Женский",
+            "raw_unit": null,
+            "value": "Женский",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: женский",
+            "op": "eq"
+          },
+          {
+            "name": "Рост",
+            "raw_value": "182",
+            "raw_unit": "см",
+            "value": "182",
+            "unit": "см",
+            "source": "rule",
+            "status": "bound",
+            "quote": "рост 182 см",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000001-missing",
+      "text": "джемпер",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 27,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 2,
+      "visibleCodes": [
+        "14.39.10.110-00000001",
+        "14.39.10.110-00000002"
+      ],
+      "compatible": [
+        "14.39.10.110-00000001",
+        "14.39.10.110-00000002"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-14.39.10.110-00000001-conflict",
+      "text": "джемпер, половой признак: женский и мужской",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 28,
+      "status": "conflict",
+      "finalCode": null,
+      "total": 0,
+      "visibleCodes": [],
+      "compatible": [],
+      "resultsHidden": true,
+      "profile": {
+        "categories": [
+          "clothes"
+        ],
+        "items": [
+          "Джемпер"
+        ],
+        "attributes": [
+          {
+            "name": "Половой признак",
+            "raw_value": "женский и мужской",
+            "raw_unit": null,
+            "value": "женский и мужской",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "половой признак: женский и мужской",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "джемпер"
+        ]
+      }
+    },
+    {
+      "id": "S-31.01.10.000-00000008-typo",
+      "text": "стлелаж офисный, тип каркаса: металлический, ширина стеллажа 55 см",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 29,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 1,
+      "visibleCodes": [
+        "31.01.10.000-00000008"
+      ],
+      "compatible": [
+        "31.01.10.000-00000008"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Стеллаж офисный"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "Металлический",
+            "raw_unit": null,
+            "value": "Металлический",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: металлический",
+            "op": "eq"
+          },
+          {
+            "name": "Ширина стеллажа",
+            "raw_value": "55",
+            "raw_unit": "см",
+            "value": "550",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "ширина стеллажа 55 см",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "стеллаж"
+        ]
+      }
+    },
+    {
+      "id": "S-31.01.10.000-00013-typo",
+      "text": "стеллаж офисный, тип каркаса: пластиковый, глубина стеллажа 975 мм, количество секций 3 шт",
+      "rendered": true,
+      "expectedStatus": true,
+      "revision": 30,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 1,
+      "visibleCodes": [
+        "31.01.10.000-00013"
+      ],
+      "compatible": [
+        "31.01.10.000-00013"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Стеллаж офисный"
+        ],
+        "attributes": [
+          {
+            "name": "Тип каркаса",
+            "raw_value": "Пластиковый",
+            "raw_unit": null,
+            "value": "Пластиковый",
+            "unit": null,
+            "source": "rule",
+            "status": "bound",
+            "quote": "тип каркаса: пластиковый",
+            "op": "eq"
+          },
+          {
+            "name": "Глубина стеллажа",
+            "raw_value": "975",
+            "raw_unit": "мм",
+            "value": "975",
+            "unit": "мм",
+            "source": "rule",
+            "status": "bound",
+            "quote": "глубина стеллажа 975 мм",
+            "op": "eq"
+          },
+          {
+            "name": "Количество секций",
+            "raw_value": "3",
+            "raw_unit": "шт",
+            "value": "3",
+            "unit": "шт",
+            "source": "rule",
+            "status": "bound",
+            "quote": "секций 3 шт",
+            "op": "eq"
+          }
+        ],
+        "item_terms": [
+          "секция",
+          "стеллаж"
+        ]
+      }
+    },
+    {
+      "id": "S-OOS-0",
+      "text": "утюг паровой 2000 вт",
+      "rendered": true,
+      "expectedStatus": false,
+      "revision": 31,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 11,
+      "visibleCodes": [
+        "25.73.30.141-00000001",
+        "25.73.30.141-00000002",
+        "25.73.30.141-00000003",
+        "25.73.30.141-00000004",
+        "25.73.30.141-00000005",
+        "25.73.30.141-00000006",
+        "25.73.30.141-00000007",
+        "25.73.30.141-00000008",
+        "25.73.30.141-00000009",
+        "25.73.30.141-00000010",
+        "25.73.30.141-00000012"
+      ],
+      "compatible": [
+        "25.73.30.141-00000001",
+        "25.73.30.141-00000002",
+        "25.73.30.141-00000003",
+        "25.73.30.141-00000004",
+        "25.73.30.141-00000005",
+        "25.73.30.141-00000006",
+        "25.73.30.141-00000007",
+        "25.73.30.141-00000008",
+        "25.73.30.141-00000009",
+        "25.73.30.141-00000010",
+        "25.73.30.141-00000012"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Молоток"
+        ],
+        "attributes": [],
+        "item_terms": []
+      }
+    },
+    {
+      "id": "S-OOS-1",
+      "text": "ноутбук 15 дюймов",
+      "rendered": true,
+      "expectedStatus": false,
+      "revision": 32,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 5,
+      "visibleCodes": [
+        "31.09.10.000-00000016",
+        "31.09.10.000-00000017",
+        "31.09.10.000-00000018",
+        "31.09.10.000-00000035",
+        "31.09.10.000-00000036"
+      ],
+      "compatible": [
+        "31.09.10.000-00000016",
+        "31.09.10.000-00000017",
+        "31.09.10.000-00000018",
+        "31.09.10.000-00000035",
+        "31.09.10.000-00000036"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Стол компьютерный",
+          "Табурет"
+        ],
+        "attributes": [],
+        "item_terms": []
+      }
+    },
+    {
+      "id": "S-OOS-2",
+      "text": "бумага офисная а4 80 г/м2",
+      "rendered": true,
+      "expectedStatus": false,
+      "revision": 33,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 3,
+      "visibleCodes": [
+        "31.01.10.000-00000007",
+        "31.01.10.000-00000008",
+        "31.01.10.000-00013"
+      ],
+      "compatible": [
+        "31.01.10.000-00000007",
+        "31.01.10.000-00000008",
+        "31.01.10.000-00013"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "furniture"
+        ],
+        "items": [
+          "Стеллаж офисный"
+        ],
+        "attributes": [],
+        "item_terms": []
+      }
+    },
+    {
+      "id": "S-OOS-3",
+      "text": "кофемашина капсульная",
+      "rendered": true,
+      "expectedStatus": false,
+      "revision": 34,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 23,
+      "visibleCodes": [
+        "25.73.30.141-00000001",
+        "25.73.30.141-00000002",
+        "25.73.30.141-00000003",
+        "25.73.30.141-00000004",
+        "25.73.30.141-00000005",
+        "25.73.30.141-00000006",
+        "25.73.30.141-00000007",
+        "25.73.30.141-00000008",
+        "25.73.30.141-00000009",
+        "25.73.30.141-00000010",
+        "25.73.30.141-00000012",
+        "28.24.11.000-00000013",
+        "28.24.11.000-00000014",
+        "28.24.11.000-00000015",
+        "28.24.11.000-00000016",
+        "28.24.11.000-00000035",
+        "28.24.11.000-00000036",
+        "28.24.11.000-00000037",
+        "28.24.11.000-00000038",
+        "28.24.11.000-00000039",
+        "28.24.11.000-00000040",
+        "28.24.11.000-00000041",
+        "28.24.11.000-00044"
+      ],
+      "compatible": [
+        "25.73.30.141-00000001",
+        "25.73.30.141-00000002",
+        "25.73.30.141-00000003",
+        "25.73.30.141-00000004",
+        "25.73.30.141-00000005",
+        "25.73.30.141-00000006",
+        "25.73.30.141-00000007",
+        "25.73.30.141-00000008",
+        "25.73.30.141-00000009",
+        "25.73.30.141-00000010",
+        "25.73.30.141-00000012",
+        "28.24.11.000-00000013",
+        "28.24.11.000-00000014",
+        "28.24.11.000-00000015",
+        "28.24.11.000-00000016",
+        "28.24.11.000-00000035",
+        "28.24.11.000-00000036",
+        "28.24.11.000-00000037",
+        "28.24.11.000-00000038",
+        "28.24.11.000-00000039",
+        "28.24.11.000-00000040",
+        "28.24.11.000-00000041",
+        "28.24.11.000-00044"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "tools"
+        ],
+        "items": [
+          "Молоток",
+          "Шлейфмашина",
+          "Шлифмашина"
+        ],
+        "attributes": [],
+        "item_terms": []
+      }
+    },
+    {
+      "id": "S-OOS-4",
+      "text": "шины зимние 205/55 r16",
+      "rendered": true,
+      "expectedStatus": false,
+      "revision": 35,
+      "status": "clarification_needed",
+      "finalCode": null,
+      "total": 26,
+      "visibleCodes": [
+        "14.19.40.000-00000005",
+        "14.19.40.000-00000006",
+        "14.19.40.000-00038",
+        "14.20.10.635-00000001",
+        "14.20.10.635-00000002",
+        "14.20.10.635-00000003",
+        "25.73.30.141-00000001",
+        "25.73.30.141-00000002",
+        "25.73.30.141-00000003",
+        "25.73.30.141-00000004",
+        "25.73.30.141-00000005",
+        "25.73.30.141-00000006",
+        "25.73.30.141-00000007",
+        "25.73.30.141-00000008",
+        "25.73.30.141-00000009",
+        "25.73.30.141-00000010",
+        "25.73.30.141-00000012",
+        "25.73.30.166-00000001",
+        "25.73.30.166-00000002",
+        "25.73.40.160-00000001",
+        "25.73.40.160-00000002",
+        "25.73.40.160-00000003",
+        "25.73.40.160-00000004",
+        "25.73.40.160-00000005",
+        "25.73.40.160-00000007",
+        "25.73.40.160-00008"
+      ],
+      "compatible": [
+        "14.19.40.000-00000005",
+        "14.19.40.000-00000006",
+        "14.19.40.000-00038",
+        "14.20.10.635-00000001",
+        "14.20.10.635-00000002",
+        "14.20.10.635-00000003",
+        "25.73.30.141-00000001",
+        "25.73.30.141-00000002",
+        "25.73.30.141-00000003",
+        "25.73.30.141-00000004",
+        "25.73.30.141-00000005",
+        "25.73.30.141-00000006",
+        "25.73.30.141-00000007",
+        "25.73.30.141-00000008",
+        "25.73.30.141-00000009",
+        "25.73.30.141-00000010",
+        "25.73.30.141-00000012",
+        "25.73.30.166-00000001",
+        "25.73.30.166-00000002",
+        "25.73.40.160-00000001",
+        "25.73.40.160-00000002",
+        "25.73.40.160-00000003",
+        "25.73.40.160-00000004",
+        "25.73.40.160-00000005",
+        "25.73.40.160-00000007",
+        "25.73.40.160-00008"
+      ],
+      "resultsHidden": false,
+      "profile": {
+        "categories": [
+          "clothes",
+          "tools"
+        ],
+        "items": [
+          "Клещи",
+          "Молоток",
+          "Фреза",
+          "Шапка зимняя",
+          "Шарф зимний"
+        ],
+        "attributes": [],
+        "item_terms": []
+      }
+    }
+  ]
+}

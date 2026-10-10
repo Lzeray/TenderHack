@@ -20,7 +20,7 @@ from .engine import Engine
 from .models import SearchRequest, SearchResponse
 from .orchestrator import Orchestrator, OrchestratorConfig
 
-WEB = Path(__file__).resolve().parent / "web"
+WEB = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 log = logging.getLogger("ktru_assist")
 _lock = threading.Lock()
 
@@ -98,7 +98,7 @@ async def lifespan(_app):
     yield
 
 
-app = FastAPI(title="Подбор КТРУ", version="3.1", lifespan=lifespan,
+app = FastAPI(title="Подбор КТРУ", version="4.0", lifespan=lifespan,
               description="Автозаполнение характеристик и подбор конечной позиции КТРУ. Детерминированное ядро; "
                           "локальные модели — только предложения, по флагам.")
 
@@ -231,7 +231,9 @@ def api_position(code: str):
 
 @app.get("/")
 def index():
+    if not (WEB / "index.html").exists():
+        raise HTTPException(503, "React-интерфейс не собран. Выполните npm ci и npm run build в frontend/.")
     return FileResponse(WEB / "index.html")
 
 
-app.mount("/static", StaticFiles(directory=WEB), name="static")
+app.mount("/static", StaticFiles(directory=WEB, check_dir=False), name="static")

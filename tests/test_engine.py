@@ -255,3 +255,32 @@ def test_range_boundary_point_is_not_neighbour_step(engine):
 def test_approx_is_five_percent_for_measures_only(engine):
     f = next(f for f in search(engine, "пассатижи слесарные длина около 180 мм").features if f.property_name == "Длина")
     assert (f.op, f.value, f.value_to) == ("between", "171", "189")
+
+
+def test_unit_single_candidate_is_inferred(engine):
+    # напряжение: в справочнике единственная подходящая единица — В; подставляется без вопроса
+    r = search(engine, "дрель ручная электрическая аккумуляторная напряжение аккумулятора 14")
+    f = next(f for f in r.features if f.property_name == "Напряжение аккумулятора")
+    assert f.unit == "В" and f.unit_inferred
+    c = next(c for c in r.candidates if c.code == "28.24.11.000-92000002")
+    assert next(k for k in c.checks if k.feature_id == f.id).status == "valid"
+
+
+def test_unit_ambiguous_without_statistics_asks(engine):
+    # без выгрузок 180 мм / 180 см / 180 м все допустимы по КТРУ (открытая ступень «> 200 мм») — вопрос
+    r = search(engine, "пассатижи слесарные длина 180")
+    f = next(f for f in r.features if f.property_name == "Длина")
+    assert f.unit is None and not f.unit_inferred
+    assert r.question is not None and "В каких единицах" in r.question.text
+    assert {o.label for o in r.question.options} >= {"180 мм", "180 см"}
+
+
+def test_unit_from_sibling_feature(engine):
+    # единица соседнего признака той же размерности — сильная подсказка: «ширина 42» рядом с «… 45 см» → см
+    from ktru_assist.models import Feature
+    from ktru_assist.unit_infer import infer
+    pos = list(engine.catalog.get_many(["31.01.11.150-91000001"]).values())
+    sib = Feature(id="a", source="text", status="bound", property_name="Высота", value="45", unit="см")
+    f = Feature(id="b", source="text", status="bound", property_name="Ширина сиденья", value="42")
+    assert infer([f], pos, ["стул"], None) is not None and f.unit is None       # без соседа — вопрос
+    assert infer([sib, f], pos, ["стул"], None) is None and f.unit == "см" and f.unit_inferred

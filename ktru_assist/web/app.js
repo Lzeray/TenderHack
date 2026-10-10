@@ -152,7 +152,7 @@ function renderFeatures(d) {
       ? `<div class="ev emp emp--ok" title="${esc(emp.reason)}">по выгрузкам: обычное</div>`
       : emp.status === "rare" || emp.status === "unseen"
         ? `<div class="ev emp emp--warn">по выгрузкам СТЕ: ${esc(emp.reason)}</div>` : "";
-    return `<tr><td>${name}</td><td>${value}${conversion}${empHtml}</td><td>${esc(f.unit || "")}</td><td>${editable ? `<button class="btn btn--danger btn--small" data-delete="${i}" aria-label="Удалить характеристику">✕</button>` : ""}</td></tr>`;
+    return `<tr><td>${name}</td><td>${value}${conversion}${empHtml}</td><td>${esc(f.unit || "")}${f.unit_inferred ? '<div class="ev emp--info" title="Единица не была указана и подставлена по типичным значениям; измените значение, если это не так">подставлено</div>' : ""}</td><td>${editable ? `<button class="btn btn--danger btn--small" data-delete="${i}" aria-label="Удалить характеристику">✕</button>` : ""}</td></tr>`;
   });
   for (const a of extras) rows.push(`<tr><td>${esc(a.name)}</td><td>${esc(a.value ?? a.raw_value)}</td><td>${esc(a.unit || "")}</td><td></td></tr>`);
   $("features").innerHTML = rows.join("") || '<tr><td colspan="4" class="muted">Добавьте нужные свойства</td></tr>';

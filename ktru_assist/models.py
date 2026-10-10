@@ -95,6 +95,7 @@ class Feature(BaseModel):
     dims: list[dict[str, Any]] = Field(default_factory=list,
                                        description="габариты: числа по порядку [{value, unit}] (docs/DIMENSIONS_PLAN.md)")
     dims_axes: list[str] = Field(default_factory=list, description="оси из подписи «ДхШхВ», если есть")
+    unit_inferred: bool = Field(False, description="единица подставлена системой (docs/UNITS_PLAN.md)")
 
 
 class Span(BaseModel):

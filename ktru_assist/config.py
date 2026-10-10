@@ -25,7 +25,8 @@ VERSIONS = {
     "ste_search": "1.0",
     "suspicious": "1.1",      # уровень 3: scale (КТРУ и выгрузки), unit_missing, placeholder (docs/LEVELS_PLAN.md)
     "empirical": "1.4",
-    "dims": "1.0",            # габариты: раскладка по общим осям (docs/DIMENSIONS_PLAN.md)       # уровень 2: typical/rare/unseen по выгрузкам СТЕ (docs/LEVELS_PLAN.md)
+    "dims": "1.1",            # 1.1 доля моделей под условием, близость границы
+    "unit_infer": "1.0",      # подстановка единиц (docs/UNITS_PLAN.md)            # габариты: раскладка по общим осям (docs/DIMENSIONS_PLAN.md)       # уровень 2: typical/rare/unseen по выгрузкам СТЕ (docs/LEVELS_PLAN.md)
 }
 # История изменений правил (подробности и замеры — docs/EXPERIMENTS.md):
 # normalizer 1.1 карта координат исходного текста, отрицательные числа; 1.2 режим KTRU_MORPH (pymorphy | snowball),

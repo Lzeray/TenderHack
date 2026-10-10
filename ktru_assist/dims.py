@@ -93,6 +93,43 @@ def _conventional(order) -> bool:
     return len(order) == 2 and order in ((L, W), (W, D))
 
 
+def _prop_stats(stats, heads, name: str, axis: str, dimension: str):
+    """Статистика свойства по названию; иначе по общей оси или слову-оси того же типа («Длина рукоятки» → «Длина»)."""
+    ps = stats.find(heads, name, "number", dimension) or stats.find(heads, axis.capitalize(), "number", dimension)
+    if ps is None:
+        first = (content_lemmas(name) or [""])[0]
+        if first in AXES:
+            ps = stats.find(heads, first.capitalize(), "number", dimension)
+    return ps if ps is not None and ps.n_models >= 30 else None
+
+
+def share_satisfying(stats, heads, name: str, axis: str, interval, unit: str | None) -> float | None:
+    """Доля моделей выгрузок, удовлетворяющих условию (интервал в единицах пользователя); точка — ±10 %."""
+    if stats is None or not getattr(stats, "available", False) or unit is None:
+        return None
+    from .units import lookup
+    u = lookup(unit)
+    if u is None:
+        return None
+    ps = _prop_stats(stats, heads, name, axis, u.dimension)
+    if ps is None:
+        return None
+    I = interval.scaled(u.factor)
+    if I.lo is not None and I.lo == I.hi:
+        lo, hi = I.lo * DENSITY_WINDOW[0], I.lo * DENSITY_WINDOW[1]
+        near = sum(n for x, n in stats.values(ps.prop_id) if lo <= x <= hi)
+    else:
+        near = sum(n for x, n in stats.values(ps.prop_id) if I.contains_point(x))
+        # «до 40»: условию «≤ 40 см» и «≤ 40 м» удовлетворяют все модели, но граница 40 м далеко от реальных
+        # значений. Граница одностороннего условия должна лежать рядом с ними: от p01/3 до p99·3.
+        bound = I.hi if I.lo is None else I.lo if I.hi is None else None
+        q = ps.quantiles
+        if bound is not None and q.get("p01") and q.get("p99"):
+            if not (Decimal(q["p01"]) / 3 <= bound <= Decimal(q["p99"]) * 3):
+                return DENSITY_FLOOR
+    return max(near / ps.n_models, DENSITY_FLOOR)
+
+
 def _density(stats, heads, name: str, axis: str, value: str, unit: str | None) -> float | None:
     """Доля моделей выгрузок со значением в пределах ±10 % (None — статистики нет)."""
     if stats is None or not getattr(stats, "available", False) or unit is None:
@@ -102,6 +139,11 @@ def _density(stats, heads, name: str, axis: str, value: str, unit: str | None) -
     if u is None:
         return None
     ps = stats.find(heads, name, "number", u.dimension) or stats.find(heads, axis.capitalize(), "number", u.dimension)
+    if ps is None:
+        # нет статистики по точному названию («Длина рукоятки») — по слову-оси того же типа («Длина»)
+        first = (content_lemmas(name) or [""])[0]
+        if first in AXES:
+            ps = stats.find(heads, first.capitalize(), "number", u.dimension)
     if ps is None or ps.n_models < 30:
         return None
     v = Decimal(value.replace(",", ".")) * u.factor

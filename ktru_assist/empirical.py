@@ -27,7 +27,7 @@ from .text import content_lemmas
 from .units import fmt, lookup
 from .validate import user_interval
 
-VERSION = "1.3"   # 1.3 общие свойства не называются «чужими»; 1.2 вердикты для свойств вне КТРУ; 1.1 текст: леммы, наборы по значениям, без unseen
+VERSION = "1.4"   # 1.4 в памяти только свойства с поддержкой, порог «обычного свойства»; 1.3 общие свойства не называются «чужими»; 1.2 вердикты для свойств вне КТРУ; 1.1 текст: леммы, наборы по значениям, без unseen
 THRESHOLDS = {
     "n1_models": 30, "n1_manufacturers": 3,      # ниже — уровень 2 молчит
     "n2_models": 60, "n2_manufacturers": 5,      # ниже — только положительные утверждения
@@ -35,7 +35,8 @@ THRESHOLDS = {
     "rare_share": Decimal("0.01"),               # текстовые значения: реже — «редко»
     "discrete_max": 12,                          # не больше стольких различных чисел — перечисляем частые
     "open_vocab_ratio": Decimal("0.5"),          # различных значений на модель больше — открытый словарь
-    "universal_types": 10,                       # свойство есть у стольких типов и больше — общее (цвет, вес)
+    "universal_types": 10,
+    "common_property_share": Decimal("0.1"),     # «обычное свойство» — указано не меньше чем у 10 % моделей типа                       # свойство есть у стольких типов и больше — общее (цвет, вес)
 }
 # реквизиты карточки, а не характеристики: в выгрузках это отдельные столбцы
 UNIVERSAL_PROPS = {"страна происхождения", "страна", "производитель", "модель", "бренд", "торговая марка"}
@@ -77,11 +78,19 @@ class SteStats:
         if self.manifest.get("ktru_snapshot") != ktru_snapshot:
             self.reason = "stale_snapshot"
             return
+        # в памяти — только свойства с поддержкой не ниже N1 (≈ 7 % строк); для остальных — только ключи,
+        # чтобы отвечать «мало данных», а не «свойство не найдено»
+        self.weak: set[tuple] = set()
+        n1, m1 = THRESHOLDS["n1_models"], THRESHOLDS["n1_manufacturers"]
         for r in self.con.execute("SELECT prop_id, type_key, prop_key, display_name, kind, dimension, n_models, "
                                   "n_manufacturers, n_distinct, quantiles, min_value, max_value FROM props"):
-            ps = PropStats(r[0], r[1], r[3], r[4], r[5], r[6], r[7], r[8] or 0, json.loads(r[9]) if r[9] else {},
-                           Decimal(r[10]) if r[10] else None, Decimal(r[11]) if r[11] else None)
-            self.props[(r[1], r[2], r[4], r[5])] = ps
+            k = (r[1], r[2], r[4], r[5])
+            if r[6] < n1 or r[7] < m1:
+                self.weak.add(k)
+                continue
+            self.props[k] = PropStats(r[0], r[1], r[3], r[4], r[5], r[6], r[7], r[8] or 0,
+                                      json.loads(r[9]) if r[9] else {},
+                                      Decimal(r[10]) if r[10] else None, Decimal(r[11]) if r[11] else None)
         for r in self.con.execute("SELECT type_key, n_models, n_manufacturers FROM types"):
             self.types[r[0]] = {"n_models": r[1], "n_manufacturers": r[2]}
         self.available = True
@@ -98,6 +107,11 @@ class SteStats:
             if ps is not None:
                 return ps
         return None
+
+    def is_weak(self, heads: list[str], prop_name: str, kind: str, dimension: str | None) -> bool:
+        """Свойство есть в выгрузках, но с поддержкой ниже N1."""
+        pk = prop_key(prop_name)
+        return any((tk, pk, kind, dimension) in self.weak for tk in self.type_keys(heads))
 
     @staticmethod
     def type_keys(heads: list[str]) -> list[str]:
@@ -181,7 +195,8 @@ def _numeric(f: Feature, U, heads, stats: SteStats, ps: PropStats | None = None)
         ps = ps or stats.find(heads, f.property_name, "number", u.dimension)
         factor, unit_title = u.factor, u.title
     if ps is None:
-        return _na(f, "property_unmapped")
+        dim = u.dimension if u else "count"
+        return _na(f, "low_support" if stats.is_weak(heads, f.property_name, "number", dim) else "property_unmapped")
     if not _support(ps, "n1"):
         return _na(f, "low_support", ps)
     Ub = U.scaled(factor)
@@ -239,9 +254,10 @@ def presence(f: Feature, heads: list[str], stats: SteStats | None) -> EmpiricalC
         ps = stats.by_lemmas(tk).get((lem, kind, dim))
         if ps is None or not _support(ps, "n1"):
             continue
-        share = f"{ps.n_models} из {stats.types.get(tk, {}).get('n_models', ps.n_models)}"
-        base = (f"«{f.named_property}» нет в позициях КТРУ этого типа — на выбор кода не влияет. "
-                f"В выгрузках СТЕ это обычное свойство таких товаров: указано у {share} моделей")
+        total = stats.types.get(tk, {}).get("n_models", ps.n_models)
+        common = Decimal(ps.n_models) / max(1, total) >= THRESHOLDS["common_property_share"]
+        base = (f"«{f.named_property}» нет в позициях КТРУ этого типа — на выбор кода не влияет. В выгрузках СТЕ "
+                + ("это обычное свойство таких товаров: " if common else "") + f"указано у {ps.n_models} из {total} моделей")
         e = _numeric(f, U, heads, stats, ps) if U is not None else None
         if e is not None and e.status in ("typical", "rare", "unseen"):
             e.reason = base + "; значение — " + e.reason
@@ -283,7 +299,7 @@ def _text(f: Feature, heads, stats: SteStats) -> EmpiricalCheck:
     not_assessed (text_not_found), а не unseen. Сравнение — по леммам; набор «X и Y» — по каждому значению."""
     ps = stats.find(heads, f.property_name, "text", None)
     if ps is None:
-        return _na(f, "property_unmapped")
+        return _na(f, "low_support" if stats.is_weak(heads, f.property_name, "text", None) else "property_unmapped")
     if not _support(ps, "n1"):
         return _na(f, "low_support", ps)
     if Decimal(ps.n_distinct) / ps.n_models > THRESHOLDS["open_vocab_ratio"]:

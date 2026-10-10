@@ -77,6 +77,16 @@ class TypeRegistry:
                                                   "templates": 0})
             n["templates" if d["is_template"] else "finals"] += 1
         self.head_vocab = sorted(self.heads)
+        self._fuzzy_cache: dict[str, tuple[str, ...]] = {}
+
+    def _fuzzy_heads(self, lem: str) -> tuple[str, ...]:
+        """Главные слова на расстоянии одной правки (кэш по слову: при наборе слова повторяются)."""
+        hit = self._fuzzy_cache.get(lem)
+        if hit is None:
+            hit = tuple(h for h in self.head_vocab if fuzzy_equal(h, lem))
+            if len(self._fuzzy_cache) < 100_000:
+                self._fuzzy_cache[lem] = hit
+        return hit
 
     # ------------------------------------------------------------------
     def group_of(self, head: str) -> list[str]:
@@ -174,7 +184,7 @@ class TypeRegistry:
             if t.i in det.alias_token_idx:
                 continue
             exact = [h for h in self.head_vocab if h == t.lemma]
-            heads = exact or [h for h in self.head_vocab if fuzzy_equal(h, t.lemma)]
+            heads = exact or list(self._fuzzy_heads(t.lemma))
             how = "главное слово"
             if not heads:
                 heads, used, how = *self._compound(t, tokens), "составное слово"

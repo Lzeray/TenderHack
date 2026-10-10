@@ -312,6 +312,35 @@ class Extractor:
         feats += self._qualities(nq)
         return feats
 
+    @staticmethod
+    def _bare_number_ok(tokens: list[Token], used: list[int], nq: NormalizedQuery | None = None) -> bool:
+        """Голое число может быть значением свойства, только если оно не часть артикула или названия модели
+        («GSR 18-2-LI», «PH2», «№41»), не слито с буквами в исходном тексте («18о мм» — опечатка в числе, её
+        не исправляем) и не описывает следующее слово («50 пар», «3 полки», «12-14 лет»)."""
+        lo, hi = min(used), max(used)
+        if nq is not None:
+            for k in (lo, hi):
+                rs = nq.raw_span(tokens[k].start, tokens[k].end)
+                if rs is not None:
+                    raw = nq.original
+                    a, b = rs
+                    glued = "-/№#._«»\"'"  # артикул, номер, название в кавычках («51»)
+                    if (a > 0 and (raw[a - 1].isalpha() or raw[a - 1] in glued)) or                             (b < len(raw) and (raw[b].isalpha() or raw[b] in glued)):
+                        return False
+        # ведущий ноль («000-006») — артикул, а не значение
+        if any(tokens[k].kind == "number" and len(tokens[k].text) > 1 and tokens[k].text[0] == "0"
+               and tokens[k].text[1].isdigit() for k in used):
+            return False
+        for k in (lo - 1, hi + 1):
+            if 0 <= k < len(tokens):
+                t = tokens[k]
+                if t.kind == "code" or re.search(r"[a-z]", t.text) or t.text in ("№", "#", "-", "/"):
+                    return False
+        nxt = tokens[hi + 1] if hi + 1 < len(tokens) else None
+        if nxt is not None and nxt.kind == "word" and nxt.lemma not in STOPWORDS:
+            return False
+        return True
+
     # габариты «120 x 60 x 75 см» ---------------------------------------------------
     def _dimensions(self, nq: NormalizedQuery) -> list[Feature]:
         """Габариты из 2–3 чисел через «x» (после нормализации: «х», «×», «*», «на»).
@@ -680,6 +709,11 @@ class Extractor:
                 feats.append(self._feature(None, tokens, used, nq, status="ambiguous",
                                            options=[self._opt(g) for g in same_dim],
                                            note="габаритный размер без названия измерения", **kw))
+            elif unit is None and not dims_part and self._bare_number_ok(tokens, used, nq):
+                # число без единицы и без названия свойства («молоток 500»): свойство и единицу подбирает движок
+                # по распределениям значений (ktru_assist/unit_infer.py::infer_bare, docs/UNITS_PLAN.md, U2)
+                feats.append(self._feature(None, tokens, used, nq, status="ambiguous", bare=True,
+                                           note="число без названия свойства и без единицы", **kw))
             i = anchor + 1
         return feats
 

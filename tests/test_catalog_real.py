@@ -102,3 +102,22 @@ def test_discrete_range_values(real_engine):
     c = next(c for c in r.candidates if c.compatible)
     k = next(k for k in c.checks if k.feature_id == f.id)
     assert k.status == "valid" and "48" in k.reason and "50" in k.reason
+
+
+def test_bare_number_inferred_by_distributions(real_engine):
+    f = next(f for f in real_engine.search(SearchRequest(text="кувалда 5")).features if f.value == "5")
+    assert (f.status, f.property_name, f.unit, f.property_inferred) == ("bound", "Вес кувалды", "кг", True)
+    # «шуруповерт 18» — скорее напряжение 18 В (в КТРУ нет), а не крутящий момент 18 Н·м
+    f = next(f for f in real_engine.search(SearchRequest(text="шуруповерт аккумуляторный 18")).features if f.value == "18")
+    assert f.status == "unknown_property" and "напряжение" in f.note
+    # артикул с ведущими нулями не становится «ростом 0–6 м»
+    r = real_engine.search(SearchRequest(text="Футболка (оверсайз) АРГУС черная 52/176 000-006"))
+    assert not any(f.value == "0" for f in r.features)
+
+
+def test_unit_inferred_by_distributions(real_engine):
+    cases = {"молоток слесарный длина от 120": "мм", "шкаф для одежды высота 1,8": "м",
+             "дрель ручная электрическая от сети мощность 0,6": "кВт", "шуруповерт аккумуляторный крутящий момент 40": "Н·м"}
+    for text, unit in cases.items():
+        f = next(f for f in real_engine.search(SearchRequest(text=text)).features if f.unit_inferred)
+        assert f.unit == unit, text

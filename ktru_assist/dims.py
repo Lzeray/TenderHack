@@ -122,10 +122,11 @@ def share_satisfying(stats, heads, name: str, axis: str, interval, unit: str | N
         near = sum(n for x, n in stats.values(ps.prop_id) if I.contains_point(x))
         # «до 40»: условию «≤ 40 см» и «≤ 40 м» удовлетворяют все модели, но граница 40 м далеко от реальных
         # значений. Граница одностороннего условия должна лежать рядом с ними: от p01/3 до p99·3.
-        bound = I.hi if I.lo is None else I.lo if I.hi is None else None
+        # у диапазона — обе границы («0–6 м» для роста охватывает всех, но 0 далеко от реальных значений)
+        bounds = [b for b in (I.lo, I.hi) if b is not None]
         q = ps.quantiles
-        if bound is not None and q.get("p01") and q.get("p99"):
-            if not (Decimal(q["p01"]) / 3 <= bound <= Decimal(q["p99"]) * 3):
+        if bounds and q.get("p01") and q.get("p99"):
+            if not all(Decimal(q["p01"]) / 3 <= b <= Decimal(q["p99"]) * 3 for b in bounds):
                 return DENSITY_FLOOR
     return max(near / ps.n_models, DENSITY_FLOOR)
 

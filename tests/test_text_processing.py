@@ -97,3 +97,11 @@ def test_dimensions_separator_normalization():
     assert "120 x 60 x 75 см" in normalize("стол 120 на 60 на 75 см").text
     assert "120 см x 60 см" in normalize("стол 120 см на 60 см").text
     assert "на 4 ножках" in normalize("стол на 4 ножках").text
+
+
+def test_quotes_and_size_height_notation():
+    assert "«cs 23-355»" in normalize('Пила Metabo "CS 23-355"').text          # парные кавычки — не дюймы
+    assert '24 "' in normalize('монитор 24"').text                             # непарная — дюйм
+    assert "размер 48-50 рост 182-188 см" in normalize("Куртка 48-50/182-188").text
+    assert "размер 54-56 рост 158-164 см" in normalize("Брюки р. 54-56/158-164см").text
+    assert "12/24" in normalize("напряжение 12/24 В").text                     # не размер/рост

@@ -96,6 +96,8 @@ class Feature(BaseModel):
                                        description="габариты: числа по порядку [{value, unit}] (docs/DIMENSIONS_PLAN.md)")
     dims_axes: list[str] = Field(default_factory=list, description="оси из подписи «ДхШхВ», если есть")
     unit_inferred: bool = Field(False, description="единица подставлена системой (docs/UNITS_PLAN.md)")
+    bare: bool = Field(False, description="число без названия свойства и без единицы (docs/UNITS_PLAN.md, U2)")
+    property_inferred: bool = Field(False, description="свойство подставлено системой по распределениям значений")
 
 
 class Span(BaseModel):

@@ -284,3 +284,17 @@ def test_unit_from_sibling_feature(engine):
     f = Feature(id="b", source="text", status="bound", property_name="Ширина сиденья", value="42")
     assert infer([f], pos, ["стул"], None) is not None and f.unit is None       # без соседа — вопрос
     assert infer([sib, f], pos, ["стул"], None) is None and f.unit == "см" and f.unit_inferred
+
+
+def test_bare_number_guards(engine):
+    # опечатка в числе («18о») и номер («№1») — не значения свойства
+    for text in ("пассатижи слесарные 18о мм", "пассатижи слесарные «Модель 51»", "пассатижи слесарные №7"):
+        r = search(engine, text)
+        assert not any(f.bare or f.property_inferred for f in r.features), text
+
+
+def test_bare_number_without_statistics_is_not_guessed(engine):
+    # без статистики выгрузок свойство не угадывается: пометка «уточните», код не блокируется
+    r = search(engine, "пассатижи слесарные 180")
+    f = next(f for f in r.features if f.value == "180")
+    assert f.status == "unknown_property" and not f.property_inferred

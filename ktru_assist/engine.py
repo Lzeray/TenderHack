@@ -25,7 +25,7 @@ from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
 from . import empirical, suspicious
 from .dims import resolve as resolve_dims
-from .unit_infer import infer as infer_units
+from .unit_infer import infer as infer_units, infer_bare
 from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
@@ -257,7 +257,9 @@ class Engine:
         # габариты «120×60×75»: раскладка по осям — только после выбора пользователя (docs/DIMENSIONS_PLAN.md, D4)
         dims_question = None if self.native else resolve_dims(features, positions, heads, self.ste_stats)
         # число без единицы: подставить единицу по КТРУ, выгрузкам и соседним признакам (docs/UNITS_PLAN.md)
+        bare_question = None if self.native else infer_bare(features, positions, heads, self.ste_stats)
         unit_question = None if self.native else infer_units(features, positions, heads, self.ste_stats)
+        unit_question = unit_question or bare_question
         if dims_question is None:
             dims_question = unit_question
         group_names = {c: g.key for g in groups.values() for c in g.codes}

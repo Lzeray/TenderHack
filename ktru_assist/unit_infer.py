@@ -135,3 +135,133 @@ def infer(features, positions, heads, stats):
 
 
 __all__ = ["infer", "hypotheses", "VERSION"]
+
+
+# --- U2: число без названия свойства («молоток 500»), выбор свойства при известной единице («500 г») -----------
+BARE_RATIO = 20.0          # перевес лучшей пары над следующей для подстановки без вопроса
+BARE_MIN_SHARE = 0.05      # и не меньше 5 % моделей рядом с числом (или удовлетворяют условию)
+BARE_ASK_SHARE = 0.02      # меньше — вариант не предлагаем (не о чем спрашивать)
+
+
+def _pair_scores(f, positions, heads, stats, names: list[str], fixed_unit: str | None):
+    """[(доля, свойство, единица, код)] для пар «свойство + единица», допустимых по КТРУ и с данными выгрузок."""
+    from .validate import check_feature, find_prop, user_interval
+    out = []
+    for name in names:
+        probe0 = f.model_copy(update={"property_name": name, "property_code": None, "status": "bound", "bare": False})
+        props = _props(positions, probe0)
+        if not props or not all(p.is_numeric for p in props):
+            continue
+        dims = {u.dimension for p in props for u in p.units}
+        if len(dims) != 1:
+            continue
+        dim = next(iter(dims))
+        units = [lookup(fixed_unit)] if fixed_unit else \
+            [u for u in UNITS if u.dimension == dim and (u.key in CANDIDATES or u.key in {x.key for p in props for x in p.units})]
+        for u in units:
+            if u is None or u.dimension != dim:
+                continue
+            probe = probe0.model_copy(update={"unit": u.title})
+            if not any(check_feature(pos, probe)[0] == "valid" for pos in positions):
+                continue
+            U = user_interval(probe)
+            ctx_pos = positions[0]
+            ax = axis_of(name, context_of(ctx_pos.name_lemmas, [ctx_pos.head] if ctx_pos.head else []))
+            share = share_satisfying(stats, heads, name, ax or name, U, u.title) if U is not None else None
+            if share is None:
+                continue
+            code = next((find_prop(pos, probe).code for pos in positions if find_prop(pos, probe)), None)
+            out.append((share, name, u.title, code))
+    out.sort(key=lambda x: (-x[0], x[1], x[2]))
+    return out
+
+
+RIVAL_PREVALENCE = 0.2     # соперник из выгрузок — свойство, указанное хотя бы у 20 % моделей типа
+
+
+def _ste_only_scores(f, heads, stats, ktru_names: set[str], exclude_dim: str | None = None):
+    """Соперники из выгрузок: числовые свойства типа, которых нет в КТРУ («шуруповерт 18» — напряжение 18 В,
+    а не крутящий момент 18 Н·м). [(доля, название, единица)]."""
+    from .catalog.ste_stats import prop_key
+    from .validate import user_interval
+    if stats is None or not getattr(stats, "available", False):
+        return []
+    known = {prop_key(n) for n in ktru_names}
+    tks = set(stats.type_keys(heads))
+    out = []
+    for (tk, pk, kind, dim), ps in stats.props.items():
+        if tk not in tks or kind != "number" or pk in known or dim in (None, "count") or dim == exclude_dim:
+            continue
+        # нишевое свойство подтипа («длина кабеля» у отбойных молотков в типе «молоток») — не соперник
+        total = stats.types.get(tk, {}).get("n_models", 0)
+        if not total or ps.n_models < RIVAL_PREVALENCE * total:
+            continue
+        for u in UNITS:
+            if u.dimension != dim or u.key not in CANDIDATES:
+                continue
+            probe = f.model_copy(update={"property_name": ps.display_name, "unit": u.title})
+            U = user_interval(probe)
+            share = share_satisfying(stats, heads, ps.display_name, ps.display_name, U, u.title) if U else None
+            if share is not None:
+                out.append((share, ps.display_name, u.title))
+    out.sort(key=lambda x: (-x[0], x[1]))
+    return out
+
+
+def infer_bare(features, positions, heads, stats):
+    """Подобрать свойство (и единицу) для числа без названия; вернуть вопрос по первому неоднозначному или None.
+    Без статистики выгрузок свойство не угадывается: признак помечается «уточните»."""
+    from .models import Constraint, Question, QuestionOption
+    numeric_names = sorted({pr.name for p in positions for pr in p.props.values() if pr.is_numeric})
+    question = None
+    for f in features:
+        if f.status != "ambiguous" or f.dims:
+            continue
+        if f.bare:
+            names, fixed = numeric_names, None
+        elif f.unit and f.options and _num(f.value) is not None:
+            names, fixed = [o["property_name"] for o in f.options if o.get("property_name")], f.unit
+        else:
+            continue
+        scores = _pair_scores(f, positions, heads, stats, names, fixed)
+        shown = f.value + (f"–{f.value_to}" if f.value_to else "") + (f" {f.unit}" if f.unit else "")
+        if not scores or scores[0][0] < BARE_ASK_SHARE:
+            if f.bare:
+                f.status = "unknown_property"
+                f.note = f"число «{shown}» без названия свойства: по типичным значениям не понятно, что это — уточните"
+            continue
+        best = scores[0]
+        second = next((x[0] for x in scores[1:] if (x[1], x[2]) != (best[1], best[2])), 0.0)
+        # соперник той же размерности — скорее то же свойство под другим названием («вес» / «Вес кувалды»)
+        best_dim = lookup(best[2]).dimension if lookup(best[2]) else None
+        rival = _ste_only_scores(f, heads, stats, set(numeric_names), best_dim) if f.bare else []
+        if rival and rival[0][0] >= BARE_MIN_SHARE and rival[0][0] * BARE_RATIO > best[0]:
+            # число лучше (или сопоставимо) объясняется свойством, которого нет в КТРУ — не подставляем
+            if rival[0][0] >= best[0]:
+                f.status = "unknown_property"
+                f.named_property = rival[0][1].lower()
+                f.note = (f"«{shown}» похоже на «{rival[0][1].lower()} {f.value} {rival[0][2]}» (так у "
+                          f"{round(rival[0][0] * 100)} % моделей в выгрузках), но в КТРУ этого свойства нет — "
+                          "на выбор кода не влияет; если имелось в виду другое, уточните")
+                continue
+            second = max(second, rival[0][0])
+        if best[0] >= BARE_MIN_SHARE and best[0] >= BARE_RATIO * second:
+            f.status, f.property_name, f.property_code = "bound", best[1], best[3]
+            if not f.unit:
+                f.unit, f.unit_inferred = best[2], True
+            f.property_inferred = True
+            f.options = []
+            f.note = (f"«{shown}» — {best[1].lower()} {best[2]}: так у {round(best[0] * 100)} % моделей этого типа "
+                      "в выгрузках (свойство подставлено)")
+            continue
+        if question is None:
+            opts = []
+            for share, name, unit, code in [x for x in scores if x[0] >= BARE_ASK_SHARE][:4]:
+                c = Constraint(property=name, op=f.op, value=f.value, value_to=f.value_to, unit=unit,
+                               min_inclusive=f.min_inclusive, max_inclusive=f.max_inclusive)
+                opts.append(QuestionOption(label=f"{name}: {f.value}{'–' + f.value_to if f.value_to else ''} {unit}",
+                                           remaining=len(positions), answer=c, answers=[c]))
+            question = Question(kind="property", text=f"Что означает «{shown}»?", required=True,
+                                worst_case_remaining=len(positions), current_remaining=len(positions), options=opts,
+                                reason="число без названия: подходят несколько свойств")
+    return question

@@ -215,7 +215,7 @@ class Engine:
         groups = build_groups(positions)
         domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
         extractor = Extractor(groups, self.known_terms - domain_name_lemmas,
-                              name_tokens=self._name_tokens(nq.tokens, positions))
+                              name_tokens=self._name_tokens(nq.tokens, positions) | det.type_token_idx)
         features = extractor.extract(nq)
         self._mark_intent(nq, features)
         features = self._apply_constraints(features, req.overrides, "override", groups, issues)

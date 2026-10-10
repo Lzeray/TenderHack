@@ -16,3 +16,4 @@ data/models/
 data/cache/
 data/logs/
 reports/runs/
+data/exp_*

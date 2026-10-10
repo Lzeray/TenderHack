@@ -155,3 +155,11 @@ def test_merged_and_split_words():
     nq = normalize("креслосподлокотниками")
     tc.correct(nq.tokens, {"креслосподлокотниками": "кресло с подлокотниками"})
     assert [t.text for t in nq.tokens] == ["кресло", "с", "подлокотниками"]
+
+
+@pytest.mark.skipif(MORPH_MODE != "pymorphy", reason="согласование проверяется по словарю")
+def test_adjective_agrees_with_part():
+    from ktru_assist.nlp.extract import _agrees
+    assert _agrees("деревянная", "столешница") and _agrees("металлическом", "каркасе")
+    assert not _agrees("деревянный", "столешница")       # «стол деревянный столешница лдсп»: дерево — про стол
+    assert _agrees("лдсп", "столешница")                  # не прилагательное — не проверяется

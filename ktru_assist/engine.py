@@ -881,9 +881,12 @@ class Engine:
                         "удалено пользователем" if c.remove else
                         ("переопределено вручную" if source == "override" else "заменено ответом на уточнение"))
                 # ответ на вопрос о неоднозначном признаке снимает неоднозначность
-                if f.status == "ambiguous" and g is not None and any(o.get("property_name") == g.name
-                                                                      for o in f.options) and \
-                        (f.value or "").replace(",", ".") == (c.value or "").replace(",", "."):
+                # значения сравниваются без регистра и с вариантом: у признака здесь ещё запись из текста («лдсп»),
+                # к написанию КТРУ («ЛДСП») она приводится позже
+                same_value = lambda v: norm(v or "").replace(",", ".") == norm(c.value or "").replace(",", ".")  # noqa: E731
+                if f.status == "ambiguous" and g is not None and any(
+                        norm(o.get("property_name") or "") == norm(g.name) and (same_value(o.get("value")) or same_value(f.value))
+                        for o in f.options):
                     f.status = "overridden"
                     f.note += "; привязано пользователем"
             if c.remove:

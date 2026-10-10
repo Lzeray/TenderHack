@@ -201,6 +201,41 @@ def value_aliases_version() -> str:
     return json.loads(path.read_text(encoding="utf-8"))["version"] if path.exists() else "-"
 
 
+@lru_cache(maxsize=4096)
+def _forms(word: str) -> tuple[tuple[str, frozenset], ...]:
+    """Разборы слова: (часть речи, граммемы). Без словаря (snowball) — пусто: согласование не проверяется."""
+    from ..text import MORPH_MODE, _morph
+    if MORPH_MODE != "pymorphy":
+        return ()
+    return tuple((p.tag.POS or "", frozenset(str(p.tag).replace(" ", ",").split(","))) for p in _morph().parse(word))
+
+
+def _agrees(value_word: str, part_word: str) -> bool:
+    """Прилагательное-значение относится к части товара, только если согласуется с ней по роду, числу и падежу:
+    «деревянная столешница» — да, «стол деревянный столешница» — нет («деревянный» относится к столу).
+    Не прилагательное («лдсп», «из дерева») не проверяется."""
+    adj = [g for pos, g in _forms(value_word) if pos in ("ADJF", "PRTF")]
+    if not adj or any(pos not in ("ADJF", "PRTF") for pos, _ in _forms(value_word)[:1]):
+        return True
+    nouns = [g for pos, g in _forms(part_word) if pos == "NOUN"]
+    if not nouns:
+        return True
+    keys = ("sing", "plur"), ("masc", "femn", "neut"), ("nomn", "gent", "datv", "accs", "ablt", "loct")
+    for a in adj:
+        for n in nouns:
+            ok = True
+            for grp in keys:
+                ga, gn = a & set(grp), n & set(grp)
+                if grp[0] == "masc" and ("plur" in a or "plur" in n):
+                    continue                       # во множественном числе род не различается
+                if ga and gn and not (ga & gn):
+                    ok = False
+                    break
+            if ok:
+                return True
+    return False
+
+
 def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
                     forward_only: bool = False, include_self: bool = False,
                     exclude: frozenset[int] = frozenset()) -> tuple[str, int] | None:
@@ -230,6 +265,8 @@ def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
         if t.kind != "word" or t.lemma in BOUNDARY or t.used_by is not None or j in exclude:
             continue
         c = component_of_lemma(t.lemma)
+        if c and not include_self and len(idxs) == 1 and not _agrees(tokens[idxs[0]].text, t.text):
+            continue                               # «деревянный» не про «столешница»
         if c:
             return c, j
     return None
@@ -479,7 +516,9 @@ class Extractor:
                                            max_inclusive=hi_inc, unit=BY_KEY[unit_key].title if unit_key else None,
                                            note="конструкция «характеристика: значение»"))
                 continue
-            neg = tokens[right[0]].lemma in NEGATIONS
+            # «наличие мягкого сидения: нет» — значение «Нет», а не отрицание; отрицание — если после «не / нет / без»
+            # есть само значение («материал: не лдсп»)
+            neg = tokens[right[0]].lemma in NEGATIONS and len(right) > 1
             val_idx = right[1:] if neg else right
             text_value = nq.text[tokens[val_idx[0]].start:tokens[val_idx[-1]].end] if val_idx else raw_value
             matched = self._match_quality_text(g, text_value)
@@ -841,7 +880,8 @@ class Extractor:
             neg = _negated(tokens, first)
             comp_idx: list[int] = []
             own = {i for _, _, ix in opts for i in ix}
-            near = _component_near(tokens, sorted(own), exclude=full_tok - own)
+            # слово типа («стол» → «Вид товара: Стол») — не характеристика части товара
+            near = None if own <= self.name_tokens else _component_near(tokens, sorted(own), exclude=full_tok - own)
             if near is not None:
                 comp, j = near
                 same = [o for o in opts if o[0].component == comp]

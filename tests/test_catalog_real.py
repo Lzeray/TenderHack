@@ -169,3 +169,28 @@ def test_type_scope_is_complete(real_engine):
     assert any("Секция шкафа" in x for x in kind(r) if "есть среди" in x)
     r = real_engine.search(SearchRequest(text="джинсы"))
     assert {"Джинсы", "Джинсы детские"} <= names(r)
+
+
+def test_part_word_goes_to_its_value_and_choice_resolves_ambiguity(real_engine):
+    from ktru_assist.models import Constraint
+    bound = lambda r: {(f.property_name, f.value) for f in r.features if f.status == "bound"}  # noqa: E731
+    r = real_engine.search(SearchRequest(text="стол деревянный столешница лдсп"))
+    assert {("Тип каркаса", "Деревянный"), ("Вид материала столешницы", "ЛДСП")} <= bound(r)
+    assert not any(f.status == "ambiguous" for f in r.features)
+    # выбор варианта неоднозначного значения снимает неоднозначность (плашка выбора не остаётся)
+    r = real_engine.search(SearchRequest(text="стол лдсп"))
+    amb = next(f for f in r.features if f.status == "ambiguous")
+    o = next(o for o in amb.options if o["property_name"] == "Вид материала столешницы")
+    r = real_engine.search(SearchRequest(text="стол лдсп", overrides=[Constraint(property=o["property_code"], value=o["value"])]))
+    assert not any(f.status == "ambiguous" for f in r.features)
+    assert ("Вид материала столешницы", "ЛДСП") in bound(r)
+
+
+def test_lone_no_value_is_not_negation(real_engine):
+    # «наличие мягкого сидения: нет» — значение «Нет», а не «не Нет»
+    r = real_engine.search(SearchRequest(text="стул; наличие мягкого сидения: нет"))
+    f = next(f for f in r.features if f.property_name == "Наличие мягкого сидения")
+    assert f.op == "eq" and f.value == "Нет"
+    r = real_engine.search(SearchRequest(text="стол; вид материала столешницы: не лдсп"))
+    f = next(f for f in r.features if f.property_name == "Вид материала столешницы")
+    assert f.op == "ne" and f.value == "ЛДСП"

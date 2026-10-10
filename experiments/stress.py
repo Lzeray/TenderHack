@@ -138,6 +138,22 @@ def main() -> int:
         noise = rnd.choice(NOISE).format(n=rnd.randrange(1000, 9999))
         mk(p, "noise", f"{free}, {noise}", acc, gt)
         mk(p, "excess", f"{free}, {rnd.choice(EXCESS)}", acc, gt)
+        # dup: одно числовое свойство дважды, значения из непересекающихся диапазонов (переизбыток данных)
+        drnd = random.Random(f"dup-{p.code}")
+        nums = [pr for pr in p.props.values() if pr.is_numeric and pr.kind == 2
+                and len([v for v in pr.values if v.interval is not None and v.unit is not None]) >= 2]
+        if nums:
+            pr = drnd.choice(sorted(nums, key=lambda x: x.code))
+            vals2 = sorted([v for v in pr.values if v.interval is not None and v.unit is not None
+                            and v.interval.lo is not None and v.interval.hi is not None],
+                           key=lambda v: v.interval.lo)
+            if len(vals2) >= 2 and not vals2[0].interval.intersects(vals2[-1].interval):
+                from ktru_assist.units import fmt
+                a = (vals2[0].interval.lo + vals2[0].interval.hi) / 2
+                b = (vals2[-1].interval.lo + vals2[-1].interval.hi) / 2
+                u = vals2[0].unit.title
+                mk(p, "dup", f"{free}, {pr.name.lower()} {fmt(a)} {u}, {pr.name.lower()} {fmt(b)} {u}", acc, gt,
+                   auto="forbidden")
         pr0 = k1[0]
         other = next((q for q in fam if q.code != p.code and pr0.code in q.props and len(q.props[pr0.code].values) == 1
                       and q.props[pr0.code].values[0].text != pr0.values[0].text), None)

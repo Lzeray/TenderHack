@@ -118,6 +118,13 @@ def health():
 def api_search(req: SearchRequest) -> SearchResponse:
     if get_engine().native and (req.session_id is None or req.revision is None):
         raise HTTPException(422, "session_id и revision обязательны для семантического пути")
+    if req.canonical is not None:
+        # скрытая строка «тип; ключ: значение» (docs/PARSE_INPUT_PLAN.md, P4)
+        from .canonical import process
+        o = get_orchestrator()
+        # разбор видимого текста — правилами: в гибридном режиме основной движок сам текст не разбирает
+        core = getattr(getattr(o, "live", None), "rules", None) or get_engine()
+        return process(req, core, o.run)
     return get_orchestrator().run(req)
 
 
@@ -195,7 +202,8 @@ class ProductSearch(BaseModel):
 
 @app.post("/api/products")
 def api_products(req: ProductSearch):
-    if req.profile.get("conflicts"):
+    # Подбор идёт только по КТРУ; товары СТЕ не выдаются (выгрузки подтверждают доп. характеристики).
+    if os.environ.get("STE_PRODUCTS", "off") != "on" or req.profile.get("conflicts"):
         return {"total": 0, "items": [], "offset": req.offset, "limit": req.limit}
     o = get_orchestrator()
     service = getattr(o, "live", None)

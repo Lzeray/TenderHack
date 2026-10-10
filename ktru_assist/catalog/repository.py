@@ -8,6 +8,7 @@ from decimal import Decimal
 from functools import cached_property
 from pathlib import Path
 
+from ..config import unpack_gz
 from ..text import MORPH_MODE, content_lemmas, norm, tokenize
 from ..units import Unit, fmt, from_okei, unit_from_char_name
 
@@ -186,7 +187,7 @@ class Catalog:
     допустим, так как запись невозможна)."""
 
     def __init__(self, db_path: Path | str):
-        self.db_path = Path(db_path)
+        self.db_path = unpack_gz(Path(db_path))
         if not self.db_path.exists():
             raise FileNotFoundError(f"База каталога не найдена: {self.db_path}. Выполните импорт.")
         uri = self.db_path.resolve().as_uri() + "?mode=ro"

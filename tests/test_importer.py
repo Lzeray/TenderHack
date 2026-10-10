@@ -83,3 +83,19 @@ def test_import_idempotent(fixture_src, tmp_path):
     run_import(fixture_src, b, AS_OF, log=lambda *_: None)
     run_import(fixture_src, b, AS_OF, log=lambda *_: None)   # повторный импорт поверх
     assert _digest(a) == _digest(b)
+
+
+def test_packed_db_unpacked_on_open(fixture_src, tmp_path):
+    """База из git лежит как data/ktru.sqlite.gz: Catalog распаковывает её сам, если .sqlite нет."""
+    import gzip
+    import shutil
+
+    from ktru_assist.catalog.repository import Catalog
+    src = tmp_path / "src.sqlite"
+    run_import(fixture_src, src, AS_OF, log=lambda *_: None)
+    db = tmp_path / "ktru.sqlite"
+    with open(src, "rb") as f, gzip.open(tmp_path / "ktru.sqlite.gz", "wb") as g:
+        shutil.copyfileobj(f, g)
+    assert not db.exists()
+    assert Catalog(db).meta["positions"] > 0
+    assert _digest(db) == _digest(src)

@@ -80,20 +80,26 @@ def test_overall_axis_preferred_over_part(real_engine):
 def test_dims_question_and_answer(real_engine):
     t = "стол обеденный 120 на 80 на 75 см"
     r = real_engine.search(SearchRequest(text=t))
+    # «стол обеденный» подходит и «Стол обеденный школьный» (docs/KTRU_SEARCH_PLAN.md, K5): сначала тип
+    assert r.question is not None and r.question.kind == "type"
+    typ = next(o for o in r.question.options if o.label.startswith("Стол обеденный") and "школьн" not in o.label)
+    type_answers = typ.answers or [typ.answer]
+    r = real_engine.search(SearchRequest(text=t, answers=type_answers, answers_query_hash=r.query_hash))
     assert r.question is not None and r.question.kind == "dims"
     assert r.question.options[0].label == "длина 120 см, ширина 80 см, высота 75 см"
     # пока раскладка не выбрана, габариты не участвуют в подборе
     assert not any(f.status == "bound" and f.property_name and "столешниц" in f.property_name for f in r.features)
-    r2 = real_engine.search(SearchRequest(text=t, answers=r.question.options[0].answers, answers_query_hash=r.query_hash))
+    r2 = real_engine.search(SearchRequest(text=t, answers=type_answers + r.question.options[0].answers,
+                                          answers_query_hash=r.query_hash))
     bound = {f.property_name: f.value for f in r2.features if f.status == "bound" and f.source == "answer"}
     assert bound == {"Длина столешницы": "120", "Ширина столешницы": "80", "Высота до столешницы": "75"}
 
 
 def test_dims_packaging_and_missing_axes(real_engine):
     r = real_engine.search(SearchRequest(text="стол письменный в упаковке 120х60х10 см"))
-    assert any(f.named_property == "размеры упаковки" for f in r.features)
+    assert any((f.named_property or "").lower() == "размеры упаковки" for f in r.features)
     r = real_engine.search(SearchRequest(text="сверло по металлу 6х100"))
-    assert any(f.named_property == "габариты" and f.status == "unknown_property" for f in r.features)
+    assert any((f.named_property or "").lower() == "габариты" and f.status == "unknown_property" for f in r.features)
 
 
 def test_discrete_range_values(real_engine):
@@ -147,3 +153,64 @@ def test_long_property_name_in_segment(real_engine):
 def test_length_misspelling_binds_length_with_unit(real_engine):
     f = next(f for f in real_engine.search(SearchRequest(text="молоток длинной от 200")).features if f.value == "200")
     assert (f.status, f.property_name, f.op, f.unit, f.unit_inferred) == ("bound", "Длина рукоятки", "ge", "мм", True)
+
+
+def test_type_scope_is_complete(real_engine):
+    # docs/KTRU_SEARCH_PLAN.md: по типу находятся все позиции; секция — другое изделие, если её не назвали
+    names = lambda r: {c.name for c in r.candidates if c.code in set(r.compatible_codes)}  # noqa: E731
+    kind = lambda r: {k.reason for c in r.candidates for k in c.checks if k.property_name == "Вид товара"}  # noqa: E731
+    r = real_engine.search(SearchRequest(text="стол"))
+    assert len(r.compatible_codes) >= 30 and r.final_code is None
+    assert {"Журнальный стол", "Стол письменный", "Стол для переговоров"} <= names(r)
+    kinds = [[v.text for pr in p.props.values() if pr.name == "Вид товара" for v in pr.values]
+             for p in real_engine.catalog.get_many(r.compatible_codes).values()]
+    assert kinds and not any(k and all(v.startswith("Секция") for v in k) for k in kinds)
+    r = real_engine.search(SearchRequest(text="шкаф, вид товара секция шкафа"))
+    assert any("Секция шкафа" in x for x in kind(r) if "есть среди" in x)
+    r = real_engine.search(SearchRequest(text="джинсы"))
+    assert {"Джинсы", "Джинсы детские"} <= names(r)
+
+
+def test_part_word_goes_to_its_value_and_choice_resolves_ambiguity(real_engine):
+    from ktru_assist.models import Constraint
+    bound = lambda r: {(f.property_name, f.value) for f in r.features if f.status == "bound"}  # noqa: E731
+    r = real_engine.search(SearchRequest(text="стол деревянный столешница лдсп"))
+    assert {("Тип каркаса", "Деревянный"), ("Вид материала столешницы", "ЛДСП")} <= bound(r)
+    assert not any(f.status == "ambiguous" for f in r.features)
+    # выбор варианта неоднозначного значения снимает неоднозначность (плашка выбора не остаётся)
+    r = real_engine.search(SearchRequest(text="стол лдсп"))
+    amb = next(f for f in r.features if f.status == "ambiguous")
+    o = next(o for o in amb.options if o["property_name"] == "Вид материала столешницы")
+    r = real_engine.search(SearchRequest(text="стол лдсп", overrides=[Constraint(property=o["property_code"], value=o["value"])]))
+    assert not any(f.status == "ambiguous" for f in r.features)
+    assert ("Вид материала столешницы", "ЛДСП") in bound(r)
+
+
+def test_lone_no_value_is_not_negation(real_engine):
+    # «наличие мягкого сидения: нет» — значение «Нет», а не «не Нет»
+    r = real_engine.search(SearchRequest(text="стул; наличие мягкого сидения: нет"))
+    f = next(f for f in r.features if f.property_name == "Наличие мягкого сидения")
+    assert f.op == "eq" and f.value == "Нет"
+    r = real_engine.search(SearchRequest(text="стол; вид материала столешницы: не лдсп"))
+    f = next(f for f in r.features if f.property_name == "Вид материала столешницы")
+    assert f.op == "ne" and f.value == "ЛДСП"
+
+
+def test_value_without_property_is_checked_by_other_characteristic(real_engine):
+    # «стол угловой»: у позиции нет «Тип конструкции стола», но есть «Конфигурация стола: Угловой» — проверка
+    # засчитывается по ней; позиции, где «угловой» нет ни в одной характеристике, не подходят
+    r = real_engine.search(SearchRequest(text="стол угловой"))
+    f = next(f for f in r.features if f.status == "bound" and f.value and "углов" in f.value.lower())
+    finals = [c for c in r.candidates if c.compatible and not c.is_template]
+    assert finals
+    for c in finals:
+        k = next(k for k in c.checks if k.feature_id == f.id)
+        assert k.status == "valid", (c.code, k.reason)
+    assert any(not c.compatible and "ни в одной характеристике" in (c.excluded_reason or "") for c in r.candidates)
+
+
+def test_negation_does_not_jump_over_repeated_word(real_engine):
+    # «не» относится к «натуральный» (мех), а не к следующей «натуральная кожа»
+    r = real_engine.search(SearchRequest(text="мужское пальто нагольное (дубленка), размер 52, мех не натуральный натуральная кожа"))
+    feats = {f.property_name: f.value for f in r.features if f.status == "bound"}
+    assert feats.get("Натуральный мех") == "Нет" and feats.get("Натуральная кожа") == "Да"

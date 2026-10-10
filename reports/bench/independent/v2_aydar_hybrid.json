@@ -1,0 +1,360 @@
+{
+ "meta": {
+  "generated_at": "2026-10-10T10:01:11",
+  "split": "test",
+  "ks": [
+   1,
+   2,
+   3
+  ],
+  "dialog": true,
+  "bootstrap": 2000,
+  "bootstrap_seed": 20261010,
+  "suites": {
+   "natural": 313,
+   "contradictions": 102,
+   "out_of_scope": 32
+  },
+  "frozen": {
+   "natural": {
+    "test_sha256": "6ec6562ed4e7794f3cacba8034eaa0ab17f37a44331a213cd1711bfe94d2790a",
+    "test_cases": 313,
+    "frozen": "6ec6562ed4e7794f3cacba8034eaa0ab17f37a44331a213cd1711bfe94d2790a",
+    "ok": true,
+    "file_sha256": "b04362ac928854413f6aae98b84394eeca49f5cea9342879ab4596c4ed6a0c5e"
+   },
+   "contradictions": {
+    "test_sha256": "fb0fc090e1c3e0ca80f12cf99306b4d3052de02fd29b5aee2f2a6061a1996588",
+    "test_cases": 102,
+    "frozen": "fb0fc090e1c3e0ca80f12cf99306b4d3052de02fd29b5aee2f2a6061a1996588",
+    "ok": true,
+    "file_sha256": "0bae319f7e1dd2afc0412153fa006adb21b2a62a84f2b0e43c3d0b5b8f74e867"
+   },
+   "out_of_scope": {
+    "test_sha256": "12b70da55dfe476f3e6102e1afafff49328211cf99abb805db5a8e36916e0a51",
+    "test_cases": 32,
+    "frozen": "12b70da55dfe476f3e6102e1afafff49328211cf99abb805db5a8e36916e0a51",
+    "ok": true,
+    "file_sha256": "1e48a7588bda7882a51ee9882f6ea622fb642695523f680be1566bac3446b724"
+   }
+  },
+  "python": "3.12.3",
+  "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+  "hide_test_cases": true
+ },
+ "adapters": {
+  "ktru:core": {
+   "info": {
+    "adapter": "ktru:core",
+    "versions": {
+     "api": "3.1",
+     "importer": "1.0",
+     "normalizer": "1.1",
+     "typos": "1.0",
+     "extractor": "1.1",
+     "validator": "1.3",
+     "ranking": "1.0",
+     "clarifier": "1.2",
+     "engine": "2.2",
+     "type_registry": "1.0",
+     "resolver": "1.0",
+     "plausibility": "1.0",
+     "live_search": "1.1",
+     "ste_search": "1.0",
+     "package": "0.1.0",
+     "catalog_snapshot": "nsiKTRUNew_all_actual_20261003020003",
+     "catalog_as_of": "2026-10-09",
+     "search_backend": "catalogue-scope",
+     "recognition_mode": "hybrid",
+     "orchestrator": "3.0",
+     "llm_mode": "off"
+    }
+   },
+   "suites": {
+    "natural": {
+     "summary": {
+      "cases": 313,
+      "status_counts": {
+       "clarification": 201,
+       "conflict": 20,
+       "matched": 91,
+       "not_found": 1
+      },
+      "errors": 0,
+      "auto": 91,
+      "wrong_auto": 4,
+      "wrong_auto_rate": 0.044,
+      "auto_precision": 0.956,
+      "auto_coverage": 0.2907,
+      "gold_nonempty": 313,
+      "code_reached@0": 0.278,
+      "dialog_support": "supported",
+      "code_reached@1": 0.476,
+      "code_reached@2": 0.5208,
+      "code_reached@3": 0.5367,
+      "required_cases": 189,
+      "required_hit": 0.4497,
+      "no_code_cases": 0,
+      "no_code_respected": null,
+      "premature_auto": 0.0286,
+      "dialog_wrong_final": 4,
+      "questions_mean": 0.625,
+      "latency_ms_p50": 31.88,
+      "latency_ms_p95": 66.15,
+      "ci95": {
+       "code_reached@2": {
+        "value": 0.5208,
+        "lo": 0.4665,
+        "hi": 0.5783,
+        "n": 313,
+        "method": "bootstrap"
+       },
+       "auto_precision": {
+        "value": 0.956,
+        "lo": 0.9121,
+        "hi": 0.989,
+        "n": 91,
+        "method": "bootstrap"
+       },
+       "no_code_respected": null
+      },
+      "wrong_auto_rate_upper95": 0.0879
+     },
+     "by_split": {
+      "test": {
+       "cases": 313,
+       "status_counts": {
+        "clarification": 201,
+        "conflict": 20,
+        "matched": 91,
+        "not_found": 1
+       },
+       "errors": 0,
+       "auto": 91,
+       "wrong_auto": 4,
+       "wrong_auto_rate": 0.044,
+       "auto_precision": 0.956,
+       "auto_coverage": 0.2907,
+       "gold_nonempty": 313,
+       "code_reached@0": 0.278,
+       "dialog_support": "supported",
+       "code_reached@1": 0.476,
+       "code_reached@2": 0.5208,
+       "code_reached@3": 0.5367,
+       "required_cases": 189,
+       "required_hit": 0.4497,
+       "no_code_cases": 0,
+       "no_code_respected": null,
+       "premature_auto": 0.0286,
+       "dialog_wrong_final": 4,
+       "questions_mean": 0.625,
+       "latency_ms_p50": 31.88,
+       "latency_ms_p95": 66.15,
+       "ci95": {
+        "code_reached@2": {
+         "value": 0.5208,
+         "lo": 0.4665,
+         "hi": 0.5783,
+         "n": 313,
+         "method": "bootstrap"
+        },
+        "auto_precision": {
+         "value": 0.956,
+         "lo": 0.9121,
+         "hi": 0.989,
+         "n": 91,
+         "method": "bootstrap"
+        },
+        "no_code_respected": null
+       },
+       "wrong_auto_rate_upper95": 0.0879
+      }
+     },
+     "cases": []
+    },
+    "contradictions": {
+     "summary": {
+      "cases": 102,
+      "status_counts": {
+       "clarification": 15,
+       "conflict": 86,
+       "matched": 1
+      },
+      "errors": 0,
+      "auto": 1,
+      "wrong_auto": 1,
+      "wrong_auto_rate": 1.0,
+      "auto_precision": 0.0,
+      "auto_coverage": 0.0098,
+      "gold_nonempty": 0,
+      "code_reached@0": null,
+      "dialog_support": "not_run",
+      "code_reached@1": null,
+      "code_reached@2": null,
+      "code_reached@3": null,
+      "required_cases": 0,
+      "required_hit": null,
+      "no_code_cases": 102,
+      "no_code_respected": 0.9902,
+      "premature_auto": null,
+      "dialog_wrong_final": 0,
+      "questions_mean": null,
+      "latency_ms_p50": 34.77,
+      "latency_ms_p95": 69.6,
+      "ci95": {
+       "code_reached@2": null,
+       "auto_precision": {
+        "value": 0.0,
+        "lo": 0.0,
+        "hi": 1.0,
+        "n": 1,
+        "method": "rule_of_three"
+       },
+       "no_code_respected": {
+        "value": 0.9902,
+        "lo": 0.9706,
+        "hi": 1.0,
+        "n": 102,
+        "method": "bootstrap"
+       }
+      },
+      "wrong_auto_rate_upper95": 1.0
+     },
+     "by_split": {
+      "test": {
+       "cases": 102,
+       "status_counts": {
+        "clarification": 15,
+        "conflict": 86,
+        "matched": 1
+       },
+       "errors": 0,
+       "auto": 1,
+       "wrong_auto": 1,
+       "wrong_auto_rate": 1.0,
+       "auto_precision": 0.0,
+       "auto_coverage": 0.0098,
+       "gold_nonempty": 0,
+       "code_reached@0": null,
+       "dialog_support": "not_run",
+       "code_reached@1": null,
+       "code_reached@2": null,
+       "code_reached@3": null,
+       "required_cases": 0,
+       "required_hit": null,
+       "no_code_cases": 102,
+       "no_code_respected": 0.9902,
+       "premature_auto": null,
+       "dialog_wrong_final": 0,
+       "questions_mean": null,
+       "latency_ms_p50": 34.77,
+       "latency_ms_p95": 69.6,
+       "ci95": {
+        "code_reached@2": null,
+        "auto_precision": {
+         "value": 0.0,
+         "lo": 0.0,
+         "hi": 1.0,
+         "n": 1,
+         "method": "rule_of_three"
+        },
+        "no_code_respected": {
+         "value": 0.9902,
+         "lo": 0.9706,
+         "hi": 1.0,
+         "n": 102,
+         "method": "bootstrap"
+        }
+       },
+       "wrong_auto_rate_upper95": 1.0
+      }
+     },
+     "cases": []
+    },
+    "out_of_scope": {
+     "summary": {
+      "cases": 32,
+      "status_counts": {
+       "not_found": 32
+      },
+      "errors": 0,
+      "auto": 0,
+      "wrong_auto": 0,
+      "wrong_auto_rate": null,
+      "auto_precision": null,
+      "auto_coverage": 0.0,
+      "gold_nonempty": 0,
+      "code_reached@0": null,
+      "dialog_support": "not_run",
+      "code_reached@1": null,
+      "code_reached@2": null,
+      "code_reached@3": null,
+      "required_cases": 0,
+      "required_hit": null,
+      "no_code_cases": 32,
+      "no_code_respected": 1.0,
+      "premature_auto": null,
+      "dialog_wrong_final": 0,
+      "questions_mean": null,
+      "latency_ms_p50": 2.05,
+      "latency_ms_p95": 3.07,
+      "ci95": {
+       "code_reached@2": null,
+       "auto_precision": null,
+       "no_code_respected": {
+        "value": 1.0,
+        "lo": 0.9062,
+        "hi": 1.0,
+        "n": 32,
+        "method": "rule_of_three"
+       }
+      },
+      "wrong_auto_rate_upper95": null
+     },
+     "by_split": {
+      "test": {
+       "cases": 32,
+       "status_counts": {
+        "not_found": 32
+       },
+       "errors": 0,
+       "auto": 0,
+       "wrong_auto": 0,
+       "wrong_auto_rate": null,
+       "auto_precision": null,
+       "auto_coverage": 0.0,
+       "gold_nonempty": 0,
+       "code_reached@0": null,
+       "dialog_support": "not_run",
+       "code_reached@1": null,
+       "code_reached@2": null,
+       "code_reached@3": null,
+       "required_cases": 0,
+       "required_hit": null,
+       "no_code_cases": 32,
+       "no_code_respected": 1.0,
+       "premature_auto": null,
+       "dialog_wrong_final": 0,
+       "questions_mean": null,
+       "latency_ms_p50": 2.05,
+       "latency_ms_p95": 3.07,
+       "ci95": {
+        "code_reached@2": null,
+        "auto_precision": null,
+        "no_code_respected": {
+         "value": 1.0,
+         "lo": 0.9062,
+         "hi": 1.0,
+         "n": 32,
+         "method": "rule_of_three"
+        }
+       },
+       "wrong_auto_rate_upper95": null
+      }
+     },
+     "cases": []
+    }
+   }
+  }
+ }
+}

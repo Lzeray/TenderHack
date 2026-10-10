@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import time
+from dataclasses import replace
 from fractions import Fraction
 
 from . import __version__
@@ -18,23 +19,25 @@ from .components import components_version
 from .config import VERSIONS, Settings
 from .models import (Candidate, CharacteristicsCompletion, CodeResolution, Completeness, Constraint,
                      DomainProperty, Feature, Issue, Predicate, Question, QuestionOption, RawAssertion,
-                     Scope, SearchRequest, SearchResponse, Span, Stage, Step)
+                     RequiredCharacteristic, Scope, SearchRequest, SearchResponse, Span, Stage, Step)
 from .nlp.extract import Extractor, PropGroup, build_groups, value_aliases_version
 from .nlp.normalize import NormalizedQuery, normalize, set_domain_vocabulary
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
-from . import empirical, suspicious
+from . import canon, empirical, extras, suspicious
 from .dims import resolve as resolve_dims
 from .unit_infer import infer as infer_units, infer_bare
 from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
-from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
+from .catalog.scope import ref
+from .text import MORPH_MODE, STOPWORDS, content_lemmas, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
-from .validate import check_feature, evaluate
+from .validate import check_feature, evaluate, find_prop
 
 MAX_CANDIDATES_OUT = 100
+REQUIRED_EMPTY = "обязательное свойство не заполнено"
 PREFERENCE_WORDS = {"желательно", "предпочтительно", "желательный", "предпочтительный"}
 REQUIREMENT_WORDS = {"нужный", "нужно", "нужен", "требоваться", "требуется", "должный", "должен", "необходимый"}
 
@@ -56,6 +59,9 @@ class Engine:
         self.head_vocab = [] if self.native else self.registry.head_vocab
         self._head_set = frozenset(self.head_vocab)
         self.known_terms = set() if self.native else catalog.property_core_terms()
+        if not self.native:
+            from .portal.characteristics import lookup_index
+            lookup_index()   # индекс характеристик портала (если собран) загружается при старте, а не на запросе
 
     # ------------------------------------------------------------------
     def versions(self) -> dict[str, str]:
@@ -106,7 +112,9 @@ class Engine:
                     issues.append(Issue(level="warning", code="typo_ambiguous",
                                         message=f"«{c.original}»: несколько вариантов исправления "
                                                 f"({', '.join(c.options)}) — выберите вариант"))
-        det = TypeDetection(["catalog"], []) if self.native else self.registry.detect(nq.tokens)
+        keys = set() if self.native else self._key_tokens(nq.tokens)
+        det = TypeDetection(["catalog"], []) if self.native else self.registry.detect(
+            [replace(t, kind="punct", lemma="") if t.i in keys else t for t in nq.tokens])
         alias_terms = det.alias_terms
         for b in det.basis:
             if b.startswith("алиас"):
@@ -192,6 +200,8 @@ class Engine:
         type_confirmed = False
         weak_single_name = False
         confirmed_scope = None
+        name_basis: list[Position] | None = None   # наименования, слова которых считаются словами типа
+        base_name: str | None = None
         # цели неоднозначного алиаса («сидушка» → кресло | табурет) не подтверждают наименование
         q_lemmas = [t.lemma for t in nq.tokens if t.kind in ("word", "code")] + det.unique_alias_terms
         if type_choice is not None:
@@ -218,13 +228,23 @@ class Engine:
             if full:
                 top = max(n for n, _ in full)
                 names = sorted(nm for n, nm in full if n == top)
+                # более частные наименования с теми же словами тоже подходят: «джинсы» — это и «Джинсы детские»
+                # (docs/KTRU_SEARCH_PLAN.md, K5); какое из них нужно, уточняется вопросом о типе
+                core = [set(by_name[nm][0].name_lemmas) for nm in names]
+                name_basis = [p for p in positions if p.name in names]
+                base_named = len(names) == 1     # в описании полностью названо одно наименование
+                base_name = names[0] if base_named else None
+                names = sorted(set(names) | {nm for nm, ps in by_name.items()
+                                             if any(c <= set(ps[0].name_lemmas) for c in core)})
                 sel = [p for p in positions if p.name in names]
                 if len(sel) < len(positions):
                     stages.append(Stage(stage="тип по наименованию", remaining=len(sel),
                                         removed=len(positions) - len(sel),
                                         note="все слова наименования есть в описании: " + "; ".join(names)))
                 positions = sel
-                type_confirmed = len(names) == 1
+                # тип подтверждён одним полностью названным наименованием; более частные наименования с теми же
+                # словами — его разновидности, между ними выбирают характеристики
+                type_confirmed = base_named
             elif len(by_name) == 1:
                 # Одно наименование в области подтверждает тип, только если описание его подкрепляет:
                 # наименование из одного слова или в описании есть ещё слово наименования кроме главного.
@@ -239,7 +259,8 @@ class Engine:
                 issues.append(Issue(level="info", code="type_needs_confirmation",
                                     message="Тип определён по слову с несколькими трактовками — нужно подтверждение"))
             if type_confirmed:
-                confirmed_scope = positions[0].name if positions else None
+                # названное наименование, а не первая позиция области: в области есть и более частные наименования
+                confirmed_scope = (base_name if full else None) or (positions[0].name if positions else None)
                 type_basis.append(f"наименование позиции: {confirmed_scope}")
         if candidate_codes is not None:
             type_confirmed = scope_verified
@@ -247,11 +268,22 @@ class Engine:
         t = lap("retrieval", t)
 
         groups = identity_groups(positions) if self.native else build_groups(positions)
-        domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
+        # слова более частных наименований («металлический» в «Стул на металлическом каркасе») остаются словами
+        # характеристик, если в описании полностью названо более общее наименование («стул»)
+        basis = name_basis or positions
+        domain_name_lemmas = {l for p in basis for l in p.name_lemmas}
+        name_tok_idx = set() if self.native else self._name_tokens(nq.tokens, basis) | det.type_token_idx
         extractor = None if self.native else Extractor(
-            groups, self.known_terms - domain_name_lemmas,
-            name_tokens=self._name_tokens(nq.tokens, positions) | det.type_token_idx, type_heads=heads)
+            groups, self.known_terms - domain_name_lemmas, name_tokens=name_tok_idx, type_heads=heads)
         features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
+        if search_features is None and not self.native:
+            self._drop_name_values(nq, features, positions)
+        features = self._split_disjoint_ambiguous(features, positions)
+        features = self._resolve_by_described_part(features, groups)
+        # значение, названное явно («вид товара: секция шкафа»), важнее значения из слова типа («шкаф»)
+        explicit = {norm(f.property_name) for f in features
+                    if f.status == "bound" and f.property_name and not f.from_type_name}
+        features = [f for f in features if not (f.from_type_name and norm(f.property_name or "") in explicit)]
         self._mark_intent(nq, features)
         features = self._apply_constraints(features, [a for a in answers if a.property != TYPE_PROP], "answer",
                                            groups, issues)
@@ -286,13 +318,37 @@ class Engine:
         else:
             merge = merge_model_features(features, model_features or [], group_names, set(req.rejected), issues)
         features = merge.features
+        if not self.native:
+            self._label_sources(features, {p.category for p in positions if p.category})
+        # единый формат: названия и значения в написании КТРУ («угловой» → «Угловой»), иное — в одном виде
+        canon.canonicalize(features, groups)
+        # основная / неосновная — по всей области типа, до отбора (docs/KTRU_SEARCH_PLAN.md, K4)
+        required_names = {norm(pr.name) for p in positions if not p.is_template for pr in p.props.values() if pr.required}
+        for f in features:
+            if f.status in ("bound", "proposed", "overridden") and f.property_name:
+                f.role = "main" if norm(f.property_name) in required_names else "other"
+            elif f.status == "unknown_property":
+                f.role = "other"
+        # характеристики вне КТРУ: проверка смысла, затем выгрузки СТЕ и память сессии (на код не влияют)
+        additional = [] if self.native else extras.classify(features, [], heads, self.ste_stats, req.session_id)
+        accepted_extra = {a.feature_id for a in additional if a.accepted and a.feature_id}
         for f in features:
             if f.status == "ambiguous":
                 issues.append(Issue(level="warning", code="feature_ambiguous",
                                     message=f"«{f.evidence}»: {f.note}"))
-            elif f.status == "unknown_property" and f.source == "text":
+            elif f.status == "unknown_property" and f.source == "text" and f.id not in accepted_extra:
                 issues.append(Issue(level="warning", code="unknown_property",
                                     message=f"«{f.evidence}»: {f.note}"))
+        for a in additional:
+            if not a.accepted:
+                issues.append(Issue(level="warning", code="not_a_characteristic",
+                                    message=f"«{a.name}{': ' + a.value if a.value else ''}» не принята как характеристика: "
+                                            f"{a.reason}"))
+        if not self.native:
+            for w in extras.subjective_words(self._unrecognized(nq)):
+                issues.append(Issue(level="warning", code="not_a_characteristic",
+                                    message=f"«{w}» — оценочное слово, а не характеристика товара: оно не влияет на "
+                                            "подбор. Укажите конкретное свойство (материал, цвет, размер …)"))
         # слова наименований области считаются объяснёнными типом
         name_lemmas = {l for p in positions for l in p.name_lemmas}
         for tok in nq.tokens:
@@ -301,6 +357,15 @@ class Engine:
                 tok.used_by = "type"
             if tok.used_by is None and tok.i in det.alias_token_idx:
                 tok.used_by = "type"
+        # слова типа: наименование, найденное в описании, и слова признаков «Вид товара» из слова типа
+        type_feats = {f.id for f in features if f.from_type_name}
+        # слова — после исправления опечаток и раскладки («стулл» → «стул», «cnjk» → «стол»)
+        # первая часть скрытой строки: главное слово типа и все слова, не занятые характеристиками, по порядку
+        # (по ним ищется область; «носки/чулки» не теряются)
+        head_tok = {t.i for t in nq.tokens if t.kind == "word" and any(fuzzy_equal(t.lemma, h) for h in heads)}
+        type_text = " ".join(t.text for t in nq.tokens if t.kind in ("word", "code") and (
+            t.i in det.type_token_idx or t.i in head_tok or t.used_by == "type" or t.used_by in type_feats
+            or (t.used_by is None and t.lemma not in STOPWORDS)))
         # гипотеза модели, противоречащая всем конечным позициям области, не становится фильтром:
         # это сигнал об ошибке в описании (несуществующее значение), а не повод исключить всех кандидатов
         domain_finals = [p for p in positions if not p.is_template]
@@ -337,6 +402,10 @@ class Engine:
         level2 = [] if self.native else [e for f in features
                                          for e in [empirical.assess(f, heads, self.ste_stats)
                                                    or empirical.presence(f, heads, self.ste_stats)] if e is not None]
+        value_gone = self._value_support(features, positions, evals)
+        if value_gone and not any(evals[p.code].invalid == 0 and p.code not in value_gone
+                                  for p in positions if not p.is_template):
+            value_gone = {}   # отбор по значению не обнуляет ответ: тогда решают только противоречия
         ranked = []
         for p in positions:
             ev = evals[p.code]
@@ -344,11 +413,15 @@ class Engine:
             ok_ids = {c.feature_id for c in ev.checks if c.status == "valid" and c.feature_id}
             tcov = term_coverage(nq.tokens, matched, ok_ids)
             rc, key = components(p, tier, ncov, tcov, ev.valid, ev.unknown, scores.get(p.code))
-            compatible = ev.invalid == 0
+            # позиция исключается только противоречием; свойство, которого у позиции нет или которое в ней
+            # необязательно, её не исключает (docs/KTRU_SEARCH_PLAN.md, K2)
+            # исключение — противоречие или значение, которого у позиции нет ни в одной характеристике
+            compatible = ev.invalid == 0 and p.code not in value_gone
             c = Candidate(code=p.code, name=p.name, version=p.version, okpd2=p.okpd2_code, category=p.category,
                           is_template=p.is_template, active=p.active, parent_code=p.parent_code,
                           no_new_features=p.no_new_features, compatible=compatible,
-                          excluded_reason="; ".join(ev.invalid_reasons) if not compatible else None,
+                          excluded_reason="; ".join(ev.invalid_reasons + value_gone.get(p.code, []))
+                          if not compatible else None,
                           rank_components=rc, checks=ev.checks)
             ranked.append((key, c, p))
         ranked.sort(key=lambda x: x[0])
@@ -368,6 +441,7 @@ class Engine:
             out = [c for _, c, _ in finals][:MAX_CANDIDATES_OUT]
             out += [c for _, c, p in compatible if p.is_template][:20]
             out += [c for _, c, _ in ranked if not c.compatible][:30]
+        self._unify_units(features, groups)
         # ошибка размерности — отдельное предупреждение с обоснованием, а не только причина исключения
         for f in features:
             if f.status != "bound" or not f.unit:
@@ -401,6 +475,14 @@ class Engine:
             blocking_feats.append(None)
         constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
                        if f.status == "bound" and f.property_name}
+        if self.native:
+            # признаки разбора правилами не несут ссылку на характеристику: заданные свойства — по позициям
+            for f in features:
+                if f.status == "bound" and f.property_name:
+                    for _, _, p in finals:
+                        pr = find_prop(p, f)
+                        if pr is not None:
+                            constrained.add(ref("characteristic", pr.code, pr.name))
         tentative = [f for f in features if f.status in ("bound", "proposed", "unknown_property") and f.confirmation == "tentative"]
         final_code = final_name = None
         question = None
@@ -421,7 +503,31 @@ class Engine:
             gate.append("подозрительные значения не подтверждены")
         if merge.disagreements:
             gate.append("расхождение разбора правилами и модели")
-        if self.native and any(f.status == "unknown_property" for f in features):
+        # величина с единицей из описания, не сопоставленная ни с одной характеристикой, не игнорируется молча:
+        # «рост 618 см», «диаметр 16 Вт», «0,2 шт» — пока не ясно, к чему она, код автоматически не выдаётся
+        explained = {f.id for f in features if f.status in ("bound", "overridden", "removed")}  # удалено пользователем — осознанно
+        num_block: list[tuple[str, str]] = []
+        for tok in nq.tokens:
+            if tok.kind != "number" or tok.used_by == "type" or tok.used_by in explained:
+                continue
+            nxt = nq.tokens[tok.i + 1] if tok.i + 1 < len(nq.tokens) else None
+            if nxt is None or nxt.kind != "unit":
+                # число без единицы часто часть значения («3 (от 101 до 200 включительно)») или номер;
+                # физическая величина с единицей («16 Вт», «195 см») — факт, который нельзя проигнорировать
+                continue
+            shown = f"{tok.text} {nxt.text}"
+            key = f"num:{shown}"
+            if key in req.confirmed:
+                continue
+            num_block.append((key, f"Число «{shown}» не сопоставлено ни с одной характеристикой позиций — "
+                                   "код не выдаётся автоматически. Укажите, к какой характеристике оно относится, "
+                                   "или подтвердите, что оно не важно для подбора."))
+        for _, msg in num_block:
+            issues.append(Issue(level="warning", code="number_unexplained", message=msg))
+        if num_block:
+            gate.append("есть несопоставленные числа")
+        # характеристика вне КТРУ из текста — дополнительная и на код не влияет; блокирует только трактовка модели
+        if self.native and any(f.status == "unknown_property" and f.confirmation == "tentative" for f in features):
             gate.append("есть признаки без подтверждённой привязки к полной схеме")
         code_res: CodeResolution
         ev0 = evals[finals_pos[0].code] if finals else None
@@ -459,7 +565,10 @@ class Engine:
                 code_res = CodeResolution(status="multiple", remaining=len(finals),
                                           reason=f"совместимых конечных позиций: {len(finals)}")
             ambiguous_feature = next((f for f in features if f.status == "ambiguous"), None)
-            if proven and not gate and not ev.blocking:
+            # решение команды: если позиция уже единственная, незаполненные обязательные характеристики не мешают
+            # коду — они остаются в окне «Осталось ввести» (заменяет K3 из docs/KTRU_SEARCH_PLAN.md)
+            ev_blocking = [b for b in ev.blocking if not b.endswith(REQUIRED_EMPTY)]
+            if proven and not gate and not ev_blocking:
                 status = "matched"
                 final_code, final_name = finals[0][2].code, finals[0][2].name
                 message = (f"Определена конечная позиция {final_code}: все условия проверены в полной области "
@@ -467,7 +576,7 @@ class Engine:
             else:
                 if (proven or self.native) and gate:
                     question = self._confirm_question(tentative, type_choice if type_tentative else None,
-                                                      plaus_block, merge.disagreements, len(finals))
+                                                      plaus_block, merge.disagreements, len(finals), num_block)
                 elif det.ambiguous_aliases and not type_confirmed and len({p.name for p in finals_pos}) > 1:
                     # тип от разговорного слова с несколькими трактовками — подтверждается первым
                     question = choose_question(finals_pos, constrained, False, type_first=True)
@@ -479,9 +588,14 @@ class Engine:
                         p = finals_pos[0]
                         req_unknown = [p.props[c.property_code] for c in ev.checks
                                        if c.status == "unknown" and c.required and c.property_code in p.props]
-                    question = None if self.native and not type_confirmed else choose_question(
-                        finals_pos, constrained, type_confirmed, req_unknown,
-                        type_first=bool(det.ambiguous_aliases) or weak_single_name, strict_refs=self.native)
+                    # вопрос есть всегда, пока позиций больше одной: сначала тип (наименование), затем характеристики;
+                    # оставшиеся позиции разных наименований («Брюки», «Брюки спортивные») различает вопрос
+                    # о наименовании, даже если базовый тип назван (docs/KTRU_SEARCH_PLAN.md, K5)
+                    type_fixed = type_confirmed and len({p.name for p in finals_pos}) == 1
+                    question = choose_question(
+                        finals_pos, constrained, type_fixed, req_unknown,
+                        type_first=bool(det.ambiguous_aliases) or weak_single_name or (self.native and not type_confirmed),
+                        strict_refs=self.native)
                 if dims_question is not None and (question is None or question.kind != "type"):
                     question = dims_question
                 if question is not None and question.kind == "manual_choice":
@@ -498,8 +612,8 @@ class Engine:
                         parts.append("есть неоднозначности в описании")
                     if gate:
                         parts.append("нужно подтверждение: " + "; ".join(gate))
-                    if single and ev.blocking:
-                        parts.append("не проверено: " + "; ".join(ev.blocking[:3]))
+                    if single and ev_blocking:
+                        parts.append("не проверено: " + "; ".join(ev_blocking[:3]))
                     message = ". ".join(parts)
         if contradictions:
             # переизбыток данных: несовместимые значения одного свойства — сначала выбрать верное
@@ -518,6 +632,7 @@ class Engine:
             code_res = CodeResolution(status="conflict", reason="противоречивые значения в описании")
         completion = self._completion(finals_pos[0], ev0) if len(finals) == 1 else \
             CharacteristicsCompletion(complete=False, missing=[], unchecked=[])
+        required_rows, optional_feats = self._required_rows(finals_pos, features, evals)
         if tentative and status == "matched":  # защита: недостижимо при корректной логике выше
             raise AssertionError("matched с неподтверждёнными трактовками моделей")
         scope = Scope(detected_types=heads, type_basis=type_basis,
@@ -535,7 +650,7 @@ class Engine:
         tm["total"] = round((time.perf_counter() - t0) * 1000, 2)
         return SearchResponse(
             status=status, message=message, features=features, unrecognized=self._unrecognized(nq),
-            detected_types=heads, candidates=out, candidates_total=len(ranked), stages=stages, question=question,
+            type_text=type_text, detected_types=heads, candidates=out, candidates_total=len(ranked), stages=stages, question=question,
             properties=[DomainProperty(code=g.key if self.native else g.codes[0], codes=g.codes, ref=g.key if self.native else None, name=g.name, required=g.required,
                                        numeric=g.numeric, boolean=g.boolean,
                                        units=sorted(BY_KEY[k].title for k in g.unit_keys),
@@ -545,9 +660,198 @@ class Engine:
             assertions=self._assertions(nq, features, merge), code_resolution=code_res,
             characteristics_completion=completion, scope=scope, timings=tm,
             elapsed_ms=tm["total"], recognition_mode=self.settings.recognition_mode,
-            compatible_codes=[p.code for p in finals_pos], suggestions=level3, empirical=level2, **base)
+            compatible_codes=[p.code for p in finals_pos], suggestions=level3, empirical=level2,
+            required_characteristics=required_rows, optional_characteristics=optional_feats,
+            additional=additional, **base)
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def _key_tokens(tokens) -> set[int]:
+        """Слова названия свойства в записи «ключ: значение» после первой части («шапка; Размер (обхват головы): 61»):
+        это не товар — «головы» не делает тип «головка». Первая часть не исключается («товар: стол»)."""
+        out, seg, first = set(), [], True
+        for t in [*tokens, None]:
+            if t is None or t.lemma in (",", ";"):
+                colon = next((k for k, x in enumerate(seg) if x.lemma == ":"), None)
+                if colon is not None and not first:
+                    out |= {x.i for x in seg[:colon]}
+                if seg:
+                    first = False
+                seg = []
+            else:
+                seg.append(t)
+        return out
+
+    @staticmethod
+    def _value_support(features: list[Feature], positions: list[Position], evals) -> dict[str, list[str]]:
+        """Качественное значение из описания («угловой»), которого нет в найденном свойстве позиции.
+
+        * Значение есть у позиции под другой характеристикой («Конфигурация стола: Угловой» вместо «Тип конструкции
+          стола: Угловая») — проверка засчитывается по ней (valid), а не «свойства нет в позиции».
+        * У позиции такого значения нет ни в одной характеристике, а у других позиций области оно есть — позиция
+          не подходит описанию и исключается с причиной.
+        Слова наименования типа («стол» → «Вид товара: Стол») и «Да/Нет» сюда не относятся. Если значение не
+        выражается ни в одной позиции, ничего не исключается (unknown ≠ invalid, область не обнуляется)."""
+        finals = [p for p in positions if not p.is_template]
+        out: dict[str, list[str]] = {}
+        # слово типа («стол» → «Вид товара: Стол») у позиции без этой характеристики подтверждено её наименованием
+        for f in features:
+            if f.status != "bound" or not f.from_type_name or not f.value:
+                continue
+            lem = set(content_lemmas(f.value))
+            for p in positions:
+                k = next((k for k in evals[p.code].checks if k.feature_id == f.id and k.status == "unknown"
+                          and k.unknown_reason == "property_absent"), None)
+                if k is not None and lem and lem <= set(p.name_lemmas):
+                    k.status, k.property_name, k.unknown_reason = "valid", "Наименование", None
+                    k.reason = f"«{f.value}» — в наименовании позиции «{p.name}»"
+                    evals[p.code].unknown -= 1
+                    evals[p.code].valid += 1
+        for f in features:
+            if f.status != "bound" or f.op != "eq" or f.unit or not f.value or f.from_type_name \
+                    or f.confirmation != "confirmed" or norm(f.value) in ("да", "нет"):
+                continue
+            lem = set(content_lemmas(f.value))
+            if not lem:
+                continue
+            own, alt, ok = {}, {}, set()
+            for p in positions:
+                pr = find_prop(p, f)
+                if pr is not None:
+                    own[p.code] = True
+                    if any(k.feature_id == f.id and k.status == "valid" for k in evals[p.code].checks):
+                        ok.add(p.code)
+                    continue
+                hit = next((pr2 for pr2 in p.props.values() if any(
+                    v.kind == "quality" and v.lemmas and lem <= set(v.lemmas) for v in pr2.values)), None)
+                if hit is not None:
+                    alt[p.code] = hit
+            # значение должно реально подтверждаться хотя бы у одной конечной позиции, иначе отбор ничего не доказывает
+            if not any(p.code in ok or p.code in alt for p in finals):
+                continue
+            for p in positions:
+                if p.code in own:
+                    continue
+                ev = evals[p.code]
+                check = next((k for k in ev.checks if k.feature_id == f.id and k.status == "unknown"), None)
+                hit = alt.get(p.code)
+                if hit is not None:
+                    if check is not None:
+                        val = next(v.label for v in hit.values if v.kind == "quality" and v.lemmas and lem <= set(v.lemmas))
+                        check.status, check.property_name, check.property_code = "valid", hit.name, hit.code
+                        check.reason = f"«{f.value}» есть в характеристике «{hit.name}» этой позиции: {val}"
+                        check.unknown_reason = None
+                        ev.unknown, ev.valid = ev.unknown - 1, ev.valid + 1
+                    continue
+                if not p.is_template:
+                    out.setdefault(p.code, []).append(
+                        f"{f.property_name}: у позиции нет значения «{f.value}» ни в одной характеристике")
+        return out
+
+    @staticmethod
+    def _resolve_by_described_part(features: list[Feature], groups: dict[str, PropGroup]) -> list[Feature]:
+        """«стол деревянный ЛДСП»: «лдсп» подходит к «Вид материала каркаса» и «Вид материала столешницы». Каркас уже
+        описан («Тип каркаса: Деревянный»), поэтому ЛДСП относится к оставшейся части — столешнице. Снимается только
+        неоднозначность, где ровно один вариант относится к ещё не описанной части товара; иначе остаётся вопрос."""
+        by_name = {norm(g.name): g for g in groups.values()}
+        described = {by_name[norm(f.property_name)].component for f in features
+                     if f.status == "bound" and f.property_name and norm(f.property_name) in by_name
+                     and by_name[norm(f.property_name)].component}
+        if not described:
+            return features
+        for f in features:
+            opts = [o for o in f.options if o.get("property_name") and o.get("value")]
+            if f.status != "ambiguous" or f.component or len(opts) < 2:
+                continue
+            comps = [getattr(by_name.get(norm(o["property_name"])), "component", None) for o in opts]
+            if any(c is None for c in comps):
+                continue
+            free = [o for o, c in zip(opts, comps) if c not in described]
+            if len(free) != 1:
+                continue
+            o = free[0]
+            part = by_name[norm(o["property_name"])].component
+            f.status, f.property_code, f.property_name, f.value = "bound", o.get("property_code"), o["property_name"], o["value"]
+            f.component, f.options = part, []
+            f.op = "ne" if f.negated else "eq"
+            f.note = ("значение подходит к нескольким частям товара; остальные части уже описаны — относится к «"
+                      + o["property_name"] + "»")
+        return features
+
+    @staticmethod
+    def _split_disjoint_ambiguous(features: list[Feature], positions: list[Position]) -> list[Feature]:
+        """«брюки мужские»: «мужские» подходит к «Половой признак», «Назначение», «Половозрастная группа» разных
+        позиций. Если ни у одной позиции нет двух из этих свойств, неоднозначности нет: значение проверяется по
+        тому свойству, которое есть у позиции (docs/KTRU_SEARCH_PLAN.md, K6)."""
+        out = []
+        for f in features:
+            opts = [o for o in f.options if o.get("property_name") and o.get("value")]
+            names = {norm(o["property_name"]) for o in opts}
+            if (f.status != "ambiguous" or f.component or len(opts) < 2 or len(names) != len(opts)
+                    or any(len(names & {norm(pr.name) for pr in p.props.values()}) > 1 for p in positions)):
+                out.append(f)
+                continue
+            for k, o in enumerate(opts):
+                out.append(f.model_copy(update={
+                    "id": f"{f.id}.{k + 1}", "status": "bound", "property_code": o.get("property_code"),
+                    "property_name": o["property_name"], "value": o["value"], "options": [],
+                    "op": "ne" if f.negated else "eq",
+                    "note": "значение относится к свойству, которое есть у позиции: "
+                            + ", ".join(sorted(x["property_name"] for x in opts))}))
+        return out
+
+    @staticmethod
+    def _required_rows(finals: list[Position], features: list[Feature], evals) -> tuple[list[RequiredCharacteristic], list[Feature]]:
+        """Обязательные характеристики оставшихся конечных позиций: сначала общие для всех, затем остальные.
+        Заполненные — со значением пользователя в едином формате (их можно исправить), незаполненные — пустые.
+        Распознанные необязательные характеристики КТРУ возвращаются отдельно."""
+        total = len(finals)
+        rows: dict[str, dict] = {}
+        bound_to: dict[str, Feature] = {}
+        active = [f for f in features if f.status in ("bound", "proposed") and f.property_name]
+        used: set[str] = set()
+        for p in finals:
+            for pr in p.props.values():
+                if not pr.required:
+                    continue
+                r = rows.setdefault(pr.norm_name, {"prop": pr, "count": 0, "values": {}, "units": set(),
+                                                    "sets": set()})
+                r["count"] += 1
+                r["sets"].add(tuple(sorted(v.label for v in pr.values)))
+                for v in pr.values:
+                    r["values"].setdefault(v.label, None)
+                    if v.unit:
+                        r["units"].add(v.unit.title)
+            for f in active:
+                pr = find_prop(p, f)
+                if pr is not None:
+                    used.add(f.id)
+                    if pr.required:
+                        bound_to.setdefault(pr.norm_name, f)
+        out = []
+        for key, r in rows.items():
+            pr, f = r["prop"], bound_to.get(key)
+            status, value, unit, reason = "missing", None, None, "не указана"
+            if f is not None:
+                sts = {k.status for p in finals for k in evals[p.code].checks if k.feature_id == f.id}
+                status = "filled" if "valid" in sts else "invalid" if sts == {"invalid"} else "unchecked"
+                ops = {"ne": "не ", "ge": "≥ ", "gt": "> ", "le": "≤ ", "lt": "< "}
+                value = (f"{f.value}–{f.value_to}" if f.op == "between" else
+                         " / ".join(f.values) if f.op == "in" else ops.get(f.op, "") + (f.value or ""))
+                unit = f.unit
+                reason = {"filled": "заполнена и проверена по КТРУ", "invalid": "значение не подходит позициям КТРУ",
+                          "unchecked": "указана, но сравнить с КТРУ не удалось — уточните значение"}[status]
+            out.append(RequiredCharacteristic(
+                property_code=pr.code, name=pr.name, common=r["count"] == total, positions=r["count"], total=total,
+                numeric=pr.is_numeric, boolean=pr.is_boolean, units=sorted(r["units"]),
+                values=list(r["values"])[:50], status=status, value=value, unit=unit,
+                feature_id=f.id if f is not None else None,
+                narrows=total > 1 and (r["count"] < total or len(r["sets"]) > 1), reason=reason))
+        out.sort(key=lambda r: (not r.common, -r.positions, not r.narrows, r.name))
+        required_ids = {f.id for f in bound_to.values()}
+        optional = [f for f in active if f.id in used and f.id not in required_ids]
+        return out, optional
+
     @staticmethod
     def _mark_intent(nq: NormalizedQuery, features: list[Feature]) -> None:
         """Факт о товаре / требование / предпочтение. Предпочтение не становится жёстким условием."""
@@ -567,6 +871,82 @@ class Engine:
                     f.note += "; предпочтение («желательно») — не жёсткое условие подбора"
             elif f.op in ("ge", "gt", "le", "lt", "between") or before & REQUIREMENT_WORDS:
                 f.intent = "requirement"
+
+    @staticmethod
+    def _drop_name_values(nq: NormalizedQuery, features: list[Feature], positions: list[Position]) -> None:
+        """Слова наименования, общего для всех позиций области, не выбирают позицию.
+
+        «Перчатки швейные для защиты от внешних воздействий» — наименование всех кандидатов, поэтому
+        «внешних воздействий» в описании не означает «Вид защиты = От механических воздействий».
+        Значение из одних только слов наименования, совпавшее с ними лишь частично, снимается, если оно
+        противоречит хотя бы одной конечной позиции области (делает выбор, на который у наименования нет
+        оснований). Полностью названное значение («шкаф» → «Шкаф», не «Секция шкафа») остаётся.
+        Значение, совместимое со всеми («на металлическом каркасе» → «Тип каркаса = Металлический»),
+        остаётся: оно заполняет характеристику, но никого не исключает.
+        """
+        names = {p.name for p in positions}
+        finals = [p for p in positions if not p.is_template]
+        if len(names) != 1 or not finals:
+            return
+        name_lemmas = set(positions[0].name_lemmas)
+        # свойства, значение которых названо явно («вид товара: секция шкафа»), — явное значение главнее
+        explicit = {f.property_name for f in features if f.source == "text" and f.status == "bound"
+                    and "характеристика: значение" in f.note}
+        for f in features:
+            if f.source != "text" or f.status != "bound" or f.span is None:
+                continue
+            toks = [t for t in nq.tokens if t.start >= f.span[0] and t.end <= f.span[1]
+                    and t.kind == "word" and t.significant]
+            if not toks or not all(any(fuzzy_equal(t.lemma, n) for n in name_lemmas) for t in toks):
+                continue
+            # значение, названное полностью («шкаф» → «Шкаф», а не «Секция шкафа»), — осознанный выбор;
+            # снимается только частичное совпадение («внешних воздействий» → «От механических воздействий»)
+            overridden = f.property_name in explicit and "характеристика: значение" not in f.note
+            if not overridden and all(any(fuzzy_equal(v, t.lemma) for t in toks)
+                                      for v in content_lemmas(f.value or "")):
+                continue
+            if any(check_feature(p, f)[0] == "invalid" for p in finals):
+                f.status = "removed"
+                f.note += ("; слова наименования, общего для всех позиций, — не значение характеристики "
+                           "(значение не применено)")
+                for t in toks:
+                    t.used_by = "type"
+
+    def _label_sources(self, features: list[Feature], categories: set[str]) -> None:
+        """Источник характеристики: КТРУ → портал → новая (порядок из брифинга организаторов)."""
+        from .portal.characteristics import available, lookup
+        for f in features:
+            if f.status in ("bound", "overridden", "removed", "proposed") and f.property_code:
+                f.char_source = "ktru"
+            elif f.status == "unknown_property" and available():
+                hit = lookup(f.evidence or f.property_name or "", categories)
+                if hit:
+                    f.char_source = "portal"
+                    f.note += f"; на портале есть характеристика «{hit}» — её можно указать как портальную"
+                else:
+                    f.char_source = "new"
+                    f.note += "; ни в КТРУ, ни среди характеристик портала её нет — это новая характеристика"
+
+    @staticmethod
+    def _unify_units(features: list[Feature], groups: dict[str, PropGroup]) -> None:
+        """Число в единице КТРУ рядом с исходным: «2,2 см» → «22 мм» (унифицированный вид)."""
+        from .units import convert, fmt, lookup
+        from decimal import Decimal, InvalidOperation
+        by_name = {g.name: g for g in groups.values()}
+        for f in features:
+            g = by_name.get(f.property_name or "")
+            if f.status != "bound" or not f.unit or g is None:
+                continue
+            uu = lookup(f.unit)
+            target = [BY_KEY[k] for k in sorted(g.unit_keys) if uu and BY_KEY[k].dimension == uu.dimension]
+            if uu is None or len(target) != 1:
+                continue
+            try:
+                vals = [convert(Decimal(v.replace(",", ".")), uu, target[0]) for v in (f.value, f.value_to) if v]
+            except InvalidOperation:
+                continue
+            f.ktru_value = "–".join(fmt(v) for v in vals)
+            f.ktru_unit = target[0].title
 
     @staticmethod
     def _completion(p: Position, ev) -> CharacteristicsCompletion:
@@ -611,7 +991,9 @@ class Engine:
         return out
 
     @staticmethod
-    def _confirm_question(tentative: list[Feature], type_choice, plaus, disagreements, n: int) -> Question:
+    def _confirm_question(tentative: list[Feature], type_choice, plaus, disagreements, n: int,
+                          numbers: list[tuple[str, str]] | None = None) -> Question:
+        numbers = numbers or []
         answers = [Constraint(property=f.characteristic_ref or f.property_code or f.property_name or "", op=f.op, value=f.value, values=f.values,
                               value_to=f.value_to, min_inclusive=f.min_inclusive, max_inclusive=f.max_inclusive,
                               unit=f.unit) for f in tentative]
@@ -622,8 +1004,9 @@ class Engine:
             items.append(f"тип товара → {type_choice.value} (предложено моделью)")
         items += [p.message for p in plaus]
         items += [d.message for d in disagreements]
+        items += [m for _, m in numbers]
         opts = [QuestionOption(label="Да, всё верно", remaining=n, answer=answers[0] if answers else None,
-                               answers=answers, confirm=[p.key for p in plaus])]
+                               answers=answers, confirm=[p.key for p in plaus] + [k for k, _ in numbers])]
         for f in tentative:
             if f.proposal_key:
                 opts.append(QuestionOption(label=f"Нет: «{f.evidence or f.value}» ≠ {describe(f)}", remaining=n,
@@ -730,17 +1113,26 @@ class Engine:
             if c.property == TYPE_PROP:
                 continue
             g = self._resolve_group(c.property, groups)
+            gname = " ".join(tokenize(g.name)) if g is not None else None
+            # у позиций КТРУ одна и та же характеристика бывает под разными кодами: тогда привязка — по названию
+            strict = self.native and g is not None and \
+                sum(1 for x in groups.values() if " ".join(tokenize(x.name)) == gname) == 1
             for f in features:
-                same = g is not None and (f.characteristic_ref == g.key if self.native else f.property_name and " ".join(tokenize(f.property_name)) == g.key)
+                by_name = bool(f.property_name) and " ".join(tokenize(f.property_name)) == gname
+                same = g is not None and ((f.characteristic_ref == g.key or (f.characteristic_ref is None and by_name))
+                                          if self.native else by_name)
                 if same and f.status == "bound":
                     f.status = "removed" if c.remove else "overridden"
                     f.note = (f.note + "; " if f.note else "") + (
                         "удалено пользователем" if c.remove else
                         ("переопределено вручную" if source == "override" else "заменено ответом на уточнение"))
                 # ответ на вопрос о неоднозначном признаке снимает неоднозначность
-                if f.status == "ambiguous" and g is not None and any(o.get("property_name") == g.name
-                                                                      for o in f.options) and \
-                        (f.value or "").replace(",", ".") == (c.value or "").replace(",", "."):
+                # значения сравниваются без регистра и с вариантом: у признака здесь ещё запись из текста («лдсп»),
+                # к написанию КТРУ («ЛДСП») она приводится позже
+                same_value = lambda v: norm(v or "").replace(",", ".") == norm(c.value or "").replace(",", ".")  # noqa: E731
+                if f.status == "ambiguous" and g is not None and any(
+                        norm(o.get("property_name") or "") == norm(g.name) and (same_value(o.get("value")) or same_value(f.value))
+                        for o in f.options):
                     f.status = "overridden"
                     f.note += "; привязано пользователем"
             if c.remove:
@@ -759,8 +1151,8 @@ class Engine:
                                     property_code=g.codes[0], property_name=g.name, op=c.op, value=c.value, values=c.values,
                                     value_to=c.value_to, min_inclusive=c.min_inclusive,
                                     max_inclusive=c.max_inclusive, unit=c.unit,
-                                    strict_ref=self.native,
-                                    characteristic_ref=g.key if self.native else None,
+                                    strict_ref=strict,
+                                    characteristic_ref=g.key if strict else None,
                                     proposal_key=c.evidence_key,
                                     note="ручное редактирование (приоритет над текстом)" if source == "override"
                                     else "ответ на уточняющий вопрос"))
@@ -775,4 +1167,5 @@ class Engine:
             return code_matches[0] if len(code_matches) == 1 else None
         key = " ".join(tokenize(prop))
         matches = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
-        return matches[0] if len(matches) == 1 else None
+        # несколько групп с одним названием (разные коды одной характеристики) — привязка по названию
+        return matches[0] if matches else None

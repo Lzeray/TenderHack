@@ -72,17 +72,22 @@ def test_incomplete_data_asks_question(engine):
     assert r.question.worst_case_remaining < r.question.current_remaining
 
 
-def test_required_property_question_when_single_candidate(engine):
-    r = search(engine, "пассатижи слесарные")                   # длина обязательна и не указана
-    assert r.status == "clarification_needed" and r.final_code is None
-    assert r.question.property_name == "Длина" and r.question.required
+def test_single_candidate_gives_code_and_lists_missing_required(engine):
+    # решение команды: позиция единственная — код выдаётся; незаполненная обязательная «Длина» остаётся
+    # в окне «Осталось ввести»
+    r = search(engine, "пассатижи слесарные")
+    assert r.status == "matched" and r.final_code == "25.73.30.163-90000001"
+    row = next(x for x in r.required_characteristics if x.name == "Длина")
+    assert row.status == "missing" and row.common
 
 
 def test_unknown_property_reported(engine):
     r = search(engine, "пассатижи слесарные 190 мм, цвет: красный")
     f = next(f for f in r.features if f.evidence and "цвет" in f.evidence)
     assert f.status == "unknown_property"
-    assert any(i.code == "unknown_property" for i in r.issues)
+    # свойства нет в КТРУ: принято как дополнительное (на код не влияет), без предупреждения
+    extra = next(a for a in r.additional if a.name == "Цвет")
+    assert extra.accepted and extra.value == "Красный"
 
 
 def test_unrecognized_fragment_returned(engine):
@@ -101,7 +106,9 @@ def test_manual_override_has_priority(engine):
 def test_remove_extracted_value(engine):
     r = search(engine, "пассатижи слесарные 150 мм", overrides=[Constraint(property="Длина", remove=True)])
     assert next(f for f in r.features if f.property_name == "Длина").status == "removed"
-    assert r.final_code is None                                # длина обязательна
+    # позиция единственная — код есть; обязательная «Длина» снова в списке «осталось ввести»
+    assert r.final_code == "25.73.30.163-90000001"
+    assert next(x for x in r.required_characteristics if x.name == "Длина").status == "missing"
 
 
 def test_conflicting_values_conflict(engine):
@@ -116,10 +123,10 @@ def test_no_new_features_rule(engine):
 
 
 def test_answer_and_stale_answer(engine):
-    r1 = search(engine, "пассатижи слесарные")
-    opt = next(o for o in r1.question.options if o.label.startswith("≥ 160"))
-    r2 = search(engine, "пассатижи слесарные", answers=[opt.answer], answers_query_hash=r1.query_hash)
-    assert r2.status == "matched"
+    r1 = search(engine, "пассатижи")
+    opt = next(o for o in r1.question.options if o.label == "Слесарные")
+    r2 = search(engine, "пассатижи", answers=[opt.answer], answers_query_hash=r1.query_hash)
+    assert r2.status == "matched" and r2.final_code == "25.73.30.163-90000001"
     r3 = search(engine, "пассатижи рыбацкие", answers=[opt.answer], answers_query_hash=r1.query_hash)
     assert any(i.code == "stale_answers" for i in r3.issues)
 

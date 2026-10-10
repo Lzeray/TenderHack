@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { featureValue, parseConstraint } from "./state.js";
+import React, { useEffect, useId, useRef, useState } from "react";
+import { featureValue, parseConstraint, phraseFor } from "./state.js";
 
 export function Icon({ name, size = 20, ...props }) {
   const paths = {
@@ -34,10 +34,10 @@ export function ProductArt({ category, name = "" }) {
     <span className="art-orbit" /><span className="art-dot" />
     <svg viewBox="0 0 240 180" role="img" aria-label="Иллюстрация категории товара">
       <ellipse cx="121" cy="155" rx="68" ry="9" fill="currentColor" opacity=".09" />
-      {shirt ? <g stroke="#6171b8" strokeWidth="2.5" strokeLinejoin="round">
-        <path d="m88 32-28 15-27 36 30 18 14-18v66h88V83l14 18 30-18-27-36-28-15c-8 21-28 21-37 0Z" fill="#e2e7ff" />
+      {shirt ? <g stroke="#b86165" strokeWidth="2.5" strokeLinejoin="round">
+        <path d="m88 32-28 15-27 36 30 18 14-18v66h88V83l14 18 30-18-27-36-28-15c-8 21-28 21-37 0Z" fill="#fcebec" />
         <path d="M88 32c9 22 29 22 37 0m-5 23v94m-41-67 9-31m76 31-9-31" fill="none" />
-        <path d="M88 109h21v22H88z" fill="#bac6ff" /><path d="M138 109h18v22h-18z" fill="#bac6ff" />
+        <path d="M88 109h21v22H88z" fill="#ffbabd" /><path d="M138 109h18v22h-18z" fill="#ffbabd" />
         <path d="M114 72h12m-12 16h12m-12 16h12" />
       </g> : furniture ? table ? <g stroke="#8a6b4e" strokeWidth="3" strokeLinejoin="round">
         <path d="m40 69 122-22 41 31-123 25Z" fill="#eed7be" /><path d="M40 69v11l40 32 123-25V78L80 103Z" fill="#d4b08b" />
@@ -47,11 +47,11 @@ export function ProductArt({ category, name = "" }) {
         <path d="m71 91 91-1 17 26H56l15-25Z" fill="#ead8c6" />
         <path d="M65 116v39m104-39v39M81 117l-9 30m81-30 11 30" stroke="#6b7285" strokeWidth="8" />
         <path d="M73 83V42m91 40V42" fill="none" />
-      </g> : <g transform="rotate(-29 120 90)" stroke="#52677f" strokeWidth="2.5" strokeLinejoin="round">
+      </g> : <g transform="rotate(-29 120 90)" stroke="#6d6464" strokeWidth="2.5" strokeLinejoin="round">
         <path d="M111 52h19v90a9 9 0 0 1-19 0V52Z" fill="#dfad67" />
-        <path d="M82 31h67l17 15-17 17H82V31Z" fill="#9aadc3" /><path d="M82 31h16v32H82Z" fill="#c8d5e5" />
-        <path d="M109 103h23v39a11 11 0 0 1-23 0v-39Z" fill="#3155e7" stroke="#2945b8" />
-        <path d="m114 113 13 7m-13 6 13 7m-13 6 13 7" stroke="#8da4ff" />
+        <path d="M82 31h67l17 15-17 17H82V31Z" fill="#b2abab" /><path d="M82 31h16v32H82Z" fill="#e5c8c9" />
+        <path d="M109 103h23v39a11 11 0 0 1-23 0v-39Z" fill="#e7313a" stroke="#b82930" />
+        <path d="m114 113 13 7m-13 6 13 7m-13 6 13 7" stroke="#ff8d93" />
       </g>}
     </svg>
   </div>;
@@ -166,52 +166,169 @@ function FeatureEditor({ feature, search }) {
 
 export function Parameters({ search }) {
   const data = search.result;
-  const properties = data?.properties || [];
-  const features = (data?.features || []).filter(f => !["overridden", "removed"].includes(f.status));
-  const extras = (data?.query_profile?.attributes || []).filter(a => !features.some(f => f.property_name === a.name));
-  const [selected, setSelected] = useState(0);
-  const [value, setValue] = useState("");
-  const [unit, setUnit] = useState("");
-  const [op, setOp] = useState("eq");
-  const property = properties[selected] || properties[0];
-  useEffect(() => { setSelected(0); setUnit(properties[0]?.units?.[0] || ""); }, [data?.query?.original]);
+  // Обязательные характеристики КТРУ — в таблице внизу; здесь неоднозначные и необязательные.
+  const ambiguous = (data?.features || []).filter(f => f.status === "ambiguous");
+  const optional = data?.optional_characteristics || [];
+  const empty = !ambiguous.length && !optional.length && !(data?.additional || []).length;
   return <aside className="parameters panel">
-    <div className="panel-heading"><Icon name="filter" /><h2>Параметры товара</h2></div>
-    <p className="panel-caption">Извлекаем из описания. Вы можете уточнить любое значение.</p>
-    {features.length ? <div>{features.map(f => <FeatureEditor key={`${f.id}-${f.property_code}`} feature={f} search={search} />)}</div> : <div className="parameter-empty"><Icon name="sparkle" size={28} /><p>Характеристики появятся здесь после поиска</p></div>}
-    {extras.map(a => <div className="feature-row" key={a.name}><div className="feature-label">{a.name}</div><b>{a.value} {a.unit}</b><small className="feature-evidence">{a.confirmation === "tentative" ? "Предложено моделью · не применяется" : "Не проверено по КТРУ"}</small></div>)}
-    {properties.length > 0 && <details className="add-feature"><summary><Icon name="plus" size={17} />Добавить характеристику</summary>
-      <form onSubmit={event => { event.preventDefault(); if (!value.trim()) return;
-        const constraint = parseConstraint(property.ref || property.code, value, unit);
-        if (constraint.op === "eq") constraint.op = op;
-        search.override(constraint); setValue("");
-      }}><fieldset disabled={search.stale}>
-        <label>Характеристика<select value={selected} onChange={event => { const i = Number(event.target.value); setSelected(i); setUnit(properties[i].units[0] || ""); }}>{properties.map((p, i) => <option key={p.ref || p.code} value={i}>{p.name}</option>)}</select></label>
-        <div className="add-feature-grid"><select value={op} aria-label="Операция сравнения" onChange={event => setOp(event.target.value)}><option value="eq">=</option><option value="ge">≥</option><option value="le">≤</option><option value="ne">≠</option></select>
-          <input aria-label="Значение новой характеристики" placeholder="Значение" list="property-values" value={value} onChange={event => setValue(event.target.value)} required />
-          <input aria-label="Единица измерения" placeholder="Ед." value={unit} onChange={event => setUnit(event.target.value)} />
-        </div><datalist id="property-values">{property?.values?.map(v => <option key={v} value={v} />)}</datalist>
-        <button className="button button-soft" type="submit">Применить</button>
-      </fieldset></form>
-    </details>}
+    <div className="panel-heading"><Icon name="filter" /><h2>Распознанные характеристики</h2></div>
+    <p className="panel-caption">Названия и значения приведены к виду КТРУ. Обязательные характеристики — в таблице внизу.</p>
+    {ambiguous.length > 0 && <div className="parameter-group"><h3>Нужно уточнить</h3>{ambiguous.map(f => <FeatureEditor key={`${f.id}-amb`} feature={f} search={search} />)}</div>}
+    {optional.length > 0 && <div className="parameter-group"><h3>Необязательные характеристики КТРУ</h3>{optional.map(f => <FeatureEditor key={`${f.id}-${f.property_code}`} feature={f} search={search} />)}</div>}
+    <Additional data={data} />
+    {empty && <div className="parameter-empty"><Icon name="sparkle" size={28} /><p>Необязательные и дополнительные характеристики появятся здесь после поиска</p></div>}
     <div className="parameter-tip"><Icon name="alert" size={16} /><p>Неизвестное значение не считается подтверждённым. КТРУ проверяем по справочнику.</p></div>
   </aside>;
+}
+
+const SOURCE_LABELS = { ste: "Есть в выгрузках СТЕ", session: "Запомнена в сессии", new: "Новая, запомнена в сессии", rejected: "Не принята" };
+
+export function Additional({ data, compact = false }) {
+  const items = (data?.additional || []).filter(a => !compact || a.accepted);
+  if (!items.length) return null;
+  return <div className={`parameter-group additional ${compact ? "additional-compact" : ""}`}>
+    <h3>Дополнительные характеристики <small>(нет в КТРУ, на код не влияют)</small></h3>
+    {items.map((a, i) => <div className={`feature-row ${a.accepted ? "" : "feature-rejected"}`} key={`${a.name}-${i}`}>
+      <div className="feature-label">{a.name}<span className={`mini-tag ${a.accepted ? (a.source === "ste" ? "green" : "blue") : "amber"}`}>{SOURCE_LABELS[a.source]}</span></div>
+      {a.value && <b>{a.value} {a.unit || ""}</b>}
+      {!compact && <small className="feature-evidence">{a.reason}</small>}
+    </div>)}
+  </div>;
+}
+
+// Ввод значения: результат записывается в строку поиска (и дублируется ручным условием).
+function applyValue(search, { name, fragment, constraint }) {
+  search.putInText({ name, fragment, phrase: phraseFor(name, constraint) });
+}
+function removeValue(search, { name, fragment }) {
+  search.putInText({ name, fragment, phrase: "" });
+}
+
+function ValueInput({ name, values = [], numeric = false, units = [], initial = "", initialUnit = "", fragment = null, removable = false, search }) {
+  const [value, setValue] = useState(initial);
+  const [unit, setUnit] = useState(initialUnit || units[0] || "");
+  useEffect(() => { setValue(initial); setUnit(initialUnit || units[0] || ""); }, [initial, initialUnit, name]);
+  const commit = text => {
+    const v = (text ?? value).trim();
+    if (!v || v === initial) return;
+    applyValue(search, { name, fragment, constraint: parseConstraint(name, v, numeric ? unit : null) });
+  };
+  const listId = useId();
+  const select = values.length > 0 && values.length <= 12 && !numeric;
+  return <div className="value-input">
+    {select
+      ? <select aria-label={name} value={value} disabled={search.stale} onChange={event => { setValue(event.target.value); if (event.target.value) commit(event.target.value); }}>
+          <option value="">Выберите значение</option>{values.map(v => <option key={v} value={v}>{v}</option>)}
+          {value && !values.includes(value) && <option value={value}>{value}</option>}
+        </select>
+      : <><input aria-label={name} placeholder={numeric ? "Число" : "Значение"} list={listId} value={value} disabled={search.stale}
+          onChange={event => setValue(event.target.value)} onBlur={() => commit()}
+          onKeyDown={event => { if (event.key === "Enter") event.target.blur(); if (event.key === "Escape") setValue(initial); }} />
+        <datalist id={listId}>{values.slice(0, 50).map(v => <option key={v} value={v} />)}</datalist>
+        {numeric && (units.length > 1
+          ? <select className="unit-select" aria-label="Единица измерения" value={unit} onChange={event => setUnit(event.target.value)}>{units.map(u => <option key={u}>{u}</option>)}</select>
+          : unit && <span className="value-unit">{unit}</span>)}</>}
+    {removable && <button className="icon-button" title="Убрать" aria-label={`Убрать ${name}`} disabled={search.stale}
+      onClick={() => removeValue(search, { name, fragment })}><Icon name="close" size={14} /></button>}
+  </div>;
+}
+
+function CharItem({ name, tag, tagClass, hint, evidence, children }) {
+  return <li className="char-item">
+    <div className="char-head"><b>{name}</b>{tag && <span className={`mini-tag ${tagClass}`}>{tag}</span>}</div>
+    {children}
+    {(evidence || hint) && <small className="char-note">{evidence ? `Из описания: «${evidence}»` : ""}{evidence && hint ? " · " : ""}{hint || ""}</small>}
+  </li>;
+}
+
+const SOURCE_TAGS = { ste: ["Доп. · есть в СТЕ", "green"], session: ["Доп. · из сессии", "blue"], new: ["Доп. · новая", "blue"], rejected: ["Не характеристика", "amber"] };
+const STATUS_TAGS = { filled: ["Обязательная", "green"], invalid: ["Не подходит", "amber"], unchecked: ["Не проверена", "amber"] };
+
+function SidePanel({ icon, title, count, empty, children, className = "" }) {
+  return <section className={`side-panel panel ${className}`}>
+    <div className="side-panel-head"><Icon name={icon} size={18} /><h2>{title}</h2><span className="chars-count">{count}</span></div>
+    <div className="side-panel-body">{count ? <ul className="char-list">{children}</ul> : <p className="chars-empty">{empty}</p>}</div>
+  </section>;
+}
+
+// фрагмент описания, где задано свойство: правка заменяет его на месте, а не дописывает второй раз
+function fragmentFor(name, features, feature) {
+  if (feature?.evidence) return feature.evidence;
+  return features.find(x => x.property_name === name && x.source === "text" && x.evidence)?.evidence || null;
+}
+
+export function SelectedChars({ search }) {
+  const data = search.result;
+  if (!data) return null;
+  const rows = (data.required_characteristics || []).filter(r => r.status !== "missing");
+  const features = data.features || [];
+  const byId = Object.fromEntries(features.map(f => [f.id, f]));
+  const requiredIds = new Set(rows.map(r => r.feature_id));
+  const optional = data.optional_characteristics || [];
+  const optionalIds = new Set(optional.map(f => f.id));
+  const other = features.filter(f => ["bound", "proposed"].includes(f.status) && f.property_name && !requiredIds.has(f.id) && !optionalIds.has(f.id));
+  const ambiguous = features.filter(f => f.status === "ambiguous");
+  const extra = data.additional || [];
+  const total = rows.length + optional.length + other.length + ambiguous.length + extra.length;
+  return <SidePanel icon="check" title="Выбранные характеристики" count={total} className="side-selected"
+    empty="Пока ничего не распознано. Опишите товар подробнее или заполните характеристики ниже.">
+    {rows.map(r => { const f = byId[r.feature_id]; return <CharItem key={`r-${r.property_code}`} name={r.name} tag={STATUS_TAGS[r.status][0]} tagClass={STATUS_TAGS[r.status][1]}
+      evidence={f?.evidence} hint={r.status !== "filled" ? r.reason : null}>
+      <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} initial={r.value || ""} initialUnit={r.unit || ""} fragment={fragmentFor(r.name, features, f)} removable />
+    </CharItem>; })}
+    {[...optional, ...other].map(f => <CharItem key={`o-${f.id}`} name={f.property_name} tag={optionalIds.has(f.id) ? "Необязательная" : "КТРУ"} tagClass="blue" evidence={f.evidence}>
+      <ValueInput search={search} name={f.property_name} initial={featureValue(f)} initialUnit={f.unit || ""} numeric={!!f.unit} units={f.unit ? [f.unit] : []} fragment={fragmentFor(f.property_name, features, f)} removable />
+    </CharItem>)}
+    {ambiguous.map(f => <CharItem key={`a-${f.id}`} name={`«${f.evidence || f.value}»`} tag="Уточните свойство" tagClass="amber">
+      <select className="value-select" defaultValue="" disabled={search.stale} onChange={event => {
+        const option = f.options[Number(event.target.value)];
+        search.override({ property: option.property_code, value: option.value ?? f.value, value_to: f.value_to, op: f.op, unit: f.unit });
+      }}><option value="" disabled>К какому свойству относится?</option>{f.options.map((o, i) => <option key={i} value={i}>{o.property_name}{o.value ? ` = ${o.value}` : ""}</option>)}</select>
+    </CharItem>)}
+    {extra.map((a, i) => <CharItem key={`e-${i}`} name={a.name} tag={SOURCE_TAGS[a.source][0]} tagClass={SOURCE_TAGS[a.source][1]} hint={a.reason}>
+      <b className="char-static">{a.value} {a.unit || ""}</b>
+    </CharItem>)}
+  </SidePanel>;
+}
+
+export function MissingChars({ search }) {
+  const data = search.result;
+  if (!data) return null;
+  const missing = (data.required_characteristics || []).filter(r => r.status === "missing");
+  const common = missing.filter(r => r.common);
+  const partial = missing.filter(r => !r.common);
+  const empty = (data.required_characteristics || []).length ? "Все обязательные характеристики КТРУ указаны." : "Появятся, когда станет понятен товар.";
+  return <SidePanel icon="filter" title="Осталось ввести" count={missing.length} className="side-missing" empty={empty}>
+    {common.length > 0 && partial.length > 0 && <li className="char-group">Общие для всех позиций</li>}
+    {common.map(r => <CharItem key={`m-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue">
+      <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} />
+    </CharItem>)}
+    {partial.length > 0 && <li className="char-group">Есть только у части позиций</li>}
+    {partial.map(r => <CharItem key={`p-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue" hint={`обязательна у ${r.positions} из ${r.total}`}>
+      <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} />
+    </CharItem>)}
+  </SidePanel>;
 }
 
 export function Question({ search }) {
   const question = search.result?.question;
   const [number, setNumber] = useState("");
-  if (!question || search.result.status === "matched" || search.result.status === "conflict") return null;
+  // после ответа уточнение сразу скрывается: до нового ответа сервера показывать нечего
+  if (!question || search.stale || search.busy.fast || search.result.status === "matched" || search.result.status === "conflict") return null;
+  const choose = option => {
+    const answers = option.answers?.length ? option.answers : option.answer ? [option.answer] : [];
+    const property = answers.length === 1 && question.kind === "property" && question.property_name && answers[0].property !== "__type__";
+    if (property && !option.reject?.length && !option.confirm?.length) applyValue(search, { name: question.property_name, constraint: { ...answers[0], property: question.property_name } });
+    else search.answer(option);
+  };
   return <section className="question-panel panel" id="question">
-    <div className="question-symbol"><Icon name="sparkle" size={22} /></div><div className="question-content">
-      <span className="eyebrow">Поможем сузить поиск</span><h3>{question.text}</h3>
-      {question.reason && <p className="question-reason">{question.reason}</p>}
-      <fieldset disabled={search.stale}><div className="question-choices">{question.options.map((option, i) => <button className="choice" key={i} onClick={() => search.answer(option)}>{option.label}<Icon name="arrow" size={14} /></button>)}</div>
-        {question.allows_number && <form className="numeric-answer" onSubmit={event => { event.preventDefault(); if (!number.trim()) return;
-          search.override(parseConstraint(question.property_code, number, question.unit)); setNumber("");
-        }}><input aria-label="Ответ на уточняющий вопрос" placeholder="Укажите значение" value={number} onChange={event => setNumber(event.target.value)} required /><span>{question.unit}</span><button className="button button-soft">Применить</button></form>}
-      </fieldset>
-    </div>
+    <div className="question-head"><Icon name="sparkle" size={18} /><span className="eyebrow">Уточнение</span></div>
+    <h3>{question.text}</h3>
+    {question.reason && <p className="question-reason">{question.reason}</p>}
+    <div className="question-choices">{question.options.map((option, i) => <button className="choice" key={i} onClick={() => choose(option)}>{option.label}<Icon name="arrow" size={13} /></button>)}</div>
+    {question.allows_number && <form className="numeric-answer" onSubmit={event => { event.preventDefault(); if (!number.trim()) return;
+      applyValue(search, { name: question.property_name, constraint: parseConstraint(question.property_name, number, question.unit) }); setNumber("");
+    }}><input aria-label="Ответ на уточняющий вопрос" placeholder="Укажите значение" value={number} onChange={event => setNumber(event.target.value)} required /><span>{question.unit}</span><button className="button button-soft">Ок</button></form>}
   </section>;
 }
 

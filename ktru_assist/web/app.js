@@ -132,32 +132,38 @@ function featureValue(f) {
   return ({ne:"не ",ge:"≥ ",gt:"> ",le:"≤ ",lt:"< "}[f.op] || "") + (f.value ?? "");
 }
 function renderFeatures(d) {
-  const features = (d.features || []).map((f,i) => ({f,i})).filter(({f}) => !["overridden","removed"].includes(f.status));
-  const extras = (d.query_profile?.attributes || []).filter((a) => !features.some(({f}) => f.property_name === a.name));
-  $("featuresCard").hidden = !features.length && !extras.length && !(d.properties || []).length;
-  $("addRowBtn").disabled = !(d.properties || []).length;
-  const rows = features.map(({f,i}) => {
-    let name = esc(f.property_name || "Уточните характеристику");
-    if (f.status === "ambiguous" && f.options?.length) name = `<select data-bind="${i}" aria-label="Выбрать характеристику"><option value="">Уточните свойство…</option>${f.options.map((o,k) => `<option value="${k}">${esc(o.property_name)}</option>`).join("")}</select>`;
-    const editable = f.status === "bound" && f.property_name;
-    const value = editable ? `<input data-edit="${i}" value="${esc(featureValue(f))}" aria-label="${esc(f.property_name)}" size="10">` : esc(featureValue(f));
-    const normalized = d.query_profile?.attributes?.find((a) => a.name === f.property_name && a.raw_value === f.value);
-    const conversion = normalized && (normalized.value !== normalized.raw_value || normalized.unit !== normalized.raw_unit)
-      ? `<div class="ev">${esc(String(normalized.value).replace(".",","))} ${esc(normalized.unit || "")}</div>` : "";
-    // уровень 2: типичность по выгрузкам СТЕ — справка, на подбор кода не влияет
-    const emp = (d.empirical || []).find((e) => e.feature_id === f.id);
-    const empHtml = !emp ? "" : emp.presence
-      ? `<div class="ev emp ${emp.presence === "known_elsewhere" ? "emp--warn" : "emp--info"}">${esc(emp.reason)}</div>`
-      : emp.status === "typical"
-      ? `<div class="ev emp emp--ok" title="${esc(emp.reason)}">по выгрузкам: обычное</div>`
-      : emp.status === "rare" || emp.status === "unseen"
-        ? `<div class="ev emp emp--warn">по выгрузкам СТЕ: ${esc(emp.reason)}</div>` : "";
-    // единица — рядом с числом; подставленная системой помечена (docs/UNITS_PLAN.md)
-    const unit = f.unit ? ` <span class="unit${f.unit_inferred ? " unit--inferred" : ""}"${f.unit_inferred
-      ? ' title="Единица не была указана и подставлена по типичным значениям; если это не так, исправьте значение"' : ""}>${esc(f.unit)}</span>` : "";
-    const inferred = f.unit_inferred || f.property_inferred
-      ? `<div class="ev emp--info">${f.property_inferred ? "свойство и единица подставлены" : "единица подставлена"}</div>` : "";
-    return `<tr><td>${name}</td><td><span class="val">${value}${unit}</span>${inferred}${conversion}${empHtml}</td><td>${editable ? `<button class="btn btn--danger btn--small" data-delete="${i}" aria-label="Удалить характеристику">✕</button>` : ""}</td></tr>`;
+  const tb = $("features");
+  if (!d.features.length) { tb.innerHTML = '<tr><td colspan="5" class="muted">Характеристики не извлечены</td></tr>'; }
+  else {
+    tb.innerHTML = d.features.map((f, i) => {
+      const [srcT, srcC] = SRC[f.source] || [f.source, ""]; const [stT, stC] = FST[f.status] || [f.status, ""];
+      const dim = f.status === "overridden" || f.status === "removed" || f.status === "proposed";
+      let prop = f.property_name ? esc(f.property_name) : '<span class="muted">—</span>';
+      if (f.component) prop += ` <span class="tag tag--muted" title="часть товара">${esc(f.component)}</span>`;
+      if (f.status === "ambiguous" && f.options.length) {
+        prop = `<select data-amb="${i}"><option value="">выберите свойство…</option>${f.options.map((o, k) => `<option value="${k}">${esc(o.property_name)}${o.value ? " = " + esc(o.value) : ""}</option>`).join("")}</select>`;
+      }
+      const editable = f.status === "bound" && f.property_name && f.source !== "model";
+      let val = editable ? `<input data-edit="${i}" value="${esc(featureValue(f))}" size="10">` : `<span class="${dim ? "strike" : ""}">${esc(featureValue(f))}</span>`;
+      if (f.ktru_value && (f.ktru_value !== f.value || f.ktru_unit !== f.unit)) {
+        val += `<div class="ev unified" title="значение в единице характеристики КТРУ">→ ${esc(f.ktru_value)} ${esc(f.ktru_unit)} (по КТРУ)</div>`;
+      }
+      const ev = f.evidence ? `<div class="ev">«${esc(f.evidence)}»</div>` : "";
+      const note = f.note ? `<div class="ev">${esc(f.note)}</div>` : "";
+      const conf = f.source === "model" ? (f.confirmation === "tentative" ? ' <span class="tag tag--warn">не подтверждено</span>' : "")
+        : (f.source !== "text" ? ' <span class="tag tag--answer">подтверждено</span>' : "");
+      const sup = f.supported_by?.length ? ` <span class="tag tag--muted" title="источники, согласные с трактовкой">+ ${esc(f.supported_by.join(", "))}</span>` : "";
+      const SRCK = { ktru: ["КТРУ", "tag--text"], portal: ["портал", "tag--override"], new: ["новая", "tag--warn"] };
+      const csrc = f.char_source ? ` <span class="tag ${SRCK[f.char_source][1]}" title="источник характеристики">${SRCK[f.char_source][0]}</span>` : "";
+      const intent = f.intent === "requirement" ? ' <span class="tag tag--muted">требование</span>' : f.intent === "preference" ? ' <span class="tag tag--muted">предпочтение</span>' : "";
+      const del = f.property_name && f.status === "bound" && f.source !== "model" ? `<button class="btn btn--danger btn--small" data-del="${i}" title="удалить">✕</button>` : "";
+      return `<tr><td>${prop}${ev}</td><td>${val}${note}</td><td>${esc(f.unit || "")}</td>
+        <td><span class="tag ${srcC}">${srcT}${f.source === "model" ? " (" + esc(f.origin) + ")" : ""}</span>${csrc}${conf}${sup}${intent} ${stT ? `<span class="tag ${stC}">${stT}</span>` : ""} ${f.status === "bound" ? checkStatus(d, f) : ""}</td><td>${del}</td></tr>`;
+    }).join("");
+  }
+  tb.querySelectorAll("input[data-edit]").forEach((inp) => inp.onchange = () => {
+    const f = d.features[+inp.dataset.edit];
+    upsertOverride(parseConstraint(f.property_code || f.property_name, inp.value, f.unit));
   });
   for (const a of extras) rows.push(`<tr><td>${esc(a.name)}</td><td>${esc(a.value ?? a.raw_value)}${a.unit ? " " + esc(a.unit) : ""}</td><td></td></tr>`);
   $("features").innerHTML = rows.join("") || '<tr><td colspan="3" class="muted">Добавьте нужные свойства</td></tr>';
@@ -176,6 +182,63 @@ function renderFeatures(d) {
     state.overrides.push({property:key,remove:true}); changed(); run("draft","confirm");
   });
 }
+
+function renderResolution(d) {
+  const cr = d.code_resolution; const cc = d.characteristics_completion; const sc = d.scope;
+  if (!cr) { $("resolution").innerHTML = ""; return; }
+  const CR = { resolved: ["код определён однозначно", "tag--answer"], unconfirmed: ["код не подтверждён", "tag--warn"],
+    multiple: ["несколько позиций", "tag--warn"], none: ["нет позиции", "tag--muted"], conflict: ["противоречие", "tag--bad"] };
+  const [t, c] = CR[cr.status] || [cr.status, ""];
+  const draftNote = d.preliminary || !sc?.confirmed_scope
+    ? `<div class="small muted">При текущей предварительной трактовке осталось ${cr.remaining || 0} поз.${sc?.confirmed_scope ? "" : " Тип не подтверждён — это не окончательное количество подходящих товаров."}</div>` : "";
+  $("resolution").innerHTML = `<div class="card resolution"><div class="res-row"><span class="tag ${c}">${t}</span> ${cr.code ? `<b>${esc(cr.code)}</b>` : ""} <span class="small muted">${esc(cr.reason)}</span></div>
+    ${cc ? `<div class="res-row small">Заполнение СТЕ: ${cc.complete ? '<span class="tag tag--answer">обязательные заполнены</span>' : `<span class="tag tag--warn">не завершено</span> обязательных ${cc.required_filled}/${cc.required_total}`}
+      ${cc.missing.length ? ` · не указано: ${cc.missing.map(esc).join(", ")}` : ""}${cc.unchecked.length ? ` · не проверено: ${cc.unchecked.map(esc).join(", ")}` : ""}</div>` : ""}
+    ${sc ? `<div class="res-row small muted">Область: ${sc.confirmed_scope ? esc(sc.confirmed_scope) : "тип не подтверждён"} · ${sc.scope_complete ? "проверена полностью" : "полнота не подтверждена"}${sc.type_basis.length ? " · основание: " + esc(sc.type_basis.join("; ")) : ""}</div>` : ""}
+    ${draftNote}</div>`;
+}
+
+function parseConstraint(prop, raw, unit) {
+  let s = String(raw).trim().replace(",", ".");
+  let op = "eq", value = s, value_to = null;
+  const m2 = s.match(/^(-?\d+(?:\.\d+)?)\s*[–-]\s*(-?\d+(?:\.\d+)?)$/);
+  if (m2) { op = "between"; value = m2[1]; value_to = m2[2]; }
+  else if (/^(≥|>=)/.test(s)) { op = "ge"; value = s.replace(/^(≥|>=)\s*/, ""); }
+  else if (/^(≤|<=)/.test(s)) { op = "le"; value = s.replace(/^(≤|<=)\s*/, ""); }
+  else if (/^>/.test(s)) { op = "gt"; value = s.slice(1).trim(); }
+  else if (/^</.test(s)) { op = "lt"; value = s.slice(1).trim(); }
+  else if (/^(≠|!=|не )/.test(s)) { op = "ne"; value = s.replace(/^(≠|!=|не )\s*/, ""); }
+  else if (!/^-?\d+(\.\d+)?$/.test(s)) value = String(raw).trim();
+  return { property: prop, op, value, value_to, unit: unit || null };
+}
+
+function upsertOverride(c) {
+  state.overrides = state.overrides.filter((o) => o.property !== c.property);
+  state.overrides.push(c); changed(); run("draft");
+}
+
+function renderFinal(d) {
+  if (d.final_code) {
+    $("final").innerHTML = `<div class="card final"><div class="muted small">Конечная позиция КТРУ</div>
+      <div class="final__code">${esc(d.final_code)}</div><div>${esc(d.final_name)}</div>
+      <div class="small muted" style="margin-top:6px">Все условия проверены в полной области типа; обязательные свойства заполнены.</div></div>`;
+    return;
+  }
+  // код уже однозначен, не хватает только обязательных характеристик СТЕ — показываем код сразу
+  const cr = d.code_resolution, cc = d.characteristics_completion;
+  if (cr && cr.status === "resolved" && cr.code) {
+    const name = (d.candidates.find((c) => c.code === cr.code) || {}).name || "";
+    const miss = cc && cc.missing.length ? `Для заполнения СТЕ укажите: <b>${cc.missing.map(esc).join(", ")}</b>` : "";
+    const unch = cc && cc.unchecked.length ? ` Не проверено: ${cc.unchecked.map(esc).join(", ")}.` : "";
+    $("final").innerHTML = `<div class="card final final--partial"><div class="muted small">Код КТРУ определён</div>
+      <div class="final__code">${esc(cr.code)}</div><div>${esc(name)}</div>
+      <div class="small" style="margin-top:6px">${miss}${unch}</div>
+      <div class="small muted">Код однозначен в полной области типа; ответ на вопрос ниже дозаполнит характеристики.</div></div>`;
+    return;
+  }
+  $("final").innerHTML = "";
+}
+
 function renderQuestion(d) {
   const q=d.question;
   if (!q || d.status === "conflict" || d.status === "matched") {$("question").innerHTML="";return;}

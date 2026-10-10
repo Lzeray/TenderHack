@@ -37,7 +37,9 @@ def test_code_resolution_separate_from_completion(engine):
     r = search(engine, "дрель ручная электрическая сетевая")
     assert r.code_resolution.status == "resolved" and r.code_resolution.code == "28.24.11.000-92000001"
     assert not r.characteristics_completion.complete and "Мощность" in r.characteristics_completion.missing
-    assert r.status == "clarification_needed" and r.final_code is None
+    # единственная позиция даёт код; незаполненная «Мощность» остаётся в списке «осталось ввести»
+    assert r.status == "matched" and r.final_code == "28.24.11.000-92000001"
+    assert any(x.name == "Мощность" and x.status == "missing" for x in r.required_characteristics)
 
 
 def test_negative_number_kept_and_flagged(engine):
@@ -238,3 +240,100 @@ def test_dimension_error_is_explicit_issue(engine):
     assert "Вт" in i.message and i.level == "error"
     r2 = search(engine, "дрель ручная электрическая от сети мощность 600 вт")
     assert not any(i.code == "dimension_mismatch" for i in r2.issues)
+
+
+# --- слова наименования, единицы КТРУ, источник характеристики ------------------------
+def test_name_words_do_not_choose_position(engine):
+    text = "перчатки швейные для защиты от внешних воздействий, вид защиты: от пониженных температур"
+    r = search(engine, text)
+    assert r.status == "matched" and r.final_code == "14.12.30.150-96000002"
+    # частичное совпадение со словами наименования не даёт значения: снято или не извлечено вовсе
+    assert not any(f.status == "bound" and f.value == "От механических воздействий" for f in r.features)
+
+
+def test_name_words_alone_do_not_give_code(engine):
+    r = search(engine, "перчатки швейные для защиты от внешних воздействий")
+    assert r.final_code is None and r.status == "clarification_needed"
+
+
+def test_name_value_compatible_with_all_is_kept(engine):
+    # «Стул на металлическом каркасе»: значения из наименования, совместимые со всеми, не снимаются
+    r = search(engine, "стул на металлическом каркасе без мягкого сиденья")
+    assert r.final_code == "31.01.11.150-91000002"
+
+
+def test_value_in_ktru_unit(engine):
+    r = search(engine, "пассатижи рыбацкие длина 17,5 см")
+    f = feat(r, "Длина")[0]
+    assert (f.value, f.unit, f.ktru_value, f.ktru_unit) == ("17,5", "см", "175", "мм")
+
+
+def test_characteristic_source_ktru_portal_new(engine, tmp_path, monkeypatch):
+    import json
+    from ktru_assist.portal import characteristics as pc
+    idx = tmp_path / "portal.json"
+    idx.write_text(json.dumps({"index": {"tools": {"Цвет": {"name": "Цвет", "lemmas": ["цвет"]}}}},
+                              ensure_ascii=False), encoding="utf-8")
+    monkeypatch.setattr(pc, "INDEX", idx)
+    pc.lookup_index.cache_clear()
+    try:
+        r = search(engine, "пассатижи слесарные 190 мм, цвет: красный, абракадабра: 5")
+        src = {(f.evidence or "").split(":")[0]: f.char_source for f in r.features}
+        assert src["цвет"] == "portal" and src["абракадабра"] == "new"
+        assert feat(r, "Вид пассатижей")[0].char_source == "ktru"
+    finally:
+        pc.lookup_index.cache_clear()
+
+
+def test_explicit_value_beats_name_words(engine):
+    # «… для защиты от внешних воздействий, вид защиты: от пониженных температур» — явное значение главнее
+    r = search(engine, "перчатки швейные для защиты от внешних воздействий, вид защиты: от пониженных температур")
+    vals = [f.value for f in feat(r, "Вид защиты") if f.status == "bound"]
+    assert vals == ["От пониженных температур"]
+    # настоящее противоречие (оба значения названы явно, не словами наименования) остаётся противоречием
+    assert search(engine, "пассатижи слесарные рыбацкие 170 мм").status == "conflict"
+
+
+# --- ночной цикл: «свойство: значение» и служебные слова ------------------------------
+def test_service_prefix_colon_not_a_property(engine):
+    # «Закупка: …» — не пара «свойство: значение»; число дальше разбирается и проверяется
+    r = search(engine, "Закупка: пассатижи слесарные длина 999 кг")
+    assert not any(f.status == "unknown_property" and "закупка" in (f.evidence or "") for f in r.features)
+    assert feat(r, "Длина")[0].value == "999"                       # число разобрано, а не поглощено
+    assert r.final_code is None and any(i.code == "dimension_mismatch" for i in r.issues)
+
+
+def test_property_name_is_tail_of_left_part(engine):
+    r = search(engine, "пассатижи слесарные вид пассатижей: рыбацкие, длина 170 мм")
+    assert [f.value for f in feat(r, "Вид пассатижей") if f.status == "bound"]
+
+
+def test_postposed_negation(engine):
+    # «мягкое сидение отсутствует» = «без мягкого сидения»
+    r = search(engine, "стул на металлическом каркасе, мягкое сидение отсутствует")
+    assert feat(r, "Наличие мягкого сидения")[0].value == "Нет"
+    assert r.final_code == "31.01.11.150-91000002"
+    r2 = search(engine, "стул на металлическом каркасе, сидение не мягкое")
+    assert feat(r2, "Наличие мягкого сидения")[0].value == "Нет"
+
+
+def test_numbered_value_needs_its_number(engine, tmp_path):
+    # значение «2 (III климатический пояс)» не путается с «3 (IV климатический пояс)»: число впереди обязано совпасть
+    from ktru_assist.nlp.extract import _LEAD_NUMBER
+    assert _LEAD_NUMBER.match("2 (III климатический пояс)").group(1) == "2"
+    assert _LEAD_NUMBER.match("Металл") is None
+
+
+def test_service_prefix_ktru_word(engine):
+    # «КТРУ» словарь лемматизирует как «ктереть» — служебное слово проверяется и по написанию
+    r = search(engine, "Подберите КТРУ: пассатижи слесарные длина 190 мм")
+    assert r.final_code == "25.73.30.163-90000001"
+def test_unexplained_number_blocks_auto_code(engine):
+    # величина с единицей без свойства не игнорируется молча: код только после подтверждения;
+    # голое число (артикул, номер) кода не блокирует
+    assert search(engine, "пассатижи слесарные 190 мм, артикул 12345").status == "matched"
+    r = search(engine, "пассатижи слесарные 190 мм, 12345 кг в упаковке")
+    assert r.final_code is None and any(i.code == "number_unexplained" for i in r.issues)
+    assert r.question.kind == "confirm"
+    r2 = search(engine, "пассатижи слесарные 190 мм, 12345 кг в упаковке", confirmed=r.question.options[0].confirm)
+    assert r2.status == "matched"

@@ -27,10 +27,11 @@ class OllamaProvider:
     name = "ollama"
 
     def __init__(self, url: str, model: str, timeout_s: float = 20.0, num_ctx: int = 12288, num_predict: int = 1536,
-                 seed: int = 0):
+                 seed: int = 0, think: bool | None = None):
         self.url = url.rstrip("/")
         self.model = model
         self.timeout_s = timeout_s
+        self.think = think
         self.options = {"temperature": 0, "seed": seed, "num_ctx": num_ctx, "num_predict": num_predict}
         self._digest: str | None = None
         self._digest_failed_at = 0.0
@@ -76,6 +77,8 @@ class OllamaProvider:
                 return ProviderResult(ok=False, kind="connection", error=str(e))
         body = {"model": self.model, "messages": messages, "format": schema, "stream": False,
                 "options": self.options, "keep_alive": "30m"}
+        if self.think is not None:
+            body["think"] = self.think
         t0 = time.perf_counter()
         last = ProviderResult(ok=False)
         for attempt in (1, 2):   # один ограниченный повтор — только при техническом сбое

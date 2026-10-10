@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSearch } from "./useSearch.js";
-import { Additional, Feedback, Icon, MissingChars, ProductArt, ProductCard, ProductDialog, Question, SearchBox, SelectedChars } from "./components.jsx";
+import { Feedback, Icon, MissingChars, ProductArt, ProductCard, ProductDialog, Question, SearchBox, SelectedChars } from "./components.jsx";
 
-const examples = ["Молоток слесарный 500 г", "Стул на металлическом каркасе", "Куртка утеплённая"];
 const categories = [
   { key: "tools", name: "Инструменты", text: "Молотки, дрели и ручной инструмент", sample: "Молоток", label: "Начать с молотка" },
   { key: "furniture", name: "Мебель", text: "Стулья, столы и мебель для работы", sample: "Стул", label: "Начать со стула" },
@@ -15,21 +14,19 @@ function CodeSummary({ search }) {
   const [copied, setCopied] = useState(false);
   if (!data || search.stale) return null;
   const matched = data.status === "matched" && data.final_code;
-  const remaining = data.compatible_codes?.length || 0;
-  return <section className={`code-summary ${matched ? "code-matched" : ""}`} aria-label="Результат подбора КТРУ">
-    <div className="code-summary-icon"><Icon name={matched ? "check" : "filter"} size={22} /></div>
-    <div className="code-summary-main"><span className="eyebrow">{matched ? "Конечная позиция найдена" : "Подбор кода КТРУ"}</span>
-      <h3>{matched ? data.final_name : remaining ? `Осталось позиций: ${count(remaining)}` : "Подходящий код пока не определён"}</h3>
-      {matched ? <div className="resolved-code"><code>{data.final_code}</code><button className="icon-button" aria-label="Скопировать код КТРУ" onClick={async () => {
+  return <section className={`code-summary ${matched ? "code-matched" : "code-progress"}`} aria-label="Результат подбора КТРУ">
+    {matched && <><div className="code-summary-icon"><Icon name="check" size={22} /></div>
+    <div className="code-summary-main"><span className="eyebrow">Конечная позиция найдена</span>
+      <h3>{data.final_name}</h3>
+      <div className="resolved-code"><code>{data.final_code}</code><button className="icon-button" aria-label="Скопировать код КТРУ" onClick={async () => {
         try { await navigator.clipboard.writeText(data.final_code); setCopied(true); } catch { setCopied(false); }
       }}><Icon name={copied ? "check" : "copy"} size={16} /></button>{copied && <small>Скопировано</small>}</div>
-        : <p>{data.completeness?.type_confirmed ? "Заполните обязательные характеристики внизу или ответьте на уточнение." : "Уточните описание, чтобы подтвердить область товара."}</p>}
-      {matched && <Additional data={data} compact />}
-    </div>
+    </div></>}
+    <details className="code-stages"><summary>История подбора</summary>
     {search.history.length > 1 && <div className="narrowing-history" aria-label="История сужения КТРУ">{search.history.map((item, i) => <React.Fragment key={i}>
       {i > 0 && <Icon name="arrow" size={14} />}<span className={i === search.history.length - 1 ? "history-current" : ""}>{item.count}</span>
     </React.Fragment>)}</div>}
-    <details className="code-stages"><summary>Как подбирали код</summary><ol>{data.stages.map((stage, i) => <li key={i}><b>{stage.stage} · {stage.remaining}</b><p>{stage.note}</p></li>)}</ol></details>
+    <ol>{data.stages.map((stage, i) => <li key={i}><b>{stage.stage} · {stage.remaining}</b><p>{stage.note}</p></li>)}</ol></details>
   </section>;
 }
 
@@ -46,7 +43,6 @@ function Welcome({ onChoose }) {
 export default function App() {
   const search = useSearch();
   const [selected, setSelected] = useState(null);
-  const [help, setHelp] = useState(false);
   const data = search.result;
   const current = data && !search.stale;
   const matched = current && data.status === "matched" && data.final_code;
@@ -58,29 +54,22 @@ export default function App() {
   return <>
     <header className="site-header"><div className="container header-inner">
       <button className="brand" onClick={() => search.changeText("")} aria-label="Портал поставщиков — на главную"><span className="brand-mark"><Icon name="box" size={24} /></span><span>Портал <span className="brand-accent">поставщиков</span><small>Помощник подбора КТРУ</small></span></button>
-      <nav aria-label="Навигация"><span className="nav-current">Каталог</span><button onClick={() => setHelp(value => !value)}>Как это работает</button></nav>
-      <div className="header-badge"><span className="status-dot" />КТРУ — источник истины</div>
+      <nav aria-label="Навигация"><span className="nav-current">Каталог</span></nav>
     </div></header>
     <main className="container">
       <section className={`hero ${search.text ? "hero-compact" : ""}`}>
-        <div className="hero-eyebrow"><span className="mini-tag blue"><Icon name="sparkle" size={14} />Умный подбор</span><span>Для работы с характеристиками СТЕ</span></div>
         <h1>Опишите товар.<br className="desktop-break" /><span> Код КТРУ подберём вместе.</span></h1>
-        <p className="hero-description">Характеристики приводим к виду КТРУ, сужаем список позиций и подсказываем, что ещё указать.</p>
         <SearchBox search={search} />
-        {!search.text.trim() && <div className="example-row"><span>Например:</span>{examples.map(example => <button key={example} onClick={() => search.changeText(example)}>{example}<Icon name="arrow" size={13} /></button>)}</div>}
       </section>
-      {help && <section className="help-panel panel"><button className="icon-button" aria-label="Закрыть подсказку" onClick={() => setHelp(false)}><Icon name="close" /></button><h2>Поиск, который объясняет свой результат</h2><p>Поиск идёт только по справочнику КТРУ. Характеристики, которые есть в КТРУ, сужают список позиций; те, которых в КТРУ нет, сохраняются как дополнительные (с проверкой по выгрузкам СТЕ) и на код не влияют.</p><p>Слева — выбранные характеристики и те, что осталось ввести (сначала общие для всех позиций); выбранное значение дописывается в строку поиска. Справа — подходящие позиции КТРУ. Когда остаётся одна позиция, показываем её код.</p></section>}
       <Feedback search={search} />
       {!search.text.trim() ? <Welcome onChoose={search.changeText} /> : <>
-        <div className="catalog-layout"><aside className="catalog-sidebar side" aria-label="Подбор и характеристики">
+        <div className="catalog-layout"><aside className="catalog-sidebar side" aria-label="Подбор и характеристики" tabIndex={0}>
           <CodeSummary search={search} />
-          <Question search={search} />
-          <SelectedChars search={search} />
+          <div className="secondary-panels"><Question search={search} /><SelectedChars search={search} /></div>
           <MissingChars search={search} />
         </aside><section className="catalog-main" aria-label="Результаты подбора" data-query={current ? data.query.original : ""}>
-          <div className="results-header"><div><span className="eyebrow">Справочник КТРУ</span><h2>{matched ? "Подобранная позиция" : "Подходящие позиции КТРУ"}</h2></div><span className="view-label"><Icon name="grid" size={17} />{searching ? "…" : count(items.length)}</span></div>
+          <div className="results-header"><h2>{matched ? "Подобранный КТРУ" : "Подходящие КТРУ"}</h2><span className="view-label" aria-label="Количество подходящих позиций">{searching ? "…" : count(items.length)}</span></div>
           <div id="result-panel">
-            <p className="results-note">{matched ? "Позиция определена однозначно. Дополнительные характеристики сохранены." : "Совместимые конечные позиции. Список сужается по мере ввода характеристик."}</p>
             {searching ? <div className="product-grid" aria-label="Загрузка позиций">{Array.from({ length: 6 }, (_, i) => <div className="skeleton-card" key={i}><div /><span /><span /><span /></div>)}</div>
               : items.length > 0 ? <div className="product-grid">{items.map(item => <ProductCard key={`ktru-${item.code}`} item={item} kind="ktru" onDetails={setSelected} />)}</div>
               : <div className="empty-results"><span className="empty-symbol"><Icon name={data?.status === "conflict" ? "alert" : "search"} size={35} /></span><h3>{data?.status === "conflict" ? "Сначала уточним описание" : search.busy.model ? "Уточняем ваш запрос" : "Подходящих позиций пока нет"}</h3><p>{data?.status === "conflict" ? "Причина указана выше. После исправления покажем подходящие позиции." : "Попробуйте другое название, добавьте характеристику или ответьте на вопрос."}</p><button className="button button-soft" onClick={() => search.changeText("")}>Начать новый поиск</button></div>}

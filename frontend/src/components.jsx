@@ -106,9 +106,9 @@ export function SearchBox({ search }) {
         </button>
       </li>)}
     </ul>}
-    <div className="search-caption"><Icon name="sparkle" size={15} /><span>Опишите своими словами — найдём характеристики и подходящий КТРУ</span>
-      {(search.busy.fast || search.busy.model) && <span className="search-progress" role="status"><span className="spinner" />{search.busy.fast ? "Ищем товары" : "Уточняем описание"}</span>}
-    </div>
+    {(search.busy.fast || search.busy.model) && <div className="search-caption">
+      <span className="search-progress" role="status"><span className="spinner" />{search.busy.fast ? "Ищем товары" : "Уточняем описание"}</span>
+    </div>}
   </div>;
 }
 
@@ -119,10 +119,14 @@ export function Feedback({ search }) {
   const issues = search.stale ? [] : (data?.issues || []);
   const providerFailure = !search.stale && data?.providers?.some(p => ["error", "timeout", "invalid"].includes(p.status));
   const messages = [...new Set(issues.map(i => i.message))];
+  const corrections = search.stale ? [] : data?.corrections || [];
+  const unrecognized = search.stale ? [] : data?.unrecognized || [];
+  const detailCount = corrections.length + messages.length + Number(!!providerFailure) + Number(unrecognized.length > 0);
   return <div className="feedback-stack" aria-live="polite">
     {search.error && <div className="notice notice-error"><Icon name="alert" /><div><strong>Не удалось завершить запрос</strong><p>{search.error}</p><button className="text-button" onClick={search.submit}>Повторить</button></div></div>}
     {conflict && <div className="notice notice-error" role="alert"><Icon name="alert" /><div><strong>В описании есть противоречие</strong><p>{data.message}</p><span className="notice-hint">Исправьте указанную характеристику — поиск обновится автоматически.</span></div></div>}
-    {!search.stale && data?.corrections?.map(c => <div className="notice notice-subtle" key={c.original}><Icon name="sparkle" /><div>
+    {detailCount > 0 && <details className="feedback-details"><summary><Icon name="alert" size={16} />Замечания к запросу<span className="chars-count">{detailCount}</span></summary><div className="feedback-details-body">
+    {corrections.map(c => <div className="notice notice-subtle" key={c.original}><Icon name="sparkle" /><div>
       <strong>{c.corrected ? "Распознали опечатку" : "Уточните слово"}</strong>
       <p>{c.corrected ? <><s>{c.original}</s> <span className="correction-arrow">→</span> <b>{c.corrected}</b></> : `«${c.original}» может означать несколько слов.`}</p>
       {c.corrected ? <button className="text-button" onClick={() => {
@@ -131,8 +135,9 @@ export function Feedback({ search }) {
       }}>Исправить в поиске</button> : c.options.map(value => <button className="choice" key={value} onClick={() => search.correct(c.original, value)}>{value}</button>)}
     </div></div>)}
     {providerFailure && <div className="notice notice-subtle"><Icon name="alert" /><div><strong>Дополнительный разбор недоступен</strong><p>Быстрый поиск работает. Проверьте параметры или добавьте их вручную.</p></div></div>}
-    {messages.length > 0 && <details className="issue-details"><summary>Проверка описания <span>{messages.length}</span></summary><ul>{messages.map(message => <li key={message}>{message}</li>)}</ul></details>}
-    {!search.stale && data?.unrecognized?.length > 0 && <div className="notice notice-subtle"><Icon name="alert" /><p>Не удалось проверить: {data.unrecognized.join(", ")}. Добавьте эти свойства в параметры товара.</p></div>}
+    {messages.length > 0 && <ul className="feedback-messages">{messages.map(message => <li key={message}>{message}</li>)}</ul>}
+    {unrecognized.length > 0 && <div className="notice notice-subtle"><Icon name="alert" /><p>Не удалось проверить: {unrecognized.join(", ")}. Добавьте эти свойства в параметры товара.</p></div>}
+    </div></details>}
   </div>;
 }
 
@@ -237,18 +242,21 @@ function CharItem({ name, tag, tagClass, hint, evidence, children }) {
   return <li className="char-item">
     <div className="char-head"><b>{name}</b>{tag && <span className={`mini-tag ${tagClass}`}>{tag}</span>}</div>
     {children}
-    {(evidence || hint) && <small className="char-note">{evidence ? `Из описания: «${evidence}»` : ""}{evidence && hint ? " · " : ""}{hint || ""}</small>}
+    {hint && <small className="char-note">{hint}</small>}
+    {evidence && <details className="char-evidence"><summary>Из описания</summary><small>«{evidence}»</small></details>}
   </li>;
 }
 
 const SOURCE_TAGS = { ste: ["Доп. · есть в СТЕ", "green"], session: ["Доп. · из сессии", "blue"], new: ["Доп. · новая", "blue"], rejected: ["Не характеристика", "amber"] };
 const STATUS_TAGS = { filled: ["Обязательная", "green"], invalid: ["Не подходит", "amber"], unchecked: ["Не проверена", "amber"] };
 
-function SidePanel({ icon, title, count, empty, children, className = "" }) {
-  return <section className={`side-panel panel ${className}`}>
-    <div className="side-panel-head"><Icon name={icon} size={18} /><h2>{title}</h2><span className="chars-count">{count}</span></div>
+function SidePanel({ icon, title, count, empty, children, className = "", collapsible = false }) {
+  const Container = collapsible ? "details" : "section";
+  const Heading = collapsible ? "summary" : "div";
+  return <Container className={`side-panel panel ${className}`}>
+    <Heading className="side-panel-head"><Icon name={icon} size={18} /><h2>{title}</h2><span className="chars-count">{count}</span>{collapsible && <Icon name="arrow" size={15} />}</Heading>
     <div className="side-panel-body">{count ? <ul className="char-list">{children}</ul> : <p className="chars-empty">{empty}</p>}</div>
-  </section>;
+  </Container>;
 }
 
 // фрагмент описания, где задано свойство: правка заменяет его на месте, а не дописывает второй раз
@@ -270,7 +278,8 @@ export function SelectedChars({ search }) {
   const ambiguous = features.filter(f => f.status === "ambiguous");
   const extra = data.additional || [];
   const total = rows.length + optional.length + other.length + ambiguous.length + extra.length;
-  return <SidePanel icon="check" title="Выбранные характеристики" count={total} className="side-selected"
+  if (!total) return null;
+  return <SidePanel icon="check" title="Выбранные характеристики" count={total} className="side-selected" collapsible
     empty="Пока ничего не распознано. Опишите товар подробнее или заполните характеристики ниже.">
     {rows.map(r => { const f = byId[r.feature_id]; return <CharItem key={`r-${r.property_code}`} name={r.name} tag={STATUS_TAGS[r.status][0]} tagClass={STATUS_TAGS[r.status][1]}
       evidence={f?.evidence} hint={r.status !== "filled" ? r.reason : null}>
@@ -298,13 +307,13 @@ export function MissingChars({ search }) {
   const common = missing.filter(r => r.common);
   const partial = missing.filter(r => !r.common);
   const empty = (data.required_characteristics || []).length ? "Все обязательные характеристики КТРУ указаны." : "Появятся, когда станет понятен товар.";
-  return <SidePanel icon="filter" title="Осталось ввести" count={missing.length} className="side-missing" empty={empty}>
+  return <SidePanel icon="filter" title="Обязательные характеристики" count={missing.length} className="side-missing" empty={empty}>
     {common.length > 0 && partial.length > 0 && <li className="char-group">Общие для всех позиций</li>}
-    {common.map(r => <CharItem key={`m-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue">
+    {common.map(r => <CharItem key={`m-${r.property_code}`} name={r.name}>
       <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} />
     </CharItem>)}
     {partial.length > 0 && <li className="char-group">Есть только у части позиций</li>}
-    {partial.map(r => <CharItem key={`p-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue" hint={`обязательна у ${r.positions} из ${r.total}`}>
+    {partial.map(r => <CharItem key={`p-${r.property_code}`} name={r.name} hint={`обязательна у ${r.positions} из ${r.total}`}>
       <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} />
     </CharItem>)}
   </SidePanel>;
@@ -321,30 +330,32 @@ export function Question({ search }) {
     if (property && !option.reject?.length && !option.confirm?.length) applyValue(search, { name: question.property_name, constraint: { ...answers[0], property: question.property_name } });
     else search.answer(option);
   };
-  return <section className="question-panel panel" id="question">
-    <div className="question-head"><Icon name="sparkle" size={18} /><span className="eyebrow">Уточнение</span></div>
-    <h3>{question.text}</h3>
+  return <details className="question-panel panel" id="question">
+    <summary className="question-head"><Icon name="sparkle" size={17} /><span><b>Уточнить поиск</b><small>{question.text}</small></span><Icon name="arrow" size={15} /></summary>
+    <div className="question-body">
     {question.reason && <p className="question-reason">{question.reason}</p>}
     <div className="question-choices">{question.options.map((option, i) => <button className="choice" key={i} onClick={() => choose(option)}>{option.label}<Icon name="arrow" size={13} /></button>)}</div>
     {question.allows_number && <form className="numeric-answer" onSubmit={event => { event.preventDefault(); if (!number.trim()) return;
       applyValue(search, { name: question.property_name, constraint: parseConstraint(question.property_name, number, question.unit) }); setNumber("");
     }}><input aria-label="Ответ на уточняющий вопрос" placeholder="Укажите значение" value={number} onChange={event => setNumber(event.target.value)} required /><span>{question.unit}</span><button className="button button-soft">Ок</button></form>}
-  </section>;
+    </div>
+  </details>;
 }
 
 export function ProductCard({ item, kind, onDetails }) {
   const category = categoryOf(item);
   const description = kind === "ste" ? (item.characteristics || "").split("|").map(s => s.trim())
     .filter(s => s && !/упаков|штрихкод|не задано|неизвест/i.test(s)).slice(0, 3)
-    : item.checks.filter(c => c.user_value).slice(0, 3).map(c => `${c.property_name}: ${c.user_value}`);
+    : [];
   const clean = value => value && !["-", "неизвестно", "неизвестен"].includes(value.toLowerCase());
   return <article className="product-card" data-product-id={kind === "ste" ? item.id : undefined} data-catalog-code={kind === "ktru" ? item.code : undefined}>
     <div className="card-visual"><ProductArt category={category} name={item.name} /><span className={`card-source source-${kind}`}>{kind === "ktru" ? "КТРУ" : "СТЕ"}</span></div>
+    {kind === "ktru" && <div className="catalog-card-top"><code>{item.code}</code></div>}
     <div className="card-content"><div className="card-category">{{ furniture: "Мебель", clothes: "Одежда", tools: "Инструменты" }[category]}</div>
       <button className="card-name" onClick={() => onDetails({ item, kind })}>{item.name}</button>
-      <div className="card-description">{description.length ? description.map((line, i) => <p key={i}>{line}</p>) : <p>{kind === "ktru" ? "Нормативная позиция каталога. Откройте карточку, чтобы проверить характеристики." : "Товар из предоставленной выгрузки. Подробнее — в карточке."}</p>}</div>
-      <div className="card-bottom"><span>{kind === "ktru" ? `${item.checks.filter(c => c.status === "valid").length} условий проверено` : clean(item.manufacturer) ? item.manufacturer : clean(item.country) ? item.country : "Из выгрузки товаров"}</span>
-        <button className="card-details" onClick={() => onDetails({ item, kind })} aria-label={`Подробнее: ${item.name}`}><Icon name="arrow" size={17} /></button>
+      {kind === "ste" && <div className="card-description">{description.length ? description.map((line, i) => <p key={i}>{line}</p>) : <p>Товар из предоставленной выгрузки. Подробнее — в карточке.</p>}</div>}
+      <div className="card-bottom">{kind === "ste" && <span>{clean(item.manufacturer) ? item.manufacturer : clean(item.country) ? item.country : "Из выгрузки товаров"}</span>}
+        <button className={`card-details ${kind === "ktru" ? "catalog-card-details" : ""}`} onClick={() => onDetails({ item, kind })} aria-label={`Подробнее: ${item.name}`}>{kind === "ktru" && "Характеристики"}<Icon name="arrow" size={17} /></button>
       </div>
     </div>
   </article>;
@@ -360,12 +371,11 @@ export function ProductDialog({ selected, onClose, onUse }) {
     const controller = new AbortController();
     if (selected.kind === "ktru") fetch(`/api/positions/${encodeURIComponent(selected.item.code)}`, { signal: controller.signal })
       .then(response => { if (!response.ok) throw new Error(); return response.json(); }).then(setDetails)
-      .catch(failure => { if (failure.name !== "AbortError") setError("Полную карточку загрузить не удалось. Проверки подбора доступны ниже."); });
+      .catch(failure => { if (failure.name !== "AbortError") setError("Полную карточку загрузить не удалось. Попробуйте открыть её снова."); });
     return () => { controller.abort(); dialog.current?.close(); };
   }, [selected]);
   if (!selected) return null;
   const { item, kind } = selected;
-  const labels = { valid: "Соответствует", invalid: "Противоречит", unknown: "Не проверено" };
   return <dialog ref={dialog} className="product-dialog" onCancel={onClose} onClick={event => { if (event.target === dialog.current) onClose(); }} aria-labelledby="dialog-title">
     <div className="dialog-body"><button className="icon-button dialog-close" aria-label="Закрыть карточку" onClick={onClose}><Icon name="close" /></button>
       <div className="dialog-top"><ProductArt category={categoryOf(item)} name={item.name} /><div><span className={`mini-tag ${kind === "ktru" ? "blue" : "green"}`}>{kind === "ktru" ? "Позиция каталога КТРУ" : "Товар СТЕ из выгрузки"}</span>
@@ -376,7 +386,7 @@ export function ProductDialog({ selected, onClose, onUse }) {
       {kind === "ste" ? <><div className="dialog-metadata">{[["Производитель", item.manufacturer], ["Модель", item.model], ["Страна", item.country]].filter(([, v]) => v && v !== "-").map(([label, value]) => <div key={label}><span>{label}</span><b>{value}</b></div>)}</div>
         <h3>Характеристики из выгрузки</h3><ul className="raw-characteristics">{(item.characteristics || "Характеристики не указаны").split("|").filter(s => s.trim()).map((s, i) => <li key={i}>{s.trim()}</li>)}</ul>
         <p className="source-note">Это фактическая запись из выгрузки. Связь товара с конкретным кодом КТРУ не подтверждена.</p>
-      </> : <><h3>Результат проверки описания</h3><ul className="check-list">{item.checks.map((check, i) => <li key={i}><span className={`check-state check-${check.status}`}>{labels[check.status]}</span><div><b>{check.property_name}{check.user_value ? `: ${check.user_value}` : ""}</b><p>{check.reason}</p></div></li>)}</ul>
+      </> : <>
         {details && <><h3>Характеристики позиции КТРУ</h3><dl className="catalog-characteristics">{details.characteristics.map((c, i) => <div key={i}><dt>{c.name}{c.required && <span className="required-dot" title="Обязательная характеристика"> *</span>}</dt><dd>{c.values.join("; ") || "Допустимые значения не заданы"}</dd></div>)}</dl></>}
       </>}
     </div>

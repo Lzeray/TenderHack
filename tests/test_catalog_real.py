@@ -220,3 +220,10 @@ def test_item_words_in_name():
     assert item_words("Шаблон для заточки спиральных сверл", heads) == set()
     assert item_words("Ножи и лезвия режущие для машин", heads) == {"нож", "лезвие"}
     assert item_words("Перчатки, рукавицы (варежки)", heads) == {"перчатка", "рукавица"}
+
+
+def test_negation_does_not_jump_over_repeated_word(real_engine):
+    # «не» относится к «натуральный» (мех), а не к следующей «натуральная кожа»
+    r = real_engine.search(SearchRequest(text="мужское пальто нагольное (дубленка), размер 52, мех не натуральный натуральная кожа"))
+    feats = {f.property_name: f.value for f in r.features if f.status == "bound"}
+    assert feats.get("Натуральный мех") == "Нет" and feats.get("Натуральная кожа") == "Да"

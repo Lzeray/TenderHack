@@ -116,6 +116,8 @@ def health():
 
 @app.post("/api/search", response_model=SearchResponse)
 def api_search(req: SearchRequest) -> SearchResponse:
+    o = get_orchestrator()
+    core = getattr(getattr(o, "live", None), "rules", None) or get_engine()
     if get_engine().native and (req.session_id is None or req.revision is None):
         raise HTTPException(422, "session_id и revision обязательны для семантического пути")
     if req.canonical is not None:
@@ -124,8 +126,27 @@ def api_search(req: SearchRequest) -> SearchResponse:
         o = get_orchestrator()
         # разбор видимого текста — правилами: в гибридном режиме основной движок сам текст не разбирает
         core = getattr(getattr(o, "live", None), "rules", None) or get_engine()
-        return process(req, core, o.run)
-    return get_orchestrator().run(req)
+        response = process(req, core, o.run)
+    else:
+        response = o.run(req)
+    # Run only after Enter / the existing 1000 ms idle timer, on original visible text.
+    # This separate provider cannot alter the primary recognizer or catalogue codes.
+    if os.environ.get("EXTRAS_LLM", "on") == "on":
+        from .llm.extra_characteristics import enrich
+        core = getattr(getattr(o, "live", None), "rules", None) or core
+        response = enrich(req, response, core, get_extras_provider(), o.is_stale)
+    response.stale = response.stale or o.is_stale(req)
+    return response
+
+
+@lru_cache(maxsize=1)
+def get_extras_provider():
+    from .llm.provider import OllamaProvider
+    settings = Settings.from_env()
+    return OllamaProvider(settings.ollama_url,
+                          os.environ.get("EXTRAS_LLM_MODEL", "qwen3.5:4b"),
+                          timeout_s=float(os.environ.get("EXTRAS_LLM_TIMEOUT", "20")),
+                          num_ctx=16384, num_predict=1536, think=False)
 
 
 @app.post("/api/revision")

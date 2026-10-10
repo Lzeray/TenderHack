@@ -1,3 +1,1 @@
 6ec6562ed4e7794f3cacba8034eaa0ab17f37a44331a213cd1711bfe94d2790a  natural.jsonl  test_cases=313
-fb0fc090e1c3e0ca80f12cf99306b4d3052de02fd29b5aee2f2a6061a1996588  contradictions.jsonl  test_cases=102
-12b70da55dfe476f3e6102e1afafff49328211cf99abb805db5a8e36916e0a51  out_of_scope.jsonl  test_cases=32

@@ -102,6 +102,12 @@ table.feat input, table.feat select, .add-row input, .add-row select { border: 1
 .st--valid { color: var(--green); }
 .st--invalid { color: var(--red); }
 .st--unknown { color: var(--amber); }
+.checks-group { margin: 6px 0; padding-left: 8px; border-left: 2px solid var(--line, #ddd); }
+.checks-group__title { font-weight: 600; }
+.checks-group--ok { border-left-color: var(--green); }
+.checks-group--bad { border-left-color: var(--red); }
+.checks-group--warn { border-left-color: var(--amber); }
+.checks-group--muted { opacity: .75; }
 details.history summary { cursor: pointer; font-size: 13px; color: var(--blue); margin-top: 10px; }
 details.history ol { font-size: 12.5px; padding-left: 18px; }
 .footer { padding-bottom: 24px; }

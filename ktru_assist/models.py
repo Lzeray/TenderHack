@@ -181,6 +181,11 @@ class PropertyCheck(BaseModel):
     kind: Optional[int]
     status: Literal["valid", "invalid", "unknown"]
     reason: str
+    # почему unknown: not_specified — в описании нет; ambiguous — слово есть, но подходит к нескольким свойствам;
+    # property_absent — у позиции нет такого свойства; not_comparable — есть, но сравнить нельзя
+    # (единица, частичное совпадение); unconfirmed — трактовка модели не подтверждена
+    unknown_reason: Optional[Literal["not_specified", "ambiguous", "property_absent", "not_comparable",
+                                     "unconfirmed"]] = None
     allowed: list[str] = Field(default_factory=list)
     user_value: Optional[str] = None
     feature_id: Optional[str] = None

@@ -241,6 +241,7 @@ def evaluate(pos: Position, features: list[Feature]) -> CandidateEval:
             ev.checks.append(PropertyCheck(property_code=f.property_code or "", property_name=f.property_name or "Не привязано",
                 required=bool(prop and prop.required), kind=prop.kind if prop else None, status="unknown",
                 reason="модельная трактовка не подтверждена; не используется для исключения", feature_id=f.id,
+                unknown_reason="unconfirmed",
                 user_value=describe_user(f)))
             ev.unknown += 1
     active = [f for f in features if f.status == "bound" and not (f.strict_ref and f.confirmation == "tentative")]
@@ -267,6 +268,7 @@ def evaluate(pos: Position, features: list[Feature]) -> CandidateEval:
         ev.checks.append(PropertyCheck(
             property_code=code, property_name=name, required=bool(prop and prop.required),
             kind=prop.kind if prop else None, status=st, reason=why,
+            unknown_reason=None if st != "unknown" else "property_absent" if prop is None else "not_comparable",
             allowed=[v.label for v in prop.values][:30] if prop else [],
             user_value=describe_user(f), feature_id=f.id))
         if st == "valid":
@@ -279,11 +281,22 @@ def evaluate(pos: Position, features: list[Feature]) -> CandidateEval:
             ev.unknown += 1
             if prop is not None or f.strict_ref:
                 ev.blocking.append(f"{name}: {why}")
+    ambiguous = [f for f in features if f.status == "ambiguous"]
     for prop in pos.props.values():
         if prop.required and prop.code not in covered:
+            # слово из описания подходит к нескольким свойствам области, и одно из них — это: не «не указано»
+            amb = next((f for f in ambiguous if any(prop.code in o.get("codes", [o.get("property_code")])
+                                                    for o in f.options)), None)
+            if amb is not None:
+                names = sorted({o["property_name"] for o in amb.options if o.get("property_name")})
+                reason = (f"в описании есть «{amb.evidence or amb.value}», но это слово подходит к нескольким "
+                          f"свойствам ({', '.join(names)}) — подтвердите привязку")
+            else:
+                reason = "обязательное свойство не заполнено"
             ev.checks.append(PropertyCheck(
                 property_code=prop.code, property_name=prop.name, required=True, kind=prop.kind,
-                status="unknown", reason="обязательное свойство не заполнено",
+                status="unknown", reason=reason, unknown_reason="ambiguous" if amb is not None else "not_specified",
+                user_value=(amb.evidence or amb.value) if amb is not None else None,
                 allowed=[v.label for v in prop.values][:30]))
             ev.blocking.append(f"{prop.name}: обязательное свойство не заполнено")
     return ev

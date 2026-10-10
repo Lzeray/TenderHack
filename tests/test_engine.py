@@ -187,3 +187,13 @@ def test_repeated_boolean_mentions_are_all_checked(engine):
     r = search(engine, "стул на металлическом каркасе с мягким сиденьем, без мягкого сиденья")
     assert r.final_code is None
     assert any(i.code == "contradictory_values" for i in r.issues)
+
+
+def test_unknown_reason_separates_not_specified(engine):
+    # «не указано» и «не удалось проверить» — разные причины unknown
+    r = search(engine, "шкаф для документов металлический ширина 0,8 км")
+    for c in r.candidates:
+        for k in c.checks:
+            assert (k.status == "unknown") == (k.unknown_reason is not None)
+            if k.feature_id is None and k.status == "unknown":
+                assert k.unknown_reason in ("not_specified", "ambiguous")

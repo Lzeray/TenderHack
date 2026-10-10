@@ -163,10 +163,32 @@ function productCard(p) {
     ${cleanInfo(p.manufacturer,p.country) ? `<div class="small muted">${cleanInfo(p.manufacturer,p.country)}</div>` : ""}
     ${p.characteristics ? `<details><summary>Подробнее</summary><div class="small product-description">${esc(p.characteristics).replace(/\s*\|\s*/g,"<br>")}</div></details>` : ""}</article>`;
 }
+// Проверки по КТРУ: «не указано» и «не удалось проверить» — разные состояния (unknown_reason)
+const CHECK_GROUPS = [
+  ["ok", "Совпадает", (k) => k.status === "valid"],
+  ["bad", "Не подходит", (k) => k.status === "invalid"],
+  ["warn", "Уточните в описании", (k) => k.unknown_reason === "ambiguous" || k.unknown_reason === "unconfirmed"],
+  ["warn", "Не удалось проверить", (k) => k.unknown_reason === "not_comparable" || k.unknown_reason === "property_absent"],
+  ["muted", "Не указано (обязательное)", (k) => k.unknown_reason === "not_specified"],
+];
+function checksBlock(checks) {
+  return CHECK_GROUPS.map(([cls, title, pick]) => {
+    const items = (checks || []).filter(pick);
+    if (!items.length) return "";
+    const lines = items.map((k) => {
+      const val = k.user_value ? `: ${esc(k.user_value)}` : "";
+      const why = k.status === "valid" || k.unknown_reason === "not_specified" ? "" : ` <span class="muted">— ${esc(k.reason)}</span>`;
+      return `<div class="small">${esc(k.property_name)}${val}${why}</div>`;
+    }).join("");
+    return `<div class="checks-group checks-group--${cls}"><div class="small checks-group__title">${title} (${items.length})</div>${lines}</div>`;
+  }).join("");
+}
 function catalogCard(c) {
-  const checked=(c.checks||[]).filter((k)=>k.status==="valid" && k.user_value).map((k)=>`${k.property_name}: ${k.user_value}`);
+  const checks = c.checks || [];
+  const ok = checks.filter((k) => k.status === "valid").length, open = checks.filter((k) => k.status === "unknown").length;
+  const summary = checks.length ? `Подробнее · совпадает ${ok}${open ? `, открыто ${open}` : ""}` : "Подробнее";
   return `<article class="cand" data-catalog-code="${esc(c.code)}"><div class="cand__name">${esc(c.name)}</div>
-    <details><summary>Подробнее</summary>${checked.map((s)=>`<div class="small">${esc(s)}</div>`).join("")}
+    <details><summary>${summary}</summary>${checksBlock(checks)}
       <div class="small muted">Код каталога: ${esc(c.code)}</div></details></article>`;
 }
 function renderResults(d) {

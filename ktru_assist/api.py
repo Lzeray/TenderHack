@@ -98,7 +98,7 @@ async def lifespan(_app):
     yield
 
 
-app = FastAPI(title="Подбор КТРУ", version="3.0", lifespan=lifespan,
+app = FastAPI(title="Подбор КТРУ", version="3.1", lifespan=lifespan,
               description="Автозаполнение характеристик и подбор конечной позиции КТРУ. Детерминированное ядро; "
                           "локальные модели — только предложения, по флагам.")
 
@@ -195,6 +195,8 @@ class ProductSearch(BaseModel):
 
 @app.post("/api/products")
 def api_products(req: ProductSearch):
+    if req.profile.get("conflicts"):
+        return {"total": 0, "items": [], "offset": req.offset, "limit": req.limit}
     o = get_orchestrator()
     service = getattr(o, "live", None)
     if service is None or service.ste is None:

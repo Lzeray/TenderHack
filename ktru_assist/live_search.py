@@ -17,6 +17,7 @@ from .resolver import same_value
 from .search.local_backend import LocalBM25Backend
 from .text import content_lemmas, norm
 from .units import BY_KEY, convert, lookup
+from .validate import conflicting_conditions
 
 
 class LiveSearch:
@@ -132,11 +133,29 @@ class LiveSearch:
                         "value": token.text, "raw_unit": None, "unit": None, "source": "rule",
                         "status": "outside_catalogue", "quote": token.text, "op": "eq"})
         response.query_profile["item_terms"] = rule_response.detected_types
-        if self.ste:
+        conflicts = conflicting_conditions(response.features, positions, req.text)
+        if conflicts:
+            self._set_conflict(response, conflicts)
+        elif self.ste:
             response.ste_results = self.ste.search(rule_response.detected_types, response.query_profile["attributes"])
         response.stages[0] = Stage(stage="распознан предмет", remaining=len(positions), note=", ".join(response.detected_types))
-        response.model_pending = self.o.llm is not None and self.o.cfg.b_mode != "off" and not req.manual_only
+        response.model_pending = not conflicts and self.o.llm is not None and self.o.cfg.b_mode != "off" and not req.manual_only
         return response, positions, features, verified
+
+    @staticmethod
+    def _set_conflict(response, conflicts):
+        response.status = "conflict"
+        response.message = conflicts[0].message
+        response.issues.extend(conflicts)
+        response.query_profile["conflicts"] = [i.message for i in conflicts]
+        response.candidates, response.compatible_codes, response.preview_candidates = [], [], []
+        response.results_total, response.preview_total = 0, 0
+        response.final_code = response.final_name = response.question = None
+        response.model_pending = False
+        response.ste_results = {"total": 0, "items": [], "offset": 0, "limit": 25}
+        if response.code_resolution:
+            response.code_resolution.status, response.code_resolution.code = "conflict", None
+            response.code_resolution.remaining, response.code_resolution.reason = 0, response.message
 
     def _profile(self, response, positions):
         groups = build_groups(positions)
@@ -164,6 +183,8 @@ class LiveSearch:
 
     def full(self, req, fast, positions, facts, verified):
         from .llm import description as extractor
+        if fast.status == "conflict":
+            return fast  # an LLM must not undo contradictory user-supplied conditions
         if req.manual_only or self.o.llm is None or self.o.cfg.b_mode == "off":
             fast.model_pending = False
             fast.providers.append(ProviderStatus(name="qwen", enabled=False, status="off"))
@@ -258,7 +279,10 @@ class LiveSearch:
         model_names = {norm(a["name"]) for a in response.query_profile["attributes"]}
         response.query_profile["attributes"] += [a for a in fast.query_profile["attributes"] if norm(a["name"]) not in model_names]
         response.query_profile["item_terms"] = fast.query_profile.get("item_terms") or content_lemmas(parsed.item)
-        if self.ste:
+        conflicts = conflicting_conditions(response.features, positions, req.text)
+        if conflicts:
+            self._set_conflict(response, conflicts)
+        elif self.ste:
             response.ste_results = self.ste.search(response.query_profile["item_terms"], response.query_profile["attributes"])
         response.detected_types = sorted({p.name for p in positions})
         response.results_total = len(response.candidates)

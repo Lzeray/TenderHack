@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
 from .catalog.repository import Interval, Position, Prop, merge_intervals
-from .models import Feature, PropertyCheck
+from .models import Feature, Issue, PropertyCheck
 from .text import content_lemmas, norm, tokenize
 from .units import lookup, fmt
 
@@ -72,6 +72,47 @@ def find_prop(pos: Position, f: Feature) -> Prop | None:
             if p.norm_name == key:
                 return p
     return None
+
+
+def conflicting_conditions(features: list[Feature], positions: list[Position], text: str = "") -> list[Issue]:
+    """Check the request itself, even if some catalogue positions lack the property.
+
+    Different parts and explicit alternatives are not treated as contradictions.
+    A categorical clash is an ambiguity to clarify, not proof a combined material is impossible.
+    """
+    import re
+    active = [f for f in features if f.status == "bound" and f.confirmation == "confirmed"
+              and f.intent != "preference" and f.property_name and f.value is not None]
+    issues, seen = [], set()
+    for i, a in enumerate(active):
+        for b in active[i + 1:]:
+            key = (norm(a.property_name), a.component)
+            if key != (norm(b.property_name), b.component) or key in seen:
+                continue
+            if a.raw_span and b.raw_span:
+                left, right = sorted([a.raw_span, b.raw_span])
+                between = text[left[1]:right[0]]
+                if re.search(r"\bили\b|/", between, re.I):
+                    continue
+            ia, ib = user_interval(a), user_interval(b)
+            ua, ub = lookup(a.unit or ""), lookup(b.unit or "")
+            clash = False
+            if ia is not None and ib is not None:
+                if ua and ub and ua.dimension == ub.dimension:
+                    clash = not ia.intersects(ib.scaled(ub.factor / ua.factor))
+                elif not a.unit and not b.unit:
+                    clash = not ia.intersects(ib)
+            elif a.op == b.op == "eq" and norm(a.value) != norm(b.value):
+                props = [p for pos in positions for p in pos.props.values() if p.name == a.property_name]
+                # Frame/material/type describe the same part here; colour can legitimately be mixed.
+                clash = any(p.is_boolean for p in props) or any(w in norm(a.property_name) for w in ("тип", "материал"))
+            if clash:
+                seen.add(key)
+                av, bv = describe_user(a), describe_user(b)
+                message = (f"Для характеристики «{a.property_name}» указаны разные значения: «{av}» и «{bv}». "
+                           "Оставьте один вариант или уточните, к каким частям товара относится каждый.")
+                issues.append(Issue(level="error", code="conflicting_conditions", message=message))
+    return issues
 
 
 def check_numeric(prop: Prop, f: Feature, U: Interval) -> tuple[str, str]:

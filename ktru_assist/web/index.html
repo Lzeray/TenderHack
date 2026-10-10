@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Подбор КТРУ</title>
+<title>Поиск товаров</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -11,97 +11,48 @@
   <div class="wrap topbar__inner">
     <div class="brand">
       <span class="brand__mark" aria-hidden="true"></span>
-      <div>
-        <div class="brand__title">Портал поставщиков</div>
-        <div class="brand__sub">Подбор позиции КТРУ по описанию товара</div>
-      </div>
+      <div><div class="brand__title">Портал поставщиков</div><div class="brand__sub">Поиск товаров</div></div>
     </div>
-    <div class="catalog-info" id="catalogInfo">загрузка каталога…</div>
+    <div class="catalog-info">Одежда · Мебель · Инструменты</div>
   </div>
 </header>
-
 <main class="wrap layout">
   <section class="col col--left">
     <div class="card">
-      <label class="label" for="desc">Описание товара</label>
-      <textarea id="desc" rows="4" placeholder="Например: стул на металлическом каркасе с мягким сиденьем, без подлокотников"></textarea>
-      <div class="hint">Введите предмет и характеристики. Подходящие позиции и распознанные свойства обновляются при вводе.
-        Qwen дополняет быстрый алгоритм автоматически после паузы; <b>Enter</b> запускает его сразу.</div>
-      <div class="submit-row"><button class="btn" id="submitBtn" type="button">Уточнить моделью (Enter)</button>
-        <span id="uiState" class="ui-state"></span></div>
+      <label class="label" for="desc">Что ищете?</label>
+      <textarea id="desc" rows="4" placeholder="Например: стул на металлическом каркасе с мягким сиденьем"></textarea>
+      <div class="hint muted">Добавляйте характеристики — результаты обновятся автоматически.</div>
+      <div class="submit-row"><button class="btn" id="submitBtn" type="button">Найти</button>
+        <span id="uiState" class="search-activity" role="status" aria-live="polite"></span></div>
       <div class="examples" id="examples"></div>
       <div id="corrections"></div>
-      <div id="queryProfile"></div>
-      <div id="typePicker" hidden>
-        <label><input id="manualMode" type="checkbox"> Проверять только вручную введённые характеристики</label>
-        <label for="typeFilter">Полный каталог обозначений (без словаря синонимов)</label>
-        <input id="typeFilter" placeholder="Поиск другого типа по названию каталога">
-        <select id="typeSelect"></select>
-        <button id="typeApply" class="btn btn--small" type="button">Подтвердить тип</button>
-        <button id="typeNone" class="btn btn--ghost btn--small" type="button">Ни один / сбросить тип</button>
-      </div>
-      <details class="history" id="historyBox" hidden>
-        <summary>История преобразований запроса</summary>
-        <ol id="history"></ol>
-      </details>
     </div>
-
-    <div class="card">
-      <div class="card__head">
-        <h2>Характеристики</h2>
-        <button class="btn btn--ghost" id="addRowBtn" type="button" disabled>+ Добавить</button>
-      </div>
-      <div class="table-wrap">
-        <table class="feat">
-          <thead><tr><th>Свойство КТРУ</th><th>Значение</th><th>Ед.</th><th>Источник</th><th></th></tr></thead>
-          <tbody id="features"><tr><td colspan="5" class="muted">Введите описание</td></tr></tbody>
-        </table>
-      </div>
-      <div id="unrecognized"></div>
+    <div class="card" id="featuresCard" hidden>
+      <div class="card__head"><h2>Характеристики</h2><button class="btn btn--ghost" id="addRowBtn" type="button">+ Добавить</button></div>
+      <div class="table-wrap"><table class="feat">
+        <thead><tr><th>Свойство</th><th>Значение</th><th>Ед.</th><th></th></tr></thead>
+        <tbody id="features"></tbody>
+      </table></div>
       <div id="addRow" class="add-row" hidden>
-        <select id="addProp"></select>
-        <select id="addOp">
-          <option value="eq">=</option><option value="ge">≥</option><option value="le">≤</option><option value="ne">≠</option>
-        </select>
-        <input id="addValue" list="addValues" placeholder="значение">
-        <datalist id="addValues"></datalist>
-        <input id="addUnit" placeholder="ед." size="4">
-        <button class="btn" id="addApply" type="button">Применить</button>
+        <select id="addProp" aria-label="Характеристика"></select>
+        <select id="addOp" aria-label="Условие"><option value="eq">=</option><option value="ge">≥</option><option value="le">≤</option><option value="ne">≠</option></select>
+        <input id="addValue" list="addValues" placeholder="Значение" aria-label="Значение"><datalist id="addValues"></datalist>
+        <input id="addUnit" placeholder="Ед." size="4" aria-label="Единица измерения">
+        <button class="btn" id="addApply" type="button">Добавить</button>
       </div>
     </div>
   </section>
-
   <section class="col col--right">
-    <div id="status" class="status status--idle">Ожидание описания</div>
-    <div id="resolution"></div>
-    <div id="final"></div>
+    <div id="status" class="status status--idle" role="status" aria-live="polite">Введите описание товара</div>
     <div id="question"></div>
-    <div id="proposals"></div>
-    <div id="changes"></div>
-    <div class="card" id="issuesCard" hidden><h2>Ошибки и предупреждения</h2><ul id="issues" class="issues"></ul></div>
-    <div class="card">
-      <div class="card__head">
-        <h2>Этапы сужения</h2>
-        <button class="btn btn--ghost" id="exportBtn" type="button" disabled>Экспорт JSON</button>
-      </div>
-      <ol id="stages" class="stages"></ol>
-      <div id="completeness" class="small muted"></div>
-      <div id="providers" class="providers"></div>
-      <div id="latency" class="small latency"></div>
-    </div>
-    <div class="card">
-      <h2><span id="candTitle">Кандидаты</span> <span id="candCount" class="muted"></span></h2>
-      <div id="candidates"></div>
-    </div>
-    <div class="card" id="steCard" hidden>
-      <h2>Товары из выгрузок СТЕ <span id="steCount" class="muted"></span></h2>
-      <div id="steFilters" class="small muted"></div>
-      <div id="steItems"></div>
-      <div id="stePager"></div>
+    <div id="final"></div>
+    <div class="card" id="resultsCard" hidden>
+      <div class="card__head"><h2>Товары <span id="resultsCount" class="muted"></span></h2></div>
+      <div id="results" class="results-list"></div>
+      <div id="resultsPager"></div>
     </div>
   </section>
 </main>
-<footer class="wrap footer small muted" id="versions"></footer>
 <script src="/static/state.js"></script>
 <script src="/static/app.js"></script>
 </body>

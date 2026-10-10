@@ -48,3 +48,11 @@ def test_known_word_not_corrected():
     tc = TypoCorrector(["стул"])
     res = tc.correct(normalize("стол").tokens, {})
     assert res == []                                       # реальное слово русского языка
+
+
+def test_typo_tie_broken_by_type_head():
+    # «куркта» одинаково близка к «курка» и «куртка»; тип товара — только «куртка»
+    tc = TypoCorrector(["курка", "куртка"])
+    res = tc.correct(normalize("куркта").tokens, {}, type_heads={"куртка"})
+    assert res[0].status == "corrected" and res[0].corrected == "куртка"
+    assert TypoCorrector(["курка", "куртка"]).correct(normalize("куркта").tokens, {})[0].status == "ambiguous"

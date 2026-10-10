@@ -25,7 +25,7 @@ from .rank import components, name_match, term_coverage
 from .registry import TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import SearchBackend
-from .text import fuzzy_equal, norm, tokenize
+from .text import fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate
 
@@ -42,6 +42,7 @@ class Engine:
         self.typos = TypoCorrector(catalog.vocabulary_texts())
         self.registry = TypeRegistry(catalog.search_documents())
         self.head_vocab = self.registry.head_vocab
+        self._head_set = frozenset(self.head_vocab)
         self.known_terms = catalog.property_core_terms()
 
     # ------------------------------------------------------------------
@@ -75,7 +76,7 @@ class Engine:
         issues: list[Issue] = []
         stages: list[Stage] = []
         nq = normalize(req.text)
-        corrections = self.typos.correct(nq.tokens, req.corrections)
+        corrections = self.typos.correct(nq.tokens, req.corrections, type_heads=self._head_set)
         if corrections:
             fixed = [c for c in corrections if c.corrected]
             if fixed:
@@ -315,8 +316,14 @@ class Engine:
         t = lap("validate", t)
 
         # --- решение ------------------------------------------------------------
+        # Неоднозначная опечатка блокирует код, только если хотя бы один вариант — слово области поиска
+        # (наименования, названия и значения свойств): «Китай» с несколькими вариантами исправления
+        # не может изменить результат.
+        domain_vocab = domain_name_lemmas | {t for g in groups.values() for t in g.terms} | \
+            {l for g in groups.values() for lems in g.value_lemmas.values() for l in lems}
         blocking_feats = [f for f in features if f.status == "ambiguous"] + \
-            [None for c in corrections if c.status == "ambiguous"]
+            [None for c in corrections if c.status == "ambiguous"
+             and any(lemma(o) in domain_vocab for o in c.options)]
         constrained = {" ".join(tokenize(f.property_name)) for f in features
                        if f.status == "bound" and f.property_name}
         tentative = [f for f in features if f.status == "bound" and f.confirmation == "tentative"]

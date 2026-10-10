@@ -62,7 +62,10 @@ class TypoCorrector:
                 out.append((dist, c))
         return sorted(out)
 
-    def correct(self, tokens: list[Token], user_choices: dict[str, str]) -> list[Correction]:
+    def correct(self, tokens: list[Token], user_choices: dict[str, str],
+                type_heads: set[str] | frozenset[str] = frozenset()) -> list[Correction]:
+        """type_heads — главные слова типов: если из равноудалённых вариантов ровно один — тип товара,
+        выбирается он («куркта» → «куртка», а не «курка»)."""
         result: list[Correction] = []
         for t in tokens:
             if t.kind != "word" or len(t.text) < 4 or t.lemma in STOPWORDS:
@@ -82,11 +85,15 @@ class TypoCorrector:
             best = cands[0][0]
             nearest = [c for d, c in cands if d == best]
             lems = sorted({lemma(c) for c in nearest})
-            if len(lems) == 1:
-                chosen = sorted(nearest)[0]
+            typed = sorted({l for l in lems if l in type_heads})
+            if len(lems) == 1 or len(typed) == 1:
+                lem = lems[0] if len(lems) == 1 else typed[0]
+                chosen = sorted(c for c in nearest if lemma(c) == lem)[0]
+                note = "однозначное совпадение со словарём каталога" if len(lems) == 1 else \
+                    "из равноудалённых вариантов только этот — тип товара"
                 result.append(Correction(original=t.text, status="corrected", corrected=chosen, distance=best,
-                                         options=sorted(nearest), note="однозначное совпадение со словарём каталога"))
-                t.text, t.lemma = chosen, lems[0]
+                                         options=sorted(nearest), note=note))
+                t.text, t.lemma = chosen, lem
             else:
                 opts = []
                 for c in sorted(nearest):

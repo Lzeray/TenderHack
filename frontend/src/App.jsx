@@ -64,17 +64,16 @@ export default function App() {
       <Feedback search={search} />
       {!search.text.trim() ? <Welcome onChoose={search.changeText} /> : <>
         <div className="catalog-layout"><aside className="catalog-sidebar side" aria-label="Подбор и характеристики" tabIndex={0}>
+          <CodeSummary search={search} />
           <div className="secondary-panels"><Question search={search} /><SelectedChars search={search} /></div>
           <MissingChars search={search} />
         </aside><section className="catalog-main" aria-label="Результаты подбора" data-query={current ? data.query.original : ""}>
           <div className="results-header"><h2>{matched ? "Подобранный КТРУ" : "Подходящие КТРУ"}</h2><span className="view-label" aria-label="Количество подходящих позиций">{searching ? "…" : count(items.length)}</span></div>
-          {matched && <CodeSummary search={search} />}
           <div id="result-panel">
             {searching ? <div className="product-grid" aria-label="Загрузка позиций">{Array.from({ length: 6 }, (_, i) => <div className="skeleton-card" key={i}><div /><span /><span /><span /></div>)}</div>
               : items.length > 0 ? <div className="product-grid">{items.map(item => <ProductCard key={`ktru-${item.code}`} item={item} kind="ktru" onDetails={setSelected} />)}</div>
               : <div className="empty-results"><span className="empty-symbol"><Icon name={data?.status === "conflict" ? "alert" : "search"} size={35} /></span><h3>{data?.status === "conflict" ? "Сначала уточним описание" : search.busy.model ? "Уточняем ваш запрос" : "Подходящих позиций пока нет"}</h3><p>{data?.status === "conflict" ? "Причина указана выше. После исправления покажем подходящие позиции." : "Попробуйте другое название, добавьте характеристику или ответьте на вопрос."}</p><button className="button button-soft" onClick={() => search.changeText("")}>Начать новый поиск</button></div>}
           </div>
-          {!matched && <CodeSummary search={search} />}
         </section></div>
       </>}
     </main>

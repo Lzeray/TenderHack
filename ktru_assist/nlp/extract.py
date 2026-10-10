@@ -883,8 +883,12 @@ class Extractor:
                 if g.component and not comp_idx and not name_hit:
                     note += "; часть товара в описании не названа — значение отнесено к единственному свойству " \
                             f"«{g.name}»"
-                feats.append(self._feature(g, tokens, idxs + comp_idx + [h for h in name_hit if tokens[h].used_by is None]
-                                           + extra, nq, op="ne" if neg else "eq", value=val, negated=neg, note=note))
+                all_idx = idxs + comp_idx + [h for h in name_hit if tokens[h].used_by is None] + extra
+                from_name = bool(idxs) and set(idxs) <= self.name_tokens
+                if from_name:
+                    note = "значение из слов наименования типа: сравнивается по главному слову"
+                feats.append(self._feature(g, tokens, all_idx, nq, op="ne" if neg else "eq", value=val, negated=neg,
+                                           note=note, from_type_name=from_name))
             else:
                 idxs = sorted({i for _, _, ix in opts for i in ix})
                 feats.append(self._feature(None, tokens, idxs, nq, status="ambiguous", negated=neg,

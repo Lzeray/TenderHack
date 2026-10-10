@@ -72,12 +72,15 @@ def test_incomplete_data_asks_question(engine):
     assert r.question.worst_case_remaining < r.question.current_remaining
 
 
-def test_single_candidate_gives_code_and_lists_missing_required(engine):
-    # позиция единственная — код выдаётся; незаполненная обязательная «Длина» остаётся в списке «что ещё указать»
+def test_single_candidate_waits_for_missing_required(engine):
+    # обязательные характеристики запрашиваются до конца (docs/KTRU_SEARCH_PLAN.md, K3): позиция единственная,
+    # но «Длина» не указана — кода нет, вопрос о длине, строка «не указана» в списке обязательных
     r = search(engine, "пассатижи слесарные")
-    assert r.status == "matched" and r.final_code == "25.73.30.163-90000001"
+    assert r.status == "clarification_needed" and r.final_code is None
+    assert r.compatible_codes == ["25.73.30.163-90000001"]
     row = next(x for x in r.required_characteristics if x.name == "Длина")
     assert row.status == "missing" and row.common
+    assert r.question is not None and r.question.property_name == "Длина"
 
 
 def test_unknown_property_reported(engine):

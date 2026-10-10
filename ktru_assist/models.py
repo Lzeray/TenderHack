@@ -98,6 +98,11 @@ class Feature(BaseModel):
     unit_inferred: bool = Field(False, description="единица подставлена системой (docs/UNITS_PLAN.md)")
     bare: bool = Field(False, description="число без названия свойства и без единицы (docs/UNITS_PLAN.md, U2)")
     property_inferred: bool = Field(False, description="свойство подставлено системой по распределениям значений")
+    role: Optional[Literal["main", "other"]] = Field(
+        None, description="основная — свойство обязательно хотя бы в одной позиции типа; неосновная — иначе или "
+                          "свойства нет в КТРУ (docs/KTRU_SEARCH_PLAN.md, K4)")
+    from_type_name: bool = Field(False, description="значение взято из слов наименования типа («стол» → «Вид товара: "
+                                                    "Стол»): сравнивается по главному слову (docs/KTRU_SEARCH_PLAN.md, K1)")
 
 
 class Span(BaseModel):

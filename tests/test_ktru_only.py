@@ -66,15 +66,44 @@ def test_required_rows_common_first(engine):
     assert all(not x.common for x in rows[1:])
 
 
-def test_user_property_required_elsewhere_drops_positions_without_it(engine):
-    # «Мощность» обязательна у сетевой дрели и отсутствует у аккумуляторной → аккумуляторная отбрасывается
+def test_position_without_user_property_stays(engine):
+    # «Мощность» обязательна у сетевой дрели, у аккумуляторной её нет: аккумуляторная не исключается
+    # (unknown ≠ invalid, docs/KTRU_SEARCH_PLAN.md, K2), кода нет — выбор не доказан
     r = search(engine, "дрель ручная электрическая мощность 600 Вт")
-    assert r.compatible_codes == ["28.24.11.000-92000001"]
-    dropped = next(c for c in r.candidates if c.code == "28.24.11.000-92000002")
-    assert not dropped.compatible and "обязательна в других позициях" in dropped.excluded_reason
+    assert set(r.compatible_codes) == {"28.24.11.000-92000001", "28.24.11.000-92000002"}
+    kept = next(c for c in r.candidates if c.code == "28.24.11.000-92000002")
+    assert kept.compatible and r.final_code is None
+
+
+def test_type_word_matches_by_head(engine):
+    # «Вид товара» из слова типа сравнивается по главному слову (K1)
+    from ktru_assist.validate import check_feature
+    from ktru_assist.catalog.repository import AllowedValue, Position, Prop
+    def pos(*vals):
+        p = Position(code="9", name="Стол", version=1, okpd2_code=None, okpd2_name=None, status=None,
+                     is_template=False, parent_code=None, parent_version=None, no_new_features=None,
+                     application_start=None, application_end=None, category="furniture", active=True,
+                     inactive_reason=None, head="стол", name_lemmas=["стол"], rubrics=[], okeis=[])
+        p.props["1"] = Prop("1", "Вид товара", 1, 1, True,
+                            [AllowedValue("quality", v, None, None, None, None) for v in vals])
+        return p
+    f = Feature(id="f", source="text", status="bound", property_code="1", property_name="Вид товара",
+                value="Стол", from_type_name=True)
+    assert check_feature(pos("Стол для переговоров"), f)[0] == "valid"
+    assert check_feature(pos("Секция стола"), f)[0] == "invalid"
+    # явно названное значение сравнивается целиком
+    assert check_feature(pos("Стол для переговоров"), f.model_copy(update={"from_type_name": False}))[0] == "invalid"
 
 
 def test_question_prefers_property_common_to_all(engine):
     r = search(engine, "дрель ручная электрическая")
     if r.question is not None and r.question.kind == "property":
         assert r.question.property_name == "Тип питания"
+
+
+def test_feature_role_main_or_other(engine):
+    # основная — обязательна хотя бы в одной позиции типа, неосновная — иначе или свойства нет в КТРУ (K4)
+    r = search(engine, "пассатижи слесарные 190 мм, цвет: красный")
+    roles = {(f.property_name or f.named_property or "").lower(): f.role for f in r.features}
+    assert roles.get("длина") == "main"
+    assert any(f.role == "other" and f.status == "unknown_property" for f in r.features)

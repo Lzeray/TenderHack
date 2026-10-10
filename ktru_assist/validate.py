@@ -16,7 +16,7 @@ from decimal import Decimal, InvalidOperation
 from .catalog.repository import Interval, Position, Prop, merge_intervals
 from .models import Feature, Issue, PropertyCheck
 from .dims import axis_of, context_of
-from .text import content_lemmas, norm, tokenize
+from .text import content_lemmas, head_lemma, norm, tokenize
 from .units import lookup, fmt
 
 
@@ -260,6 +260,14 @@ def check_feature(pos: Position, f: Feature) -> tuple[str, str, Prop | None]:
         if quality_values and not others:
             return "invalid", f"позиция допускает только «{', '.join(allowed)}», а указано «не {f.value}»", prop
         return "unknown", "отрицание не определяет значение однозначно", prop
+    if quality_values and f.from_type_name and f.op == "eq":
+        # слово типа («стол») — не характеристика: подходит любое значение с тем же главным словом
+        # («Стол для переговоров»), не подходит другое изделие («Секция стола») (docs/KTRU_SEARCH_PLAN.md, K1)
+        head = head_lemma(f.value or "")
+        same = [v.text for v in quality_values if v.text and head_lemma(v.text) == head]
+        if same:
+            return "valid", f"тип «{f.value}» совпадает по главному слову: {', '.join(same[:4])}", prop
+        return "invalid", f"«{f.value}» — другое изделие: {', '.join(allowed[:12])}", prop
     if quality_values:
         if _quality_match(prop, f.value or "", f.strict_ref):
             return "valid", f"«{f.value}» есть среди допустимых", prop

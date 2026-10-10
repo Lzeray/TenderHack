@@ -176,3 +176,99 @@ def test_trivial_baselines_floor_on_new_suites():
             assert s["required_hit"] == 0
         else:
             assert s["no_code_respected"] == 1.0
+
+
+# ---------------------------------------------------------------- слитные слова и ленивый пользователь
+def test_glued_words_only_remove_spaces():
+    for c in SUITES["glued_words"]:
+        src = NATURAL[c["source_id"]]["text"]
+        k = int(c["variant"][-1])
+        assert c["text"].replace(" ", "") == src.replace(" ", "")
+        assert src.count(" ") - c["text"].count(" ") == k - 1
+    assert {c["variant"] for c in SUITES["glued_words"]} == {"glue2", "glue3"}
+
+
+def test_lazy_user_keeps_numbers_and_ops():
+    by = {}
+    for c in SUITES["lazy_user"]:
+        by.setdefault(c["variant"], []).append(c)
+        src = NATURAL[c["source_id"]]
+        assert c["gold_codes"] == src["gold_codes"] and c["split"] == src["split"]
+        assert [(f["property"], f["value"], f["op"]) for f in c["facts"]] == \
+            [(f["property"], f["value"], f["op"]) for f in src["facts"]]
+    assert set(by) == {"no_unit", "lower_no_punct", "ineq_symbol", "ineq_words", "ineq_no_unit", "telegraph"}
+    for v in ("no_unit", "ineq_no_unit", "telegraph"):
+        for c in by[v]:
+            # число без единицы допустимо, только если исходный кейс писал его в единице каталога
+            assert "unit_conversion" not in NATURAL[c["source_id"]]["variant"]
+    for c in by["no_unit"] + by["telegraph"]:
+        assert all(f["unit"] is None for f in c["facts"] if f["kind"] == "number")
+    for c in by["telegraph"]:
+        assert (c["expect"], c["auto"], c["checks"]) == ("code_after_questions", "allowed", [])
+    for c in by["ineq_symbol"] + by["ineq_words"] + by["ineq_no_unit"]:
+        assert any(f["op"] in (">=", "<=") for f in c["facts"]) and c["checks"][0]["type"] == "same_as"
+    for c in by["lower_no_punct"]:
+        assert not set(":;()«»!?") & set(c["text"])
+
+
+# ---------------------------------------------------------------- ленивые числа по каталогу (синтетический каталог)
+from benchmark.metamorphic import lazy_numbers as ln  # noqa: E402
+
+FIX_PATH = ln.OUT_FIXTURE
+FIX = [json.loads(l) for l in FIX_PATH.read_text(encoding="utf-8").splitlines() if l.strip()]
+
+
+def _fx(name_part: str, variant: str) -> dict:
+    return next(c for c in FIX if name_part in c["name"] and c["variant"] == variant)
+
+
+def test_lazy_numbers_fixture_matches_generator_and_manifest():
+    assert [json.dumps(c, ensure_ascii=False) for c in ln.build_fixture()] == \
+        [json.dumps(c, ensure_ascii=False) for c in FIX]
+    assert frozen_status([str(FIX_PATH)])[FIX_PATH.stem]["ok"]
+
+
+def test_lazy_numbers_reference_semantics():
+    """Смысл ленивых записей на синтетическом каталоге — проверено вручную по fixture_catalog.py."""
+    d = "31.01.10.000-9500000"            # стол: металлический 600–1000, 1000–1400, 1400–1800 (вкл.)
+    assert _fx("Стол", "gt_lt")["gold_codes"] == [d + "2"]                        # 1000 < x < 1400
+    assert _fx("Стол", "ge_le")["gold_codes"] == [d + "2", d + "3"]               # 1400 входит в [1400; 1800]
+    assert _fx("Стол", "dash_range")["gold_codes"] == _fx("Стол", "ge_le")["gold_codes"]
+    assert _fx("Стол", "gt_max")["expect"] == "no_code"                           # больше 1800 — нет
+    assert _fx("Стол", "lt_min")["expect"] == "no_code"                           # меньше 600 — нет
+    assert _fx("Стол", "point_no_unit")["gold_codes"] == _fx("Стол", "point_unit")["gold_codes"]
+    assert _fx("Шуруповерт", "gt_max")["gold_codes"] == ["28.24.11.000-95000023"]  # открытый верх ≥ 800
+    assert _fx("Халат", "gap")["expect"] == "no_code"                             # между 164 и 170 позиций нет
+    assert all(c["expect"] == "no_code" for c in FIX if c["variant"] == "inverted")
+    assert _fx("Пила", "lt_min")["gold_codes"] == ["25.73.30.110-95000011"]       # < 300
+    # без свойства — только там, где числовая характеристика у семейства одна (у пилы их две)
+    assert not [c for c in FIX if c["variant"] == "no_property" and "Пила" in c["name"]]
+
+
+def test_lazy_numbers_same_as_pairs_have_equal_gold():
+    texts = {c["text"]: c for c in FIX}
+    for c in FIX:
+        for chk in c["checks"]:
+            assert texts[chk["text"]]["gold_codes"] == c["gold_codes"], c["id"]
+
+
+# ---------------------------------------------------------------- пересчёт эталона по реальной базе (если она есть)
+REAL_DB = ROOT / "data" / "ktru.sqlite"
+
+
+@pytest.mark.skipif(not REAL_DB.exists(), reason="нет data/ktru.sqlite")
+def test_gold_recomputed_on_real_catalog():
+    from benchmark.independent.reference import Catalog
+    cat = Catalog(REAL_DB)
+    bad = []
+    for n in ("invariance", "injection", "procurement_noise", "monotonicity", "glued_words", "lazy_user"):
+        for c in SUITES[n]:
+            if cat.gold(c["name"], c["facts"]) != c["gold_codes"]:
+                bad.append(c["id"])
+    real = ln.OUT_REAL
+    if real.exists():
+        for l in real.read_text(encoding="utf-8").splitlines():
+            c = json.loads(l)
+            if list(ln.gold_expect(cat, c["name"], c["facts"])) != [c["gold_codes"], c["expect"]]:
+                bad.append(c["id"])
+    assert not bad, bad[:20]

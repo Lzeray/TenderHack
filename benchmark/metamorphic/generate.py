@@ -28,13 +28,15 @@ from pathlib import Path
 from benchmark.independent.generate import SUITES as IND_SUITES
 from benchmark.independent.generate import test_hash
 from benchmark.independent.reference import convert
+from benchmark.metamorphic import lazy
 
 HERE = Path(__file__).resolve().parent
 SUITES = HERE / "suites"
 MANIFEST = HERE / "test_manifest.sha256"
 SALT = "mm1-a"
 TEST_SHARE = 30
-SUITE_NAMES = ("invariance", "injection", "procurement_noise", "multi_item", "monotonicity", "edge_inputs")
+SUITE_NAMES = ("invariance", "injection", "procurement_noise", "multi_item", "monotonicity", "edge_inputs",
+               "glued_words", "lazy_user")
 NO_CODE_STATUS = ["conflict", "not_found", "clarification", "manual_choice"]
 
 # сколько кейсов на один приём (источники выбираются детерминированно по sha256 от id)
@@ -407,9 +409,11 @@ def build() -> dict[str, list[dict]]:
         "multi_item": build_multi(clean),
         "monotonicity": build_monotonicity(clean),
         "edge_inputs": build_edge(),
+        "glued_words": lazy.build_glued(clean),
+        "lazy_user": lazy.build_lazy(clean),
     }
     short = {"invariance": "inv", "injection": "inj", "procurement_noise": "noi", "multi_item": "mul",
-             "monotonicity": "mon", "edge_inputs": "edg"}
+             "monotonicity": "mon", "edge_inputs": "edg", "glued_words": "glu", "lazy_user": "laz"}
     for name, cases in suites.items():
         for i, c in enumerate(cases, 1):
             c["id"] = f"mm-{short[name]}-{i:04d}"
@@ -421,7 +425,10 @@ def dump_line(case: dict) -> str:
 
 
 def write_manifest() -> str:
-    rows = []
+    # строки других наборов этой папки (lazy_numbers.jsonl строится по базе отдельно) сохраняются
+    own = {f"{n}.jsonl" for n in SUITE_NAMES}
+    rows = [l for l in MANIFEST.read_text(encoding="utf-8").splitlines()
+            if l.strip() and l.split()[1] not in own] if MANIFEST.exists() else []
     for n in SUITE_NAMES:
         h, k = test_hash(SUITES / f"{n}.jsonl")
         rows.append(f"{h}  {n}.jsonl  test_cases={k}")

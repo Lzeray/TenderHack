@@ -1,0 +1,5244 @@
+{
+ "meta": {
+  "generated_at": "2026-10-10T10:08:25",
+  "split": "all",
+  "ks": [
+   1,
+   2,
+   3
+  ],
+  "dialog": true,
+  "bootstrap": 2000,
+  "bootstrap_seed": 20261010,
+  "suites": {
+   "lazy_numbers_fixture": 56
+  },
+  "frozen": {
+   "lazy_numbers_fixture": {
+    "test_sha256": "9106a3873f5adaf2e883b5e4009cec43ce3870c784d5e79da6d218eedec9f2fc",
+    "test_cases": 15,
+    "frozen": "9106a3873f5adaf2e883b5e4009cec43ce3870c784d5e79da6d218eedec9f2fc",
+    "ok": true,
+    "file_sha256": "3646615255604b0c52be5aef324c543665978efad07e5c44c1f6541eaab07f3f"
+   }
+  },
+  "python": "3.13.16",
+  "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+  "hide_test_cases": false
+ },
+ "adapters": {
+  "ktru:core": {
+   "info": {
+    "adapter": "ktru:core",
+    "versions": {
+     "api": "1.0",
+     "importer": "1.0",
+     "normalizer": "1.0",
+     "typos": "1.0",
+     "extractor": "1.0",
+     "validator": "1.0",
+     "ranking": "1.0",
+     "clarifier": "1.0",
+     "package": "0.1.0",
+     "catalog_snapshot": "nsiKTRUNew_all_actual_bench",
+     "catalog_as_of": "2026-10-09",
+     "search_backend": "local-bm25"
+    }
+   },
+   "suites": {
+    "lazy_numbers_fixture": {
+     "summary": {
+      "cases": 56,
+      "status_counts": {
+       "clarification": 17,
+       "manual_choice": 15,
+       "matched": 24
+      },
+      "errors": 0,
+      "auto": 24,
+      "wrong_auto": 13,
+      "wrong_auto_rate": 0.5417,
+      "auto_precision": 0.4583,
+      "auto_coverage": 0.4286,
+      "gold_nonempty": 45,
+      "code_reached@0": 0.2444,
+      "dialog_support": "supported",
+      "code_reached@1": 0.3556,
+      "code_reached@2": 0.7556,
+      "code_reached@3": 0.7556,
+      "required_cases": 29,
+      "required_hit": 0.2414,
+      "no_code_cases": 11,
+      "no_code_respected": 0.4545,
+      "premature_auto": 0.4375,
+      "dialog_wrong_final": 7,
+      "questions_mean": 1.206,
+      "latency_ms_p50": 1.78,
+      "latency_ms_p95": 2.83,
+      "ci95": {
+       "code_reached@2": {
+        "value": 0.7556,
+        "lo": 0.6222,
+        "hi": 0.8667,
+        "n": 45,
+        "method": "bootstrap"
+       },
+       "auto_precision": {
+        "value": 0.4583,
+        "lo": 0.25,
+        "hi": 0.6667,
+        "n": 24,
+        "method": "bootstrap"
+       },
+       "no_code_respected": {
+        "value": 0.4545,
+        "lo": 0.1818,
+        "hi": 0.7273,
+        "n": 11,
+        "method": "bootstrap"
+       },
+       "hit@1": {
+        "value": 0.4,
+        "lo": 0.2667,
+        "hi": 0.5333,
+        "n": 45,
+        "method": "bootstrap"
+       },
+       "hit@3": {
+        "value": 0.7778,
+        "lo": 0.6444,
+        "hi": 0.8889,
+        "n": 45,
+        "method": "bootstrap"
+       }
+      },
+      "wrong_auto_rate_upper95": 0.75,
+      "ranking": {
+       "ranked_cases": 45,
+       "hit@1": 0.4,
+       "hit@3": 0.778,
+       "hit@5": 0.778,
+       "mrr": 0.563,
+       "ndcg@3": 0.559,
+       "type_hit@1": 1.0,
+       "gold_rank_median": 1,
+       "gold_not_listed": 0.222,
+       "list_size_median": 1,
+       "list_precision_mean": 0.544,
+       "dialog_traced": 45,
+       "mrr_by_step": [
+        0.563,
+        0.763,
+        0.778,
+        0.778
+       ],
+       "hit1_by_step": [
+        0.4,
+        0.756,
+        0.778,
+        0.778
+       ],
+       "rank_by_step": [
+        1.69,
+        1.06,
+        1,
+        1
+       ],
+       "top1_reached": 0.778,
+       "questions_to_top1_mean": 0.51,
+       "bits_per_question": 0.677,
+       "useless_question_rate": 0.523,
+       "dead_end_rate": 0.067
+      },
+      "over_asking": 0.6207,
+      "wrong_auto_gold_listed": 0
+     },
+     "by_split": {
+      "dev": {
+       "cases": 41,
+       "status_counts": {
+        "clarification": 13,
+        "manual_choice": 10,
+        "matched": 18
+       },
+       "errors": 0,
+       "auto": 18,
+       "wrong_auto": 9,
+       "wrong_auto_rate": 0.5,
+       "auto_precision": 0.5,
+       "auto_coverage": 0.439,
+       "gold_nonempty": 34,
+       "code_reached@0": 0.2647,
+       "dialog_support": "supported",
+       "code_reached@1": 0.3824,
+       "code_reached@2": 0.7647,
+       "code_reached@3": 0.7647,
+       "required_cases": 23,
+       "required_hit": 0.2609,
+       "no_code_cases": 7,
+       "no_code_respected": 0.4286,
+       "premature_auto": 0.4545,
+       "dialog_wrong_final": 5,
+       "questions_mean": 1.154,
+       "latency_ms_p50": 1.92,
+       "latency_ms_p95": 2.84,
+       "ci95": {
+        "code_reached@2": {
+         "value": 0.7647,
+         "lo": 0.6176,
+         "hi": 0.9118,
+         "n": 34,
+         "method": "bootstrap"
+        },
+        "auto_precision": {
+         "value": 0.5,
+         "lo": 0.2778,
+         "hi": 0.7222,
+         "n": 18,
+         "method": "bootstrap"
+        },
+        "no_code_respected": {
+         "value": 0.4286,
+         "lo": 0.1429,
+         "hi": 0.8571,
+         "n": 7,
+         "method": "bootstrap"
+        },
+        "hit@1": {
+         "value": 0.4118,
+         "lo": 0.2647,
+         "hi": 0.5882,
+         "n": 34,
+         "method": "bootstrap"
+        },
+        "hit@3": {
+         "value": 0.7941,
+         "lo": 0.6471,
+         "hi": 0.9118,
+         "n": 34,
+         "method": "bootstrap"
+        }
+       },
+       "wrong_auto_rate_upper95": 0.7222,
+       "ranking": {
+        "ranked_cases": 34,
+        "hit@1": 0.412,
+        "hit@3": 0.794,
+        "hit@5": 0.794,
+        "mrr": 0.569,
+        "ndcg@3": 0.569,
+        "type_hit@1": 1.0,
+        "gold_rank_median": 1,
+        "gold_not_listed": 0.206,
+        "list_size_median": 1.0,
+        "list_precision_mean": 0.549,
+        "dialog_traced": 34,
+        "mrr_by_step": [
+         0.569,
+         0.775,
+         0.794,
+         0.794
+        ],
+        "hit1_by_step": [
+         0.412,
+         0.765,
+         0.794,
+         0.794
+        ],
+        "rank_by_step": [
+         1.74,
+         1.07,
+         1,
+         1
+        ],
+        "top1_reached": 0.794,
+        "questions_to_top1_mean": 0.52,
+        "bits_per_question": 0.698,
+        "useless_question_rate": 0.515,
+        "dead_end_rate": 0.059
+       },
+       "over_asking": 0.6087,
+       "wrong_auto_gold_listed": 0
+      },
+      "test": {
+       "cases": 15,
+       "status_counts": {
+        "clarification": 4,
+        "manual_choice": 5,
+        "matched": 6
+       },
+       "errors": 0,
+       "auto": 6,
+       "wrong_auto": 4,
+       "wrong_auto_rate": 0.6667,
+       "auto_precision": 0.3333,
+       "auto_coverage": 0.4,
+       "gold_nonempty": 11,
+       "code_reached@0": 0.1818,
+       "dialog_support": "supported",
+       "code_reached@1": 0.2727,
+       "code_reached@2": 0.7273,
+       "code_reached@3": 0.7273,
+       "required_cases": 6,
+       "required_hit": 0.1667,
+       "no_code_cases": 4,
+       "no_code_respected": 0.5,
+       "premature_auto": 0.4,
+       "dialog_wrong_final": 2,
+       "questions_mean": 1.375,
+       "latency_ms_p50": 1.59,
+       "latency_ms_p95": 2.02,
+       "ci95": {
+        "code_reached@2": {
+         "value": 0.7273,
+         "lo": 0.4545,
+         "hi": 1.0,
+         "n": 11,
+         "method": "bootstrap"
+        },
+        "auto_precision": {
+         "value": 0.3333,
+         "lo": 0.0,
+         "hi": 0.6667,
+         "n": 6,
+         "method": "bootstrap"
+        },
+        "no_code_respected": {
+         "value": 0.5,
+         "lo": 0.0,
+         "hi": 1.0,
+         "n": 4,
+         "method": "bootstrap"
+        },
+        "hit@1": {
+         "value": 0.3636,
+         "lo": 0.0909,
+         "hi": 0.6364,
+         "n": 11,
+         "method": "bootstrap"
+        },
+        "hit@3": {
+         "value": 0.7273,
+         "lo": 0.4545,
+         "hi": 1.0,
+         "n": 11,
+         "method": "bootstrap"
+        }
+       },
+       "wrong_auto_rate_upper95": 1.0,
+       "ranking": {
+        "ranked_cases": 11,
+        "hit@1": 0.364,
+        "hit@3": 0.727,
+        "hit@5": 0.727,
+        "mrr": 0.545,
+        "ndcg@3": 0.528,
+        "type_hit@1": 1.0,
+        "gold_rank_median": 1.5,
+        "gold_not_listed": 0.273,
+        "list_size_median": 1,
+        "list_precision_mean": 0.53,
+        "dialog_traced": 11,
+        "mrr_by_step": [
+         0.545,
+         0.727,
+         0.727,
+         0.727
+        ],
+        "hit1_by_step": [
+         0.364,
+         0.727,
+         0.727,
+         0.727
+        ],
+        "rank_by_step": [
+         1.5,
+         1,
+         1,
+         1
+        ],
+        "top1_reached": 0.727,
+        "questions_to_top1_mean": 0.5,
+        "bits_per_question": 0.614,
+        "useless_question_rate": 0.545,
+        "dead_end_rate": 0.091
+       },
+       "over_asking": 0.6667,
+       "wrong_auto_gold_listed": 0
+      }
+     },
+     "cases": [
+      {
+       "id": "mm-lnf-0001",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "28.24.11.000-95000021",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 3.81,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400 Вт"
+      },
+      {
+       "id": "mm-lnf-0002",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.77,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "28.24.11.000-95000021",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400"
+      },
+      {
+       "id": "mm-lnf-0003",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "matched",
+       "final_code": "28.24.11.000-95000022",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.62,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 Вт"
+      },
+      {
+       "id": "mm-lnf-0004",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "matched",
+       "final_code": "28.24.11.000-95000023",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 2.0,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "28.24.11.000-95000023",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0005",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.25,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": null,
+        "wrong_final": false,
+        "reason": "no_option"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": true
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500, но меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0006",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.69,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 1,
+        "final_code": "28.24.11.000-95000023",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 1,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         0.0
+        ],
+        "useless": 1,
+        "questions": 1,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность не меньше 500 и не больше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0007",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.53,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "28.24.11.000-95000022",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 500-800 Вт"
+      },
+      {
+       "id": "mm-lnf-0008",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.58,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "28.24.11.000-95000022",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 0.5,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность >500 <800 Вт"
+      },
+      {
+       "id": "mm-lnf-0009",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "28.24.11.000-95000023",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.58,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0010",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "matched",
+       "final_code": "28.24.11.000-95000021",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.78,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 300 Вт"
+      },
+      {
+       "id": "mm-lnf-0011",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.1,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800, но меньше 500 Вт"
+      },
+      {
+       "id": "mm-lnf-0012",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.43,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "28.24.11.000-95000022",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6934,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.6667,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500"
+      },
+      {
+       "id": "mm-lnf-0013",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.97,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "28.24.11.000-95000022",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 меньше 800"
+      },
+      {
+       "id": "mm-lnf-0014",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "28.24.11.000-95000023",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.99,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "28.24.11.000-95000023",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "шуруповерт бенчмарка, тип питания от сети, больше 500, но меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0015",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "31.01.10.000-95000003",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 2.64,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600 мм"
+      },
+      {
+       "id": "mm-lnf-0016",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.13,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "31.01.10.000-95000003",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600"
+      },
+      {
+       "id": "mm-lnf-0017",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "matched",
+       "final_code": "31.01.10.000-95000002",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 2.12,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 мм"
+      },
+      {
+       "id": "mm-lnf-0018",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "matched",
+       "final_code": "31.01.10.000-95000003",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 2.4,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "31.01.10.000-95000003",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0019",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.84,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": null,
+        "wrong_final": false,
+        "reason": "no_option"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": true
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000, но меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0020",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.95,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 1,
+        "final_code": "31.01.10.000-95000003",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 1,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         0.0
+        ],
+        "useless": 1,
+        "questions": 1,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы не меньше 1000 и не больше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0021",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.02,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "31.01.10.000-95000002",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1000-1400 мм"
+      },
+      {
+       "id": "mm-lnf-0022",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.29,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "31.01.10.000-95000002",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 0.5,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы >1000 <1400 мм"
+      },
+      {
+       "id": "mm-lnf-0023",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "matched",
+       "final_code": "31.01.10.000-95000003",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.92,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1800 мм"
+      },
+      {
+       "id": "mm-lnf-0024",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "matched",
+       "final_code": "31.01.10.000-95000001",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 2.5,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0025",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.83,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1400, но меньше 1000 мм"
+      },
+      {
+       "id": "mm-lnf-0026",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.12,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "31.01.10.000-95000002",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6934,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.6667,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000"
+      },
+      {
+       "id": "mm-lnf-0027",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.57,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "31.01.10.000-95000002",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 меньше 1400"
+      },
+      {
+       "id": "mm-lnf-0028",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "31.01.10.000-95000003",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 2.19,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "31.01.10.000-95000003",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "стол письменный бенчмарка, тип каркаса металлический, больше 1000, но меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0029",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "14.12.30.190-95000032",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 2.2,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост 173 см"
+      },
+      {
+       "id": "mm-lnf-0030",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.36,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "14.12.30.190-95000032",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост 173"
+      },
+      {
+       "id": "mm-lnf-0031",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "matched",
+       "final_code": "14.12.30.190-95000032",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.43,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170 см"
+      },
+      {
+       "id": "mm-lnf-0032",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "matched",
+       "final_code": "14.12.30.190-95000033",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.6,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "14.12.30.190-95000033",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0033",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.8,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": null,
+        "wrong_final": false,
+        "reason": "no_option"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": true
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170, но меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0034",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.85,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 1,
+        "final_code": "14.12.30.190-95000033",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 1,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         0.0
+        ],
+        "useless": 1,
+        "questions": 1,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост не меньше 170 и не больше 182 см"
+      },
+      {
+       "id": "mm-lnf-0035",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.53,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "14.12.30.190-95000032",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост 170-182 см"
+      },
+      {
+       "id": "mm-lnf-0036",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.46,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "14.12.30.190-95000032",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 0.5,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост >170 <182 см"
+      },
+      {
+       "id": "mm-lnf-0037",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "matched",
+       "final_code": "14.12.30.190-95000033",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.49,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 188 см"
+      },
+      {
+       "id": "mm-lnf-0038",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "matched",
+       "final_code": "14.12.30.190-95000031",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.55,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост меньше 158 см"
+      },
+      {
+       "id": "mm-lnf-0039",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 2.02,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 182, но меньше 170 см"
+      },
+      {
+       "id": "mm-lnf-0040",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.78,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 164, но меньше 170 см"
+      },
+      {
+       "id": "mm-lnf-0041",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.38,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "14.12.30.190-95000032",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6934,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.6667,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170"
+      },
+      {
+       "id": "mm-lnf-0042",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "manual_choice",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.59,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "14.12.30.190-95000032",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170 меньше 182"
+      },
+      {
+       "id": "mm-lnf-0043",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "14.12.30.190-95000033",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.61,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "14.12.30.190-95000033",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "халат медицинский бенчмарка, пол женский, больше 170, но меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0044",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000013",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.7,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525 мм"
+      },
+      {
+       "id": "mm-lnf-0045",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.43,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "25.73.30.110-95000013",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525"
+      },
+      {
+       "id": "mm-lnf-0046",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000013",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.51,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 мм"
+      },
+      {
+       "id": "mm-lnf-0047",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 3,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000013",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.44,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.4693,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0048",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.66,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 1,
+        "final_code": "25.73.30.110-95000013",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 1,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585
+        ],
+        "useless": 0,
+        "questions": 1,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450, но меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0049",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.71,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 1,
+        "final_code": "25.73.30.110-95000013",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 1,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585
+        ],
+        "useless": 0,
+        "questions": 1,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0050",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000013",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.24,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм"
+      },
+      {
+       "id": "mm-lnf-0051",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.29,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 3,
+        "final_code": null,
+        "wrong_final": false,
+        "reason": "max_steps"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         3,
+         1,
+         1
+        ],
+        "questions_to_top1": 2,
+        "bits": [
+         0.0,
+         1.585,
+         0.0
+        ],
+        "useless": 2,
+        "questions": 3,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм"
+      },
+      {
+       "id": "mm-lnf-0052",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000013",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.4,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0053",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000012",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.52,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "25.73.30.110-95000012",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм"
+      },
+      {
+       "id": "mm-lnf-0054",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.68,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм"
+      },
+      {
+       "id": "mm-lnf-0055",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.68,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "25.73.30.110-95000013",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450"
+      },
+      {
+       "id": "mm-lnf-0056",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.79,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 2,
+        "final_code": "25.73.30.110-95000013",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 меньше 600"
+      }
+     ]
+    }
+   }
+  },
+  "baseline:always_clarify": {
+   "info": {
+    "adapter": "baseline:always_clarify",
+    "trivial": true
+   },
+   "suites": {
+    "lazy_numbers_fixture": {
+     "summary": {
+      "cases": 56,
+      "status_counts": {
+       "clarification": 56
+      },
+      "errors": 0,
+      "auto": 0,
+      "wrong_auto": 0,
+      "wrong_auto_rate": null,
+      "auto_precision": null,
+      "auto_coverage": 0.0,
+      "gold_nonempty": 45,
+      "code_reached@0": 0.0,
+      "dialog_support": "not_supported",
+      "code_reached@1": 0.0,
+      "code_reached@2": 0.0,
+      "code_reached@3": 0.0,
+      "required_cases": 29,
+      "required_hit": 0.0,
+      "no_code_cases": 11,
+      "no_code_respected": 1.0,
+      "premature_auto": 0.0,
+      "dialog_wrong_final": 0,
+      "questions_mean": null,
+      "latency_ms_p50": 0.0,
+      "latency_ms_p95": 0.0,
+      "ci95": {
+       "code_reached@2": {
+        "value": 0.0,
+        "lo": 0.0,
+        "hi": 0.0667,
+        "n": 45,
+        "method": "rule_of_three"
+       },
+       "auto_precision": null,
+       "no_code_respected": {
+        "value": 1.0,
+        "lo": 0.7273,
+        "hi": 1.0,
+        "n": 11,
+        "method": "rule_of_three"
+       },
+       "hit@1": null,
+       "hit@3": null
+      },
+      "wrong_auto_rate_upper95": null,
+      "ranking": {
+       "ranked_cases": 0,
+       "dialog_traced": 0
+      },
+      "over_asking": 1.0,
+      "wrong_auto_gold_listed": 0
+     },
+     "by_split": {
+      "dev": {
+       "cases": 41,
+       "status_counts": {
+        "clarification": 41
+       },
+       "errors": 0,
+       "auto": 0,
+       "wrong_auto": 0,
+       "wrong_auto_rate": null,
+       "auto_precision": null,
+       "auto_coverage": 0.0,
+       "gold_nonempty": 34,
+       "code_reached@0": 0.0,
+       "dialog_support": "not_supported",
+       "code_reached@1": 0.0,
+       "code_reached@2": 0.0,
+       "code_reached@3": 0.0,
+       "required_cases": 23,
+       "required_hit": 0.0,
+       "no_code_cases": 7,
+       "no_code_respected": 1.0,
+       "premature_auto": 0.0,
+       "dialog_wrong_final": 0,
+       "questions_mean": null,
+       "latency_ms_p50": 0.0,
+       "latency_ms_p95": 0.0,
+       "ci95": {
+        "code_reached@2": {
+         "value": 0.0,
+         "lo": 0.0,
+         "hi": 0.0882,
+         "n": 34,
+         "method": "rule_of_three"
+        },
+        "auto_precision": null,
+        "no_code_respected": {
+         "value": 1.0,
+         "lo": 0.5714,
+         "hi": 1.0,
+         "n": 7,
+         "method": "rule_of_three"
+        },
+        "hit@1": null,
+        "hit@3": null
+       },
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
+      },
+      "test": {
+       "cases": 15,
+       "status_counts": {
+        "clarification": 15
+       },
+       "errors": 0,
+       "auto": 0,
+       "wrong_auto": 0,
+       "wrong_auto_rate": null,
+       "auto_precision": null,
+       "auto_coverage": 0.0,
+       "gold_nonempty": 11,
+       "code_reached@0": 0.0,
+       "dialog_support": "not_supported",
+       "code_reached@1": 0.0,
+       "code_reached@2": 0.0,
+       "code_reached@3": 0.0,
+       "required_cases": 6,
+       "required_hit": 0.0,
+       "no_code_cases": 4,
+       "no_code_respected": 1.0,
+       "premature_auto": 0.0,
+       "dialog_wrong_final": 0,
+       "questions_mean": null,
+       "latency_ms_p50": 0.0,
+       "latency_ms_p95": 0.0,
+       "ci95": {
+        "code_reached@2": {
+         "value": 0.0,
+         "lo": 0.0,
+         "hi": 0.2727,
+         "n": 11,
+         "method": "rule_of_three"
+        },
+        "auto_precision": null,
+        "no_code_respected": {
+         "value": 1.0,
+         "lo": 0.25,
+         "hi": 1.0,
+         "n": 4,
+         "method": "rule_of_three"
+        },
+        "hit@1": null,
+        "hit@3": null
+       },
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
+      }
+     },
+     "cases": [
+      {
+       "id": "mm-lnf-0001",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400 Вт"
+      },
+      {
+       "id": "mm-lnf-0002",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400"
+      },
+      {
+       "id": "mm-lnf-0003",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 Вт"
+      },
+      {
+       "id": "mm-lnf-0004",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0005",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500, но меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0006",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность не меньше 500 и не больше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0007",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 500-800 Вт"
+      },
+      {
+       "id": "mm-lnf-0008",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность >500 <800 Вт"
+      },
+      {
+       "id": "mm-lnf-0009",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0010",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 300 Вт"
+      },
+      {
+       "id": "mm-lnf-0011",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800, но меньше 500 Вт"
+      },
+      {
+       "id": "mm-lnf-0012",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500"
+      },
+      {
+       "id": "mm-lnf-0013",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 меньше 800"
+      },
+      {
+       "id": "mm-lnf-0014",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, больше 500, но меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0015",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600 мм"
+      },
+      {
+       "id": "mm-lnf-0016",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600"
+      },
+      {
+       "id": "mm-lnf-0017",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 мм"
+      },
+      {
+       "id": "mm-lnf-0018",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0019",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000, но меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0020",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы не меньше 1000 и не больше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0021",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1000-1400 мм"
+      },
+      {
+       "id": "mm-lnf-0022",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы >1000 <1400 мм"
+      },
+      {
+       "id": "mm-lnf-0023",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1800 мм"
+      },
+      {
+       "id": "mm-lnf-0024",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0025",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1400, но меньше 1000 мм"
+      },
+      {
+       "id": "mm-lnf-0026",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000"
+      },
+      {
+       "id": "mm-lnf-0027",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 меньше 1400"
+      },
+      {
+       "id": "mm-lnf-0028",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, больше 1000, но меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0029",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост 173 см"
+      },
+      {
+       "id": "mm-lnf-0030",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост 173"
+      },
+      {
+       "id": "mm-lnf-0031",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170 см"
+      },
+      {
+       "id": "mm-lnf-0032",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0033",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170, но меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0034",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост не меньше 170 и не больше 182 см"
+      },
+      {
+       "id": "mm-lnf-0035",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост 170-182 см"
+      },
+      {
+       "id": "mm-lnf-0036",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост >170 <182 см"
+      },
+      {
+       "id": "mm-lnf-0037",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 188 см"
+      },
+      {
+       "id": "mm-lnf-0038",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост меньше 158 см"
+      },
+      {
+       "id": "mm-lnf-0039",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 182, но меньше 170 см"
+      },
+      {
+       "id": "mm-lnf-0040",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 164, но меньше 170 см"
+      },
+      {
+       "id": "mm-lnf-0041",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170"
+      },
+      {
+       "id": "mm-lnf-0042",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170 меньше 182"
+      },
+      {
+       "id": "mm-lnf-0043",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, больше 170, но меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0044",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525 мм"
+      },
+      {
+       "id": "mm-lnf-0045",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525"
+      },
+      {
+       "id": "mm-lnf-0046",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 мм"
+      },
+      {
+       "id": "mm-lnf-0047",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 3,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0048",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450, но меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0049",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0050",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм"
+      },
+      {
+       "id": "mm-lnf-0051",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм"
+      },
+      {
+       "id": "mm-lnf-0052",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0053",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм"
+      },
+      {
+       "id": "mm-lnf-0054",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм"
+      },
+      {
+       "id": "mm-lnf-0055",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450"
+      },
+      {
+       "id": "mm-lnf-0056",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 меньше 600"
+      }
+     ]
+    }
+   }
+  },
+  "baseline:always_not_found": {
+   "info": {
+    "adapter": "baseline:always_not_found",
+    "trivial": true
+   },
+   "suites": {
+    "lazy_numbers_fixture": {
+     "summary": {
+      "cases": 56,
+      "status_counts": {
+       "not_found": 56
+      },
+      "errors": 0,
+      "auto": 0,
+      "wrong_auto": 0,
+      "wrong_auto_rate": null,
+      "auto_precision": null,
+      "auto_coverage": 0.0,
+      "gold_nonempty": 45,
+      "code_reached@0": 0.0,
+      "dialog_support": "not_supported",
+      "code_reached@1": 0.0,
+      "code_reached@2": 0.0,
+      "code_reached@3": 0.0,
+      "required_cases": 29,
+      "required_hit": 0.0,
+      "no_code_cases": 11,
+      "no_code_respected": 1.0,
+      "premature_auto": 0.0,
+      "dialog_wrong_final": 0,
+      "questions_mean": null,
+      "latency_ms_p50": 0.0,
+      "latency_ms_p95": 0.0,
+      "ci95": {
+       "code_reached@2": {
+        "value": 0.0,
+        "lo": 0.0,
+        "hi": 0.0667,
+        "n": 45,
+        "method": "rule_of_three"
+       },
+       "auto_precision": null,
+       "no_code_respected": {
+        "value": 1.0,
+        "lo": 0.7273,
+        "hi": 1.0,
+        "n": 11,
+        "method": "rule_of_three"
+       },
+       "hit@1": null,
+       "hit@3": null
+      },
+      "wrong_auto_rate_upper95": null,
+      "ranking": {
+       "ranked_cases": 0,
+       "dialog_traced": 0
+      },
+      "over_asking": 1.0,
+      "wrong_auto_gold_listed": 0
+     },
+     "by_split": {
+      "dev": {
+       "cases": 41,
+       "status_counts": {
+        "not_found": 41
+       },
+       "errors": 0,
+       "auto": 0,
+       "wrong_auto": 0,
+       "wrong_auto_rate": null,
+       "auto_precision": null,
+       "auto_coverage": 0.0,
+       "gold_nonempty": 34,
+       "code_reached@0": 0.0,
+       "dialog_support": "not_supported",
+       "code_reached@1": 0.0,
+       "code_reached@2": 0.0,
+       "code_reached@3": 0.0,
+       "required_cases": 23,
+       "required_hit": 0.0,
+       "no_code_cases": 7,
+       "no_code_respected": 1.0,
+       "premature_auto": 0.0,
+       "dialog_wrong_final": 0,
+       "questions_mean": null,
+       "latency_ms_p50": 0.0,
+       "latency_ms_p95": 0.0,
+       "ci95": {
+        "code_reached@2": {
+         "value": 0.0,
+         "lo": 0.0,
+         "hi": 0.0882,
+         "n": 34,
+         "method": "rule_of_three"
+        },
+        "auto_precision": null,
+        "no_code_respected": {
+         "value": 1.0,
+         "lo": 0.5714,
+         "hi": 1.0,
+         "n": 7,
+         "method": "rule_of_three"
+        },
+        "hit@1": null,
+        "hit@3": null
+       },
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
+      },
+      "test": {
+       "cases": 15,
+       "status_counts": {
+        "not_found": 15
+       },
+       "errors": 0,
+       "auto": 0,
+       "wrong_auto": 0,
+       "wrong_auto_rate": null,
+       "auto_precision": null,
+       "auto_coverage": 0.0,
+       "gold_nonempty": 11,
+       "code_reached@0": 0.0,
+       "dialog_support": "not_supported",
+       "code_reached@1": 0.0,
+       "code_reached@2": 0.0,
+       "code_reached@3": 0.0,
+       "required_cases": 6,
+       "required_hit": 0.0,
+       "no_code_cases": 4,
+       "no_code_respected": 1.0,
+       "premature_auto": 0.0,
+       "dialog_wrong_final": 0,
+       "questions_mean": null,
+       "latency_ms_p50": 0.0,
+       "latency_ms_p95": 0.0,
+       "ci95": {
+        "code_reached@2": {
+         "value": 0.0,
+         "lo": 0.0,
+         "hi": 0.2727,
+         "n": 11,
+         "method": "rule_of_three"
+        },
+        "auto_precision": null,
+        "no_code_respected": {
+         "value": 1.0,
+         "lo": 0.25,
+         "hi": 1.0,
+         "n": 4,
+         "method": "rule_of_three"
+        },
+        "hit@1": null,
+        "hit@3": null
+       },
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
+      }
+     },
+     "cases": [
+      {
+       "id": "mm-lnf-0001",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400 Вт"
+      },
+      {
+       "id": "mm-lnf-0002",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400"
+      },
+      {
+       "id": "mm-lnf-0003",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 Вт"
+      },
+      {
+       "id": "mm-lnf-0004",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0005",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500, но меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0006",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность не меньше 500 и не больше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0007",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность 500-800 Вт"
+      },
+      {
+       "id": "mm-lnf-0008",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность >500 <800 Вт"
+      },
+      {
+       "id": "mm-lnf-0009",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0010",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 300 Вт"
+      },
+      {
+       "id": "mm-lnf-0011",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800, но меньше 500 Вт"
+      },
+      {
+       "id": "mm-lnf-0012",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500"
+      },
+      {
+       "id": "mm-lnf-0013",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 меньше 800"
+      },
+      {
+       "id": "mm-lnf-0014",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "шуруповерт бенчмарка, тип питания от сети, больше 500, но меньше 800 Вт"
+      },
+      {
+       "id": "mm-lnf-0015",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600 мм"
+      },
+      {
+       "id": "mm-lnf-0016",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600"
+      },
+      {
+       "id": "mm-lnf-0017",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 мм"
+      },
+      {
+       "id": "mm-lnf-0018",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0019",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000, но меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0020",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы не меньше 1000 и не больше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0021",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1000-1400 мм"
+      },
+      {
+       "id": "mm-lnf-0022",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы >1000 <1400 мм"
+      },
+      {
+       "id": "mm-lnf-0023",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1800 мм"
+      },
+      {
+       "id": "mm-lnf-0024",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0025",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1400, но меньше 1000 мм"
+      },
+      {
+       "id": "mm-lnf-0026",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000"
+      },
+      {
+       "id": "mm-lnf-0027",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 меньше 1400"
+      },
+      {
+       "id": "mm-lnf-0028",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "стол письменный бенчмарка, тип каркаса металлический, больше 1000, но меньше 1400 мм"
+      },
+      {
+       "id": "mm-lnf-0029",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост 173 см"
+      },
+      {
+       "id": "mm-lnf-0030",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост 173"
+      },
+      {
+       "id": "mm-lnf-0031",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170 см"
+      },
+      {
+       "id": "mm-lnf-0032",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0033",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170, но меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0034",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост не меньше 170 и не больше 182 см"
+      },
+      {
+       "id": "mm-lnf-0035",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост 170-182 см"
+      },
+      {
+       "id": "mm-lnf-0036",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост >170 <182 см"
+      },
+      {
+       "id": "mm-lnf-0037",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 188 см"
+      },
+      {
+       "id": "mm-lnf-0038",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост меньше 158 см"
+      },
+      {
+       "id": "mm-lnf-0039",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 182, но меньше 170 см"
+      },
+      {
+       "id": "mm-lnf-0040",
+       "split": "test",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 164, но меньше 170 см"
+      },
+      {
+       "id": "mm-lnf-0041",
+       "split": "test",
+       "expect": "code_after_questions",
+       "gold_size": 2,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170"
+      },
+      {
+       "id": "mm-lnf-0042",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, рост больше 170 меньше 182"
+      },
+      {
+       "id": "mm-lnf-0043",
+       "split": "test",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "халат медицинский бенчмарка, пол женский, больше 170, но меньше 182 см"
+      },
+      {
+       "id": "mm-lnf-0044",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525 мм"
+      },
+      {
+       "id": "mm-lnf-0045",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525"
+      },
+      {
+       "id": "mm-lnf-0046",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 мм"
+      },
+      {
+       "id": "mm-lnf-0047",
+       "split": "dev",
+       "expect": "code_after_questions",
+       "gold_size": 3,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0048",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450, но меньше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0049",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0050",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм"
+      },
+      {
+       "id": "mm-lnf-0051",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм"
+      },
+      {
+       "id": "mm-lnf-0052",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0053",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм"
+      },
+      {
+       "id": "mm-lnf-0054",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм"
+      },
+      {
+       "id": "mm-lnf-0055",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450"
+      },
+      {
+       "id": "mm-lnf-0056",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "not_found",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 0.0,
+       "error": null,
+       "dialog": {
+        "supported": false
+       },
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 меньше 600"
+      }
+     ]
+    }
+   }
+  }
+ }
+}

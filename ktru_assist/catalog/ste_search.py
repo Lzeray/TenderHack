@@ -3,42 +3,14 @@ from __future__ import annotations
 
 import argparse
 from collections import OrderedDict
-from decimal import Decimal, InvalidOperation
-from functools import lru_cache
+from decimal import Decimal
 import json
 from pathlib import Path
 import sqlite3
 import threading
-import re
 
-from ..components import property_component
-from ..nlp.extract import GENERIC_NAME_WORDS, PROPERTY_SYNONYMS
 from ..text import content_lemmas, norm
 from ..units import lookup
-
-
-@lru_cache(maxsize=8192)
-def property_matches(stored, requested, item_terms):
-    """Match the property and its owner, not just its physical dimension."""
-    if property_component(stored) != property_component(requested):
-        return False
-    def terms(name):
-        return {PROPERTY_SYNONYMS.get(t, t) for t in content_lemmas(name)
-                if t not in GENERIC_NAME_WORDS and t not in item_terms and lookup(t) is None}
-    wanted, actual = terms(requested), terms(stored)
-    if bool({"упаковка", "брутто", "тара"} & actual) != bool({"упаковка", "брутто", "тара"} & wanted):
-        return False
-    return wanted <= actual if wanted else norm(stored) == norm(requested)
-
-
-def decimal_cmp(a, b):
-    try:
-        left, right = Decimal(a), Decimal(b)
-        if left.is_finite() and right.is_finite():
-            return (left > right) - (left < right)
-    except (InvalidOperation, TypeError, ValueError):
-        pass
-    return None
 
 
 def build(src: Path, dst: Path):
@@ -84,11 +56,6 @@ class SteSearch:
     def __init__(self, path):
         self.con = sqlite3.connect(Path(path).resolve().as_uri() + "?mode=ro", uri=True, check_same_thread=False)
         self.con.row_factory = sqlite3.Row
-        self.con.create_function("decimal_cmp", 2, decimal_cmp, deterministic=True)
-        self.con.create_function("property_matches", 3,
-            lambda stored, requested, items: property_matches(stored, requested, tuple(items.split())), deterministic=True)
-        self.con.create_function("scalar_quantity", 1,
-            lambda value: bool(re.match(r"^[-+]?\d", value or "")), deterministic=True)
         self.lock = threading.Lock()
         self.cache = OrderedDict()
 
@@ -108,61 +75,43 @@ class SteSearch:
             return {"total": 0, "items": [], "offset": offset, "limit": limit}
         fts = " OR ".join('"' + t.replace('"', '""') + '"' for t in terms)
         where, params = ["p.id IN (SELECT rowid FROM names WHERE names MATCH ?)"], [fts]
-        applied, ignored = [], []
+        applied = []
         for a in attributes:
-            if a.get("confirmation") == "tentative" or a.get("status") in ("ambiguous", "proposed", "unknown_property") or a.get("intent") == "preference":
-                ignored.append({"name": a.get("name"), "reason": "Трактовка не подтверждена или является предпочтением"})
-                continue
-            before = len(applied)
             u = lookup(a.get("raw_unit") or a.get("unit") or "")
             val = a.get("raw_value") or a.get("value")
             if u and val is not None:
+                if a.get("op", "eq") != "eq":
+                    continue
                 try:
                     number = Decimal(str(val).replace(",", "."))
-                    upper = Decimal(str(a.get("value_to")).replace(",", ".")) if a.get("op") == "between" else None
-                except InvalidOperation:
-                    ignored.append({"name": a.get("name"), "reason": "Не удалось разобрать числовое условие"})
+                except Exception:
                     continue
-                if not number.is_finite() or (upper is not None and (not upper.is_finite() or upper < number)):
-                    ignored.append({"name": a.get("name"), "reason": "Некорректное число или границы диапазона"})
+                if not number.is_finite():
                     continue
+                # Exact decimal equality; no float comparisons or guessing numeric ranges.
                 base = format((number * u.factor).normalize(), "f")
-                op = a.get("op", "eq")
-                tests = {"eq": "a.number=?", "ne": "decimal_cmp(a.number,?)!=0", "ge": "decimal_cmp(a.number,?)>=0",
-                         "gt": "decimal_cmp(a.number,?)>0", "le": "decimal_cmp(a.number,?)<=0", "lt": "decimal_cmp(a.number,?)<0"}
-                test, bounds = tests.get(op), [base]
-                if op == "between":
-                    test = "decimal_cmp(a.number,?)" + (">=0" if a.get("min_inclusive", True) else ">0")
-                    test += " AND decimal_cmp(a.number,?)" + ("<=0" if a.get("max_inclusive", True) else "<0")
-                    bounds.append(format((upper * u.factor).normalize(), "f"))
-                if test and a.get("name"):
-                    where.append("EXISTS(SELECT 1 FROM attributes a WHERE a.product_id=p.id AND a.dimension=? "
-                                 "AND property_matches(a.name_key,?,?) AND scalar_quantity(a.value) AND " + test + ")")
-                    params.extend([u.dimension, a["name"], " ".join(terms), *bounds])
-                    applied.append(a)
-            elif val and a.get("op", "eq") in ("eq", "ne") and any(t in norm(a.get("name", "")) for t in ("цвет", "тип", "вид", "питани", "материал")):
+                where.append("EXISTS(SELECT 1 FROM attributes a WHERE a.product_id=p.id AND a.dimension=? AND a.number=?)")
+                params.extend([u.dimension, base])
+                applied.append(a)
+            elif val and a.get("op", "eq") == "eq" and any(t in norm(a.get("name", "")) for t in ("цвет", "тип", "вид", "питани", "материал")):
                 tokens = content_lemmas(str(val))
                 stems = [t[:-2] if len(t) > 5 else t for t in tokens]
                 if not stems:
                     continue
                 checks = " AND ".join("a.value LIKE ?" for _ in stems)
-                if a.get("op") == "ne":
-                    checks = "NOT (" + checks + ") AND a.value NOT IN ('', '-', 'не задано', 'неизвестно')"
                 family = next(t for t in ("цвет", "тип", "вид", "питани", "материал") if t in norm(a["name"]))
-                where.append("EXISTS(SELECT 1 FROM attributes a WHERE a.product_id=p.id AND a.name_key LIKE ? "
-                             "AND property_matches(a.name_key,?,?) AND " + checks + ")")
-                params.extend(["%" + family + "%", a["name"], " ".join(terms)])
+                where.append("EXISTS(SELECT 1 FROM attributes a WHERE a.product_id=p.id AND a.name_key LIKE ? AND " + checks + ")")
+                params.append("%" + family + "%")
                 params.extend("%" + t + "%" for t in stems)
                 applied.append(a)
-            elif val in ("Да", "Нет") and a.get("op", "eq") in ("eq", "ne") and "наличие" in norm(a.get("name", "")):
-                property_words = [t for t in content_lemmas(a["name"]) if t != "наличие"]
-                if not property_words:
-                    ignored.append({"name": a.get("name"), "reason": "Не указан предмет логической характеристики"})
+            elif val in ("Да", "Нет") and "наличие" in norm(a.get("name", "")):
+                terms = [t for t in content_lemmas(a["name"]) if t != "наличие"]
+                if not terms:
                     continue
-                noun = property_words[-1][:3]
-                yes = (val == "Да") != (a.get("op") == "ne")
-                if len(property_words) > 1:
-                    qualifier = property_words[0][:4]
+                noun = terms[-1][:3]
+                yes = val == "Да"
+                if len(terms) > 1:
+                    qualifier = terms[0][:4]
                     if yes:
                         where.append("EXISTS(SELECT 1 FROM attributes a WHERE a.product_id=p.id AND a.name_key LIKE ? AND ((a.name_key LIKE ? AND a.value LIKE '%да%') OR a.value LIKE ?))")
                         params.extend(["%"+noun+"%", "%"+qualifier+"%", "%"+qualifier+"%"])
@@ -173,8 +122,6 @@ class SteSearch:
                     where.append("EXISTS(SELECT 1 FROM attributes a WHERE a.product_id=p.id AND a.name_key LIKE ? AND a.value LIKE ?)")
                     params.extend(["%"+noun+"%", "%да%" if yes else "%нет%"])
                 applied.append(a)
-            if len(applied) == before:
-                ignored.append({"name": a.get("name"), "reason": "Свойство или операция пока не поддерживается в поиске СТЕ"})
         clause = " AND ".join(where)
         cache_key = (clause, tuple(params), offset, limit)
         with self.lock:
@@ -191,8 +138,7 @@ class SteSearch:
                 if len(self.cache) > 128:
                     self.cache.popitem(last=False)
         return {"total": total, "items": items, "offset": offset, "limit": limit,
-                "applied": applied, "ignored": ignored, "fully_checked": not ignored,
-                "note": "Фактические данные выгрузок СТЕ; не подтверждённое соответствие КТРУ"}
+                "applied": applied, "note": "Фактические данные выгрузок СТЕ; не подтверждённое соответствие КТРУ"}
 
 
 def main():

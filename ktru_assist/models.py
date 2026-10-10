@@ -91,6 +91,13 @@ class Feature(BaseModel):
     strict_ref: bool = False
     characteristic_ref: Optional[str] = None
     values: list[str] = Field(default_factory=list, max_length=30)
+    named_property: Optional[str] = Field(None, description="название свойства из текста, которого нет в области КТРУ")
+    dims: list[dict[str, Any]] = Field(default_factory=list,
+                                       description="габариты: числа по порядку [{value, unit}] (docs/DIMENSIONS_PLAN.md)")
+    dims_axes: list[str] = Field(default_factory=list, description="оси из подписи «ДхШхВ», если есть")
+    unit_inferred: bool = Field(False, description="единица подставлена системой (docs/UNITS_PLAN.md)")
+    bare: bool = Field(False, description="число без названия свойства и без единицы (docs/UNITS_PLAN.md, U2)")
+    property_inferred: bool = Field(False, description="свойство подставлено системой по распределениям значений")
 
 
 class Span(BaseModel):
@@ -181,9 +188,15 @@ class PropertyCheck(BaseModel):
     kind: Optional[int]
     status: Literal["valid", "invalid", "unknown"]
     reason: str
+    # почему unknown: not_specified — в описании нет; ambiguous — слово есть, но подходит к нескольким свойствам;
+    # property_absent — у позиции нет такого свойства; not_comparable — есть, но сравнить нельзя
+    # (единица, частичное совпадение); unconfirmed — трактовка модели не подтверждена
+    unknown_reason: Optional[Literal["not_specified", "ambiguous", "property_absent", "not_comparable",
+                                     "unconfirmed"]] = None
     allowed: list[str] = Field(default_factory=list)
     user_value: Optional[str] = None
     feature_id: Optional[str] = None
+    wider: bool = Field(False, description="valid, но значение КТРУ шире диапазона запроса (включает значения вне него)")
 
 
 class RankComponents(BaseModel):
@@ -230,7 +243,7 @@ class QuestionOption(BaseModel):
 
 
 class Question(BaseModel):
-    kind: Literal["property", "type", "manual_choice", "confirm"]
+    kind: Literal["property", "type", "manual_choice", "confirm", "dims"]
     property_code: Optional[str] = None
     property_name: Optional[str] = None
     text: str
@@ -272,6 +285,34 @@ class DomainProperty(BaseModel):
     values: list[str] = Field(default_factory=list, description="качественные значения (до 50)")
     positions: int
     ref: Optional[str] = None
+
+
+class EmpiricalCheck(BaseModel):
+    """Уровень 2: типичность значения признака по выгрузкам СТЕ. Относится к признаку, на отбор не влияет."""
+    feature_id: str
+    property_name: str
+    status: Literal["typical", "rare", "unseen", "not_assessed"]
+    reason: str = Field(description="текст для пользователя или причина not_assessed")
+    type_key: Optional[str] = None
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    # для свойства, которого нет в позициях КТРУ: known_for_type — указано у моделей этого типа в выгрузках;
+    # known_elsewhere — у этого типа нет, но есть у других типов
+    presence: Optional[Literal["known_for_type", "known_elsewhere"]] = None
+
+
+class Suggestion(BaseModel):
+    """Предложение уровня 3 (сомнительное значение). Не влияет на подбор: принятие — новый ввод."""
+    id: str = Field(description="устойчивый ключ; отклонённые передаются в SearchRequest.confirmed")
+    rule: Literal["scale", "unit_missing", "placeholder", "outlier", "relation"]
+    feature_id: str
+    property_name: str
+    original: str
+    proposed: Optional[str] = None
+    alternatives: list[str] = Field(default_factory=list)
+    replace_span: Optional[tuple[int, int]] = Field(None, description="что заменить в исходном тексте")
+    replacement_text: Optional[str] = None
+    message: str
+    evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class SearchResponse(BaseModel):
@@ -317,3 +358,5 @@ class SearchResponse(BaseModel):
     model_pending: bool = False
     results_total: int = 0
     ste_results: dict[str, Any] = Field(default_factory=dict)
+    suggestions: list[Suggestion] = Field(default_factory=list, description="уровень 3: сомнительные значения")
+    empirical: list[EmpiricalCheck] = Field(default_factory=list, description="уровень 2: типичность по выгрузкам СТЕ")

@@ -8,7 +8,7 @@ from decimal import Decimal
 from functools import cached_property
 from pathlib import Path
 
-from ..text import content_lemmas, norm, tokenize
+from ..text import MORPH_MODE, content_lemmas, norm, tokenize
 from ..units import Unit, fmt, from_okei, unit_from_char_name
 
 YES_NO = {"да", "нет"}
@@ -35,6 +35,19 @@ class Interval:
                 return False
             return a.hi < b.lo or (a.hi == b.lo and not (a.hi_incl and b.lo_incl))
         return not before(self, o) and not before(o, self)
+
+    @property
+    def is_point(self) -> bool:
+        return self.lo is not None and self.lo == self.hi
+
+    def overlaps_more_than_point(self, o: "Interval") -> bool:
+        """Пересечение содержит больше одной точки. Касание границей («до 140» и «≥ 140») — не пересечение
+        для диапазона (решение команды, docs/DIMENSIONS_PLAN.md)."""
+        if not self.intersects(o):
+            return False
+        lo = max((x for x in (self.lo, o.lo) if x is not None), default=None)
+        hi = min((x for x in (self.hi, o.hi) if x is not None), default=None)
+        return lo is None or hi is None or lo < hi
 
     def subset_of(self, o: "Interval") -> bool:
         if o.lo is not None:
@@ -180,6 +193,10 @@ class Catalog:
         self.con = sqlite3.connect(uri, uri=True, check_same_thread=False)
         self.con.row_factory = sqlite3.Row
         self._cache: dict[str, Position] = {}
+        built = self.meta.get("morph", "pymorphy")
+        if built != MORPH_MODE:
+            raise RuntimeError(f"База {self.db_path} собрана с KTRU_MORPH={built}, а сейчас KTRU_MORPH={MORPH_MODE}: "
+                               "леммы наименований не совпадут. Переимпортируйте каталог или смените режим.")
 
     # --- метаданные --------------------------------------------------------
     @cached_property

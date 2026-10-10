@@ -154,3 +154,147 @@ def test_repeatability(engine):
 def test_ambiguous_number_binding(engine):
     r = search(engine, "дрель ручная электрическая 15")
     assert r.final_code is None
+
+
+def test_single_name_needs_support_from_text(engine):
+    # в области одно наименование «Дрель ручная электрическая», но в описании только главное слово:
+    # тип не подтверждается автоматически, первым идёт вопрос-подтверждение
+    r = search(engine, "дрель от сети мощность 600 вт")
+    assert r.status != "matched" and r.final_code is None
+    assert r.question is not None and r.question.kind == "type"
+    r2 = search(engine, "дрель электрическая от сети мощность 600 вт")
+    assert r2.status == "matched" and r2.final_code == "28.24.11.000-92000001"
+
+
+def test_word_after_preposition_is_not_type(engine):
+    # «подставка для дрели»: дрель — назначение, а не тип товара
+    r = search(engine, "подставка для дрели ручной электрической")
+    assert r.status == "not_found" and r.final_code is None
+
+
+def test_contradictory_values_block_code(engine):
+    # переизбыток данных: одно свойство указано двумя несовместимыми значениями
+    r = search(engine, "пассатижи слесарные длина 170 мм, длина 210 мм")
+    assert r.status == "conflict" and r.final_code is None
+    assert any(i.code == "contradictory_values" for i in r.issues)
+    assert r.question is not None and len(r.question.options) == 2
+    # одно и то же значение в разных единицах — не противоречие
+    r2 = search(engine, "пассатижи слесарные длина 17 см, 170 мм")
+    assert not any(i.code == "contradictory_values" for i in r2.issues)
+
+
+def test_repeated_boolean_mentions_are_all_checked(engine):
+    r = search(engine, "стул на металлическом каркасе с мягким сиденьем, без мягкого сиденья")
+    assert r.final_code is None
+    assert any(i.code == "contradictory_values" for i in r.issues)
+
+
+def test_unknown_reason_separates_not_specified(engine):
+    # «не указано» и «не удалось проверить» — разные причины unknown
+    r = search(engine, "шкаф для документов металлический ширина 0,8 км")
+    for c in r.candidates:
+        for k in c.checks:
+            assert (k.status == "unknown") == (k.unknown_reason is not None)
+            if k.feature_id is None and k.status == "unknown":
+                assert k.unknown_reason in ("not_specified", "ambiguous")
+
+
+def test_level3_scale_suggestion_and_keep(engine):
+    # 140 В не подходит ни одной позиции (12–18 В); ровно одно объяснение — пропущенная запятая: 14 В
+    text = "дрель ручная электрическая аккумуляторная напряжение аккумулятора 140 В"
+    r = search(engine, text)
+    s = next(s for s in r.suggestions if s.rule == "scale")
+    assert s.proposed == "14 В"
+    a, b = s.replace_span
+    fixed = text[:a] + s.replacement_text + text[b:]
+    assert fixed.endswith("напряжение аккумулятора 14 В")
+    assert not search(engine, fixed).suggestions
+    # «Оставить»: ключ в confirmed — предложение больше не показывается, проверка по КТРУ не меняется
+    r2 = engine.search(SearchRequest(text=text, confirmed=[s.id]))
+    assert not r2.suggestions and r2.status == r.status
+
+
+def test_level3_other_unit(engine):
+    r = search(engine, "дрель ручная электрическая от сети мощность 0,6 Вт")
+    s = next(s for s in r.suggestions if s.rule == "scale")
+    assert s.proposed == "0,6 кВт"
+
+
+def test_level3_does_not_change_level1(engine):
+    # уровень 3 не влияет на кандидатов и код
+    text = "дрель ручная электрическая аккумуляторная напряжение аккумулятора 140 В"
+    r = search(engine, text)
+    r_keep = engine.search(SearchRequest(text=text, confirmed=[s.id for s in r.suggestions]))
+    assert [c.code for c in r.candidates] == [c.code for c in r_keep.candidates]
+    assert r.final_code == r_keep.final_code
+
+
+def _check(r, code, name):
+    c = next(c for c in r.candidates if c.code == code)
+    return next(k for k in c.checks if k.property_name == name)
+
+
+def test_range_covering_steps_is_compatible(engine):
+    # «от 160 до 200»: обе ступени [160;180) и [180;200] целиком внутри — подходят, пометки нет
+    k = _check(search(engine, "пассатижи слесарные длина от 160 до 200 мм"), "25.73.30.163-90000001", "Длина")
+    assert k.status == "valid" and not k.wider
+
+
+def test_range_partially_inside_step_is_wider(engine):
+    # «от 170 до 190»: ни одна ступень не внутри целиком — совместимо, но значение КТРУ шире запроса
+    k = _check(search(engine, "пассатижи слесарные длина от 170 до 190 мм"), "25.73.30.163-90000001", "Длина")
+    assert k.status == "valid" and k.wider
+
+
+def test_range_boundary_point_is_not_neighbour_step(engine):
+    # «от 160 до 180»: ступень [160;180); [180;200] касается одной точкой 180 и не считается
+    k = _check(search(engine, "пассатижи слесарные длина от 160 до 180 мм"), "25.73.30.163-90000001", "Длина")
+    assert k.status == "valid" and not k.wider and "180 и" not in k.reason.split("подходит")[1]
+
+
+def test_approx_is_five_percent_for_measures_only(engine):
+    f = next(f for f in search(engine, "пассатижи слесарные длина около 180 мм").features if f.property_name == "Длина")
+    assert (f.op, f.value, f.value_to) == ("between", "171", "189")
+
+
+def test_unit_single_candidate_is_inferred(engine):
+    # напряжение: в справочнике единственная подходящая единица — В; подставляется без вопроса
+    r = search(engine, "дрель ручная электрическая аккумуляторная напряжение аккумулятора 14")
+    f = next(f for f in r.features if f.property_name == "Напряжение аккумулятора")
+    assert f.unit == "В" and f.unit_inferred
+    c = next(c for c in r.candidates if c.code == "28.24.11.000-92000002")
+    assert next(k for k in c.checks if k.feature_id == f.id).status == "valid"
+
+
+def test_unit_ambiguous_without_statistics_asks(engine):
+    # без выгрузок 180 мм / 180 см / 180 м все допустимы по КТРУ (открытая ступень «> 200 мм») — вопрос
+    r = search(engine, "пассатижи слесарные длина 180")
+    f = next(f for f in r.features if f.property_name == "Длина")
+    assert f.unit is None and not f.unit_inferred
+    assert r.question is not None and "В каких единицах" in r.question.text
+    assert {o.label for o in r.question.options} >= {"180 мм", "180 см"}
+
+
+def test_unit_from_sibling_feature(engine):
+    # единица соседнего признака той же размерности — сильная подсказка: «ширина 42» рядом с «… 45 см» → см
+    from ktru_assist.models import Feature
+    from ktru_assist.unit_infer import infer
+    pos = list(engine.catalog.get_many(["31.01.11.150-91000001"]).values())
+    sib = Feature(id="a", source="text", status="bound", property_name="Высота", value="45", unit="см")
+    f = Feature(id="b", source="text", status="bound", property_name="Ширина сиденья", value="42")
+    assert infer([f], pos, ["стул"], None) is not None and f.unit is None       # без соседа — вопрос
+    assert infer([sib, f], pos, ["стул"], None) is None and f.unit == "см" and f.unit_inferred
+
+
+def test_bare_number_guards(engine):
+    # опечатка в числе («18о») и номер («№1») — не значения свойства
+    for text in ("пассатижи слесарные 18о мм", "пассатижи слесарные «Модель 51»", "пассатижи слесарные №7"):
+        r = search(engine, text)
+        assert not any(f.bare or f.property_inferred for f in r.features), text
+
+
+def test_bare_number_without_statistics_is_not_guessed(engine):
+    # без статистики выгрузок свойство не угадывается: пометка «уточните», код не блокируется
+    r = search(engine, "пассатижи слесарные 180")
+    f = next(f for f in r.features if f.value == "180")
+    assert f.status == "unknown_property" and not f.property_inferred

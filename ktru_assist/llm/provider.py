@@ -26,7 +26,7 @@ class ProviderResult:
 class OllamaProvider:
     name = "ollama"
 
-    def __init__(self, url: str, model: str, timeout_s: float = 20.0, num_ctx: int = 8192, num_predict: int = 1024,
+    def __init__(self, url: str, model: str, timeout_s: float = 20.0, num_ctx: int = 12288, num_predict: int = 1536,
                  seed: int = 0):
         self.url = url.rstrip("/")
         self.model = model

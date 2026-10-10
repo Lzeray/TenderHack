@@ -15,7 +15,7 @@ from functools import lru_cache
 
 from .config import ROOT
 from .models import Feature
-from .text import content_lemmas
+from .text import content_lemmas, lemma
 from .units import Unit, fmt, lookup
 
 
@@ -46,7 +46,8 @@ def load_rules() -> tuple[str, tuple[Rule, ...]]:
     raw = json.loads((ROOT / "data" / "plausibility_rules.json").read_text(encoding="utf-8"))
     rules = []
     for r in raw["rules"]:
-        rules.append(Rule(r["id"], tuple(r["scope"]), tuple(r["property_core"]),
+        # ядра сравниваются через ту же нормализацию слов, что и названия свойств (лемма или основа)
+        rules.append(Rule(r["id"], tuple(r["scope"]), tuple(lemma(w) for w in r["property_core"]),
                           lookup(r["unit"]) if r.get("unit") else None,
                           Decimal(r["max"]) if "max" in r else None, Decimal(r["min"]) if "min" in r else None,
                           bool(r.get("min_inclusive", False)), r["severity"], r["status"], r["basis"]))

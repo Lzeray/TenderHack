@@ -1,7 +1,10 @@
 // Проверки правил применения ответов (план, п. 10.2). Запуск: node --test tests/web/
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import * as S from "../../frontend/src/state.js";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const S = require("../../ktru_assist/web/state.js");
 
 const resp = (s, revision, stage, extra = {}) => ({ session_id: s.sessionId, revision, stage, stale: false, ...extra });
 

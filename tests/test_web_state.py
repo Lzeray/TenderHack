@@ -17,6 +17,6 @@ def test_client_state_rules():
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="node не установлен")
 def test_app_js_syntax():
-    for f in ("src/state.js", "src/useSearch.js", "vite.config.js"):
-        r = subprocess.run(["node", "--check", str(ROOT / "frontend" / f)], capture_output=True, text=True)
+    for f in ("app.js", "state.js"):
+        r = subprocess.run(["node", "--check", str(ROOT / "ktru_assist" / "web" / f)], capture_output=True, text=True)
         assert r.returncode == 0, r.stderr

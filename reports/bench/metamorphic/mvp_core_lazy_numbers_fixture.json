@@ -1,0 +1,2627 @@
+{
+ "adapter": "ktru:core",
+ "info": {
+  "adapter": "ktru:core",
+  "versions": {
+   "api": "1.0",
+   "importer": "1.0",
+   "normalizer": "1.0",
+   "typos": "1.0",
+   "extractor": "1.0",
+   "validator": "1.0",
+   "ranking": "1.0",
+   "clarifier": "1.0",
+   "package": "0.1.0",
+   "catalog_snapshot": "nsiKTRUNew_all_actual_bench",
+   "catalog_as_of": "2026-10-09",
+   "search_backend": "local-bm25"
+  }
+ },
+ "date": "2026-10-10 10:08",
+ "machine": {
+  "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
+  "python": "3.13.16"
+ },
+ "split": null,
+ "suites": {
+  "lazy_numbers_fixture": {
+   "summary": {
+    "cases": 56,
+    "errors": 0,
+    "status_counts": {
+     "clarification": 17,
+     "manual_choice": 15,
+     "matched": 24
+    },
+    "pass_rate": 0.25,
+    "status_accuracy": 0.446,
+    "auto_coverage": 0.429,
+    "auto_correct": 11,
+    "auto_incorrect": 13,
+    "auto_precision": 0.458,
+    "error_upper95": null,
+    "required_auto_hit": 0.241,
+    "forbidden_auto_violations": 13,
+    "forbidden_code_hits": 13,
+    "compatible_recall": 0.778,
+    "checks_pass": 0.087,
+    "checks_not_supported": 0,
+    "checks_by_type": {
+     "same_as": {
+      "pass": 2,
+      "fail": 21,
+      "not_supported": 0
+     }
+    },
+    "dialog_resolved": 0.852,
+    "dialog_cases": 27,
+    "dialog_not_supported": 0,
+    "dialog_steps_mean": 1.78,
+    "latency_ms": {
+     "p50": 1.93,
+     "p95": 3.17,
+     "max": 4.29,
+     "mean": 2.05
+    },
+    "determinism": 1.0,
+    "over_asking": 0.621,
+    "ranking": {
+     "ranked_cases": 45,
+     "hit@1": 0.4,
+     "hit@3": 0.778,
+     "hit@5": 0.778,
+     "mrr": 0.563,
+     "ndcg@3": 0.559,
+     "type_hit@1": 1.0,
+     "gold_rank_median": 1,
+     "gold_not_listed": 0.222,
+     "list_size_median": 1,
+     "list_precision_mean": 0.544,
+     "dialog_traced": 45,
+     "mrr_by_step": [
+      0.563,
+      0.763,
+      0.778,
+      0.778,
+      0.778,
+      0.778,
+      0.778
+     ],
+     "hit1_by_step": [
+      0.4,
+      0.756,
+      0.778,
+      0.778,
+      0.778,
+      0.778,
+      0.778
+     ],
+     "rank_by_step": [
+      1.69,
+      1.06,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "top1_reached": 0.778,
+     "questions_to_top1_mean": 0.51,
+     "bits_per_question": 0.634,
+     "useless_question_rate": 0.553,
+     "dead_end_rate": 0.067
+    }
+   },
+   "cases": [
+    {
+     "id": "mm-lnf-0001",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400 Вт",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "28.24.11.000-95000021"
+     ],
+     "status": "matched",
+     "final_code": "28.24.11.000-95000021",
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0002",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "28.24.11.000-95000021"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "28.24.11.000-95000021",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0003",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 Вт",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "28.24.11.000-95000022",
+      "28.24.11.000-95000023"
+     ],
+     "status": "matched",
+     "final_code": "28.24.11.000-95000022",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0004",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 800 Вт",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "28.24.11.000-95000021",
+      "28.24.11.000-95000022"
+     ],
+     "status": "matched",
+     "final_code": "28.24.11.000-95000023",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": false,
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0005",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500, но меньше 800 Вт",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "28.24.11.000-95000022"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": false,
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "dialog": {
+      "resolved": false,
+      "steps": 0,
+      "final_code": null,
+      "reason": "no_option"
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": true
+     }
+    },
+    {
+     "id": "mm-lnf-0006",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность не меньше 500 и не больше 800 Вт",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "28.24.11.000-95000022",
+      "28.24.11.000-95000023"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "28.24.11.000-95000023",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       0.0
+      ],
+      "useless": 1,
+      "questions": 1,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0007",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность 500-800 Вт",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "28.24.11.000-95000022",
+      "28.24.11.000-95000023"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0008",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность >500 <800 Вт",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "28.24.11.000-95000022"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 0.5,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0009",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800 Вт",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "28.24.11.000-95000023"
+     ],
+     "status": "matched",
+     "final_code": "28.24.11.000-95000023",
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0010",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 300 Вт",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "matched",
+     "final_code": "28.24.11.000-95000021",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0011",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800, но меньше 500 Вт",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0012",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "28.24.11.000-95000022",
+      "28.24.11.000-95000023"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6934,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.6667,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0013",
+     "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 меньше 800",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "28.24.11.000-95000022"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0014",
+     "text": "шуруповерт бенчмарка, тип питания от сети, больше 500, но меньше 800 Вт",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "28.24.11.000-95000022"
+     ],
+     "status": "matched",
+     "final_code": "28.24.11.000-95000023",
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": false,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0015",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "31.01.10.000-95000003"
+     ],
+     "status": "matched",
+     "final_code": "31.01.10.000-95000003",
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0016",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "31.01.10.000-95000003"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "31.01.10.000-95000003",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0017",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "31.01.10.000-95000002",
+      "31.01.10.000-95000003"
+     ],
+     "status": "matched",
+     "final_code": "31.01.10.000-95000002",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0018",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 1400 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "31.01.10.000-95000001",
+      "31.01.10.000-95000002"
+     ],
+     "status": "matched",
+     "final_code": "31.01.10.000-95000003",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": false,
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0019",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000, но меньше 1400 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "31.01.10.000-95000002"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": false,
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "dialog": {
+      "resolved": false,
+      "steps": 0,
+      "final_code": null,
+      "reason": "no_option"
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": true
+     }
+    },
+    {
+     "id": "mm-lnf-0020",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы не меньше 1000 и не больше 1400 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "31.01.10.000-95000002",
+      "31.01.10.000-95000003"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "31.01.10.000-95000003",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       0.0
+      ],
+      "useless": 1,
+      "questions": 1,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0021",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1000-1400 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "31.01.10.000-95000002",
+      "31.01.10.000-95000003"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0022",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы >1000 <1400 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "31.01.10.000-95000002"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 0.5,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0023",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1800 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "matched",
+     "final_code": "31.01.10.000-95000003",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0024",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 600 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "matched",
+     "final_code": "31.01.10.000-95000001",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0025",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1400, но меньше 1000 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0026",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "31.01.10.000-95000002",
+      "31.01.10.000-95000003"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6934,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.6667,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0027",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 меньше 1400",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "31.01.10.000-95000002"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0028",
+     "text": "стол письменный бенчмарка, тип каркаса металлический, больше 1000, но меньше 1400 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "31.01.10.000-95000002"
+     ],
+     "status": "matched",
+     "final_code": "31.01.10.000-95000003",
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": false,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0029",
+     "text": "халат медицинский бенчмарка, пол женский, рост 173 см",
+     "split": "test",
+     "auto": "required",
+     "acceptable": [
+      "14.12.30.190-95000032"
+     ],
+     "status": "matched",
+     "final_code": "14.12.30.190-95000032",
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0030",
+     "text": "халат медицинский бенчмарка, пол женский, рост 173",
+     "split": "test",
+     "auto": "required",
+     "acceptable": [
+      "14.12.30.190-95000032"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0031",
+     "text": "халат медицинский бенчмарка, пол женский, рост больше 170 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [
+      "14.12.30.190-95000032",
+      "14.12.30.190-95000033"
+     ],
+     "status": "matched",
+     "final_code": "14.12.30.190-95000032",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0032",
+     "text": "халат медицинский бенчмарка, пол женский, рост меньше 182 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [
+      "14.12.30.190-95000031",
+      "14.12.30.190-95000032"
+     ],
+     "status": "matched",
+     "final_code": "14.12.30.190-95000033",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": false,
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0033",
+     "text": "халат медицинский бенчмарка, пол женский, рост больше 170, но меньше 182 см",
+     "split": "test",
+     "auto": "required",
+     "acceptable": [
+      "14.12.30.190-95000032"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": false,
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "dialog": {
+      "resolved": false,
+      "steps": 0,
+      "final_code": null,
+      "reason": "no_option"
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": true
+     }
+    },
+    {
+     "id": "mm-lnf-0034",
+     "text": "халат медицинский бенчмарка, пол женский, рост не меньше 170 и не больше 182 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [
+      "14.12.30.190-95000032",
+      "14.12.30.190-95000033"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "14.12.30.190-95000033",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       0.0
+      ],
+      "useless": 1,
+      "questions": 1,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0035",
+     "text": "халат медицинский бенчмарка, пол женский, рост 170-182 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [
+      "14.12.30.190-95000032",
+      "14.12.30.190-95000033"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0036",
+     "text": "халат медицинский бенчмарка, пол женский, рост >170 <182 см",
+     "split": "test",
+     "auto": "required",
+     "acceptable": [
+      "14.12.30.190-95000032"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 0.5,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0037",
+     "text": "халат медицинский бенчмарка, пол женский, рост больше 188 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "matched",
+     "final_code": "14.12.30.190-95000033",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0038",
+     "text": "халат медицинский бенчмарка, пол женский, рост меньше 158 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "matched",
+     "final_code": "14.12.30.190-95000031",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0039",
+     "text": "халат медицинский бенчмарка, пол женский, рост больше 182, но меньше 170 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0040",
+     "text": "халат медицинский бенчмарка, пол женский, рост больше 164, но меньше 170 см",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0041",
+     "text": "халат медицинский бенчмарка, пол женский, рост больше 170",
+     "split": "test",
+     "auto": "forbidden",
+     "acceptable": [
+      "14.12.30.190-95000032",
+      "14.12.30.190-95000033"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6934,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.6667,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0042",
+     "text": "халат медицинский бенчмарка, пол женский, рост больше 170 меньше 182",
+     "split": "test",
+     "auto": "required",
+     "acceptable": [
+      "14.12.30.190-95000032"
+     ],
+     "status": "manual_choice",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0043",
+     "text": "халат медицинский бенчмарка, пол женский, больше 170, но меньше 182 см",
+     "split": "test",
+     "auto": "required",
+     "acceptable": [
+      "14.12.30.190-95000032"
+     ],
+     "status": "matched",
+     "final_code": "14.12.30.190-95000033",
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": false,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0044",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "matched",
+     "final_code": "25.73.30.110-95000013",
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0045",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0046",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "matched",
+     "final_code": "25.73.30.110-95000013",
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0047",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 600 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [
+      "25.73.30.110-95000011",
+      "25.73.30.110-95000012",
+      "25.73.30.110-95000013"
+     ],
+     "status": "matched",
+     "final_code": "25.73.30.110-95000013",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.4693,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0048",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450, но меньше 600 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585
+      ],
+      "useless": 0,
+      "questions": 1,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0049",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {},
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585
+      ],
+      "useless": 0,
+      "questions": 1,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0050",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "matched",
+     "final_code": "25.73.30.110-95000013",
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0051",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "pass"
+     },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": false,
+      "steps": 6,
+      "final_code": null,
+      "reason": "max_steps"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       3,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 2,
+      "bits": [
+       0.0,
+       1.585,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "useless": 5,
+      "questions": 6,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0052",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "matched",
+     "final_code": "25.73.30.110-95000013",
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0053",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000011"
+     ],
+     "status": "matched",
+     "final_code": "25.73.30.110-95000012",
+     "pass": false,
+     "status_ok": true,
+     "auto_ok": false,
+     "auto_incorrect": true,
+     "forbidden_code_hit": true,
+     "compatible_recall": false,
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0054",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм",
+     "split": "dev",
+     "auto": "forbidden",
+     "acceptable": [],
+     "status": "clarification",
+     "final_code": null,
+     "pass": true,
+     "status_ok": true,
+     "auto_ok": true,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": null,
+     "checks": {},
+     "ranking": null
+    },
+    {
+     "id": "mm-lnf-0055",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    },
+    {
+     "id": "mm-lnf-0056",
+     "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 меньше 600",
+     "split": "dev",
+     "auto": "required",
+     "acceptable": [
+      "25.73.30.110-95000013"
+     ],
+     "status": "clarification",
+     "final_code": null,
+     "pass": false,
+     "status_ok": false,
+     "auto_ok": false,
+     "auto_incorrect": false,
+     "forbidden_code_hit": false,
+     "compatible_recall": true,
+     "checks": {
+      "0:same_as": "pass"
+     },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
+     }
+    }
+   ]
+  }
+ }
+}

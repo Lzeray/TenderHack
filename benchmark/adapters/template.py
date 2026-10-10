@@ -20,6 +20,7 @@ class MyAdapter(Adapter):
         # Пример для решения с HTTP API — замените своим вызовом и приведите ответ к общему формату.
         # r = requests.post("http://localhost:9000/match", json={"query": text}).json()
         # return {"status": "matched" if r["code"] else "clarification", "final_code": r["code"],
-        #         "compatible_codes": r.get("candidates"), "features": None, "warnings": r.get("errors")}
+        #         "compatible_codes": r.get("candidates"), "ranked_codes": r.get("candidates"),  # лучший первым
+        #         "features": None, "warnings": r.get("errors")}
         return {"status": "clarification", "final_code": None, "compatible_codes": None, "features": None,
                 "warnings": None}

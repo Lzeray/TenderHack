@@ -22,6 +22,7 @@
 from __future__ import annotations
 
 import itertools
+import re
 import json
 from dataclasses import dataclass, field
 from decimal import Decimal
@@ -31,18 +32,34 @@ from ..catalog.repository import Position, Prop
 from ..components import canonical_key, component_of_lemma, property_component
 from ..config import ROOT
 from ..models import Feature
-from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, norm, tokenize
+from ..dims import AXES, axis_of, context_of
+from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_of_literal, lemma_set, norm, tokenize
 from ..units import BY_KEY, fmt
 from .normalize import NormalizedQuery, Token
 
-GENERIC_NAME_WORDS = {"наличие", "вид", "тип", "функция", "возможность", "количество", "показатель", "конструкция",
-                      "значение", "характеристика", "исполнение"}
+GENERIC_NAME_WORDS = lemma_set({"наличие", "вид", "тип", "функция", "возможность", "количество", "показатель",
+                                "конструкция", "значение", "характеристика", "исполнение"})
 GE_WORDS = {("не", "менее"), ("не", "меньше"), ("не", "ниже"), ("от",), ("более",), ("больше",),
             ("свыше",), (">=",), ("≥",), (">",), ("минимум",)}
 LE_WORDS = {("не", "более"), ("не", "больше"), ("не", "выше"), ("до",), ("менее",), ("меньше",),
             ("<=",), ("≤",), ("<",), ("максимум",)}
 STRICT = {("более",), ("больше",), ("свыше",), (">",), ("менее",), ("меньше",), ("<",)}
 BOUNDARY = {",", ";", ":", "(", ")"}
+def _as_number(s: str) -> Decimal | None:
+    try:
+        return Decimal(s.replace(",", "."))
+    except Exception:
+        return None
+
+
+# габариты: подпись осей «дхшхв», «шхгхв» (после нормализации — одно слово), общие слова и упаковка
+DIMS_LABEL = re.compile(r"[дшгв](?:[xх][дшгв]){1,2}")
+AXIS_LETTER = {"д": "длина", "ш": "ширина", "г": "глубина", "в": "высота"}
+DIMS_WORDS = lemma_set({"габарит", "габаритный", "размер"})
+PACKAGING_WORDS = lemma_set({"упаковка", "коробка", "тара"})
+# «около / примерно X»: у измеряемых величин — интервал ±5 % (Decimal, без округления)
+APPROX_WORDS = {"около", "примерно", "приблизительно", "порядка", "ориентировочно"}
+APPROX_LO, APPROX_HI = Decimal("0.95"), Decimal("1.05")
 
 
 @dataclass
@@ -156,7 +173,7 @@ def _terms_present(terms: list[str], tokens: list[Token], idxs: list[int]) -> li
 
 
 # Синонимы слов в названиях свойств (проверенные вручную по каталогу).
-PROPERTY_SYNONYMS = {"вес": "масса"}
+PROPERTY_SYNONYMS = {lemma_of_literal("вес"): lemma_of_literal("масса")}
 
 
 @dataclass(frozen=True)
@@ -185,15 +202,20 @@ def value_aliases_version() -> str:
 
 
 def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
-                    forward_only: bool = False) -> tuple[str, int] | None:
+                    forward_only: bool = False, include_self: bool = False,
+                    exclude: frozenset[int] = frozenset()) -> tuple[str, int] | None:
     """Часть товара, названная вплотную к значению (± dist слов, без пересечения границ и чисел).
 
     forward_only — для названий свойств: часть стоит после них в родительном падеже («высота каркаса»).
+    include_self — часть может быть словом самого найденного названия свойства («высота сиденья»);
+    для значений не используется: «ножки» — это значение «Тип опоры», а не часть товара.
+    Слова, уже объяснённые другим признаком («масса головки», «металлическом каркасе»), не считаются.
     """
-    for j in idxs:
-        c = component_of_lemma(tokens[j].lemma) if tokens[j].kind == "word" else None
-        if c:
-            return c, j
+    if include_self:
+        for j in idxs:
+            c = component_of_lemma(tokens[j].lemma) if tokens[j].kind == "word" else None
+            if c:
+                return c, j
     lo, hi = min(idxs), max(idxs)
     order = []
     for d in range(1, dist + 1):
@@ -205,7 +227,7 @@ def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
         if any(tokens[k].lemma in BOUNDARY or tokens[k].kind == "number" for k in between):
             continue
         t = tokens[j]
-        if t.kind != "word" or t.lemma in BOUNDARY:
+        if t.kind != "word" or t.lemma in BOUNDARY or t.used_by is not None or j in exclude:
             continue
         c = component_of_lemma(t.lemma)
         if c:
@@ -238,10 +260,12 @@ def _negated(tokens: list[Token], first: int) -> bool:
 
 class Extractor:
     def __init__(self, groups: dict[str, PropGroup], known_terms: set[str] | None = None,
-                 product_names: list[str] | None = None):
+                 name_tokens: set[int] | None = None, type_heads: list[str] | None = None):
         self.groups = groups
-        self.product_names = {tuple(content_lemmas(name)) for name in product_names or []}
-        self.explicit_properties: set[str] = set()
+        # главные слова типа: «Глубина стеллажа» — общая ось, «Глубина секции стеллажа» — размер части
+        self.axis_context = context_of((), type_heads or [])
+        # индексы токенов, которыми в описании записано наименование типа
+        self.name_tokens = frozenset(name_tokens or ())
         # ключевые слова названий свойств по всему каталогу MVP: чтобы отличать «нет такого
         # свойства у этого типа» от «непонятного слова»
         self.known_terms = known_terms or set()
@@ -264,6 +288,10 @@ class Extractor:
                 tokens[i].used_by = fid
         raw = nq.raw_span(*span) if span else None
         kw.setdefault("component", g.component if g else None)
+        if any(tokens[i].text in APPROX_WORDS for i in idxs):
+            exact = kw.get("op", "eq") == "eq"
+            kw["note"] = (kw.get("note") or "") + ("; указано приблизительно — проверяется как точное значение" if exact
+                                                   else "; указано приблизительно — допуск ±5 %")
         return Feature(id=fid, source="text", status=status,
                        property_code=g.codes[0] if g else None, property_name=g.name if g else None,
                        evidence=nq.text[span[0]:span[1]] if span else None, span=span, raw_span=raw,
@@ -274,11 +302,95 @@ class Extractor:
         self._nq_text = nq.text
         feats: list[Feature] = []
         feats += self._explicit_pairs(nq)
-        self.explicit_properties = {f.property_name for f in feats if f.status == "bound"}
+        feats += self._dimensions(nq)
         feats += self._numbers(nq)
         feats += self._booleans(nq)
         feats += self._value_aliases(nq)
+        # свойства, уже заданные явно или найденные раньше, не получают значение только из слов наименования
+        self._bound_keys = {" ".join(tokenize(f.property_name)) for f in feats
+                            if f.status == "bound" and f.property_name}
         feats += self._qualities(nq)
+        return feats
+
+    @staticmethod
+    def _bare_number_ok(tokens: list[Token], used: list[int], nq: NormalizedQuery | None = None) -> bool:
+        """Голое число может быть значением свойства, только если оно не часть артикула или названия модели
+        («GSR 18-2-LI», «PH2», «№41»), не слито с буквами в исходном тексте («18о мм» — опечатка в числе, её
+        не исправляем) и не описывает следующее слово («50 пар», «3 полки», «12-14 лет»)."""
+        lo, hi = min(used), max(used)
+        if nq is not None:
+            for k in (lo, hi):
+                rs = nq.raw_span(tokens[k].start, tokens[k].end)
+                if rs is not None:
+                    raw = nq.original
+                    a, b = rs
+                    glued = "-/№#._«»\"'"  # артикул, номер, название в кавычках («51»)
+                    if (a > 0 and (raw[a - 1].isalpha() or raw[a - 1] in glued)) or                             (b < len(raw) and (raw[b].isalpha() or raw[b] in glued)):
+                        return False
+        # ведущий ноль («000-006») — артикул, а не значение
+        if any(tokens[k].kind == "number" and len(tokens[k].text) > 1 and tokens[k].text[0] == "0"
+               and tokens[k].text[1].isdigit() for k in used):
+            return False
+        for k in (lo - 1, hi + 1):
+            if 0 <= k < len(tokens):
+                t = tokens[k]
+                if t.kind == "code" or re.search(r"[a-z]", t.text) or t.text in ("№", "#", "-", "/"):
+                    return False
+        nxt = tokens[hi + 1] if hi + 1 < len(tokens) else None
+        if nxt is not None and nxt.kind == "word" and nxt.lemma not in STOPWORDS:
+            return False
+        return True
+
+    # габариты «120 x 60 x 75 см» ---------------------------------------------------
+    def _dimensions(self, nq: NormalizedQuery) -> list[Feature]:
+        """Габариты из 2–3 чисел через «x» (после нормализации: «х», «×», «*», «на»).
+
+        Признак остаётся неоднозначным: оси назначает движок (ktru_assist/dims.py::resolve) по общим размерам
+        типа, ступеням КТРУ и выгрузкам и спрашивает пользователя. Подпись «ДхШхВ» перед числами задаёт оси.
+        «В упаковке 120х60х10» — не размеры товара. docs/DIMENSIONS_PLAN.md, D4."""
+        tokens, n, feats = nq.tokens, len(nq.tokens), []
+        i = 0
+        while i < n:
+            if tokens[i].kind != "number" or tokens[i].used_by is not None:
+                i += 1
+                continue
+            nums, k = [(i, None)], i + 1
+            if k < n and tokens[k].kind == "unit":
+                nums[-1] = (i, k)
+                k += 1
+            while k + 1 < n and tokens[k].text == "x" and tokens[k + 1].kind == "number" and len(nums) < 3:
+                nums.append((k + 1, None))
+                k += 2
+                if k < n and tokens[k].kind == "unit":
+                    nums[-1] = (nums[-1][0], k)
+                    k += 1
+            if len(nums) < 2:
+                i += 1
+                continue
+            last_unit = next((u for _, u in reversed(nums) if u is not None), None)
+            dims = []
+            for j, u in nums:
+                ut = u if u is not None else last_unit
+                dims.append({"value": fmt(Decimal(tokens[j].lemma)),
+                             "unit": BY_KEY[tokens[ut].unit_key].title if ut is not None and tokens[ut].unit_key else None})
+            idxs = [j for j, _ in nums] + [u for _, u in nums if u is not None] +                 [x for x in range(i, k) if tokens[x].text == "x"]
+            back = [x for x in range(max(0, i - 4), i) if tokens[x].used_by is None]
+            label = next((x for x in back if DIMS_LABEL.fullmatch(tokens[x].text)), None)
+            axes = [AXIS_LETTER[c] for c in tokens[label].text[::2]] if label is not None else []
+            packaging = any(tokens[x].lemma in PACKAGING_WORDS for x in back)
+            generic = [x for x in back if tokens[x].lemma in DIMS_WORDS]
+            idxs += ([label] if label is not None else []) + generic
+            shown = "×".join(d["value"] for d in dims) + (f" {last_unit and BY_KEY[tokens[last_unit].unit_key].title}"
+                                                          if last_unit is not None else "")
+            if packaging:
+                feats.append(self._feature(None, tokens, idxs, nq, status="unknown_property", value=shown,
+                                           named_property="размеры упаковки",
+                                           note="размеры упаковки — не размеры товара, в подборе не участвуют"))
+            else:
+                feats.append(self._feature(None, tokens, idxs, nq, status="ambiguous", value=shown, dims=dims,
+                                           dims_axes=axes if len(axes) == len(dims) else [],
+                                           note="габариты: оси назначаются после подтверждения"))
+            i = k
         return feats
 
     # 5. алиасы значений --------------------------------------------------------
@@ -348,9 +460,10 @@ class Extractor:
                              for l in left_lemmas)]
             raw_value = nq.text[tokens[right[0]].start:tokens[right[-1]].end]
             if not groups:
+                named = nq.text[tokens[left[0]].start:tokens[left[-1]].end]
                 feats.append(self._feature(None, tokens, left + [colon] + right, nq, status="unknown_property",
-                                           value=raw_value, note="в области поиска нет свойства с таким названием: "
-                                           + nq.text[tokens[left[0]].start:tokens[left[-1]].end]))
+                                           value=raw_value, named_property=named,
+                                           note="в области поиска нет свойства с таким названием: " + named))
                 continue
             if len(groups) > 1:
                 feats.append(self._feature(None, tokens, left + [colon] + right, nq, status="ambiguous",
@@ -433,7 +546,15 @@ class Extractor:
             if hits:
                 _, words, kind = max(hits, key=lambda h: h[0])
                 op = {"ge": "gt", "le": "lt"}[kind] if words in STRICT else kind
-            if op == "eq":
+            approx = [k for k in prefix if tokens[k].text in APPROX_WORDS]
+            if op == "eq" and approx:
+                dim = BY_KEY[unit_key].dimension if unit_key else None
+                if dim is not None and dim != "count":
+                    # «около 140 см» = ±5 % (решение команды, docs/DIMENSIONS_PLAN.md); у штук — точное значение
+                    op, v2 = "between", v1 * APPROX_HI
+                    v1 = v1 * APPROX_LO
+                used = approx + [j] + used[used.index(j) + 1:]
+            elif op == "eq":
                 used = [j] + used[used.index(j) + 1:]
         return op, v1, v2, lo_inc, hi_inc, unit_key, used
 
@@ -455,9 +576,9 @@ class Extractor:
                 continue
             start = i
             # отступить назад к словам сравнения
-            while start > 0 and tokens[start - 1].lemma in ("не", "от", "до", "менее", "более", "меньше", "больше",
+            while start > 0 and (tokens[start - 1].text in APPROX_WORDS or tokens[start - 1].lemma in ("не", "от", "до", "менее", "более", "меньше", "больше",
                                                              "свыше", "ниже", "выше", ">=", "<=", "≥", "≤", ">", "<",
-                                                             "минимум", "максимум") and i - start < 2:
+                                                             "минимум", "максимум")) and i - start < 2:
                 start -= 1
             parsed = self._parse_number_expr(tokens, start)
             if parsed is None:
@@ -468,10 +589,15 @@ class Extractor:
             dims_part = (i + 1 < len(tokens) and tokens[i + 1].text in ("x", "х")) or \
                         (i > 0 and tokens[i - 1].text in ("x", "х"))
             anchor = max(used)
-            # Long catalogue property names (e.g. maximum jaw opening of a wrench)
-            # must fit in the window; punctuation/other numbers still bound the segment.
-            back = max(4, max((len(g.terms) + 2 for g in numeric_groups), default=4))
-            win = _window(tokens, min(used), back, 0) + _window(tokens, anchor, 0, 3)
+            back_w = _window(tokens, min(used), 1 if dims_part else 4, 0)
+            fwd_all = [] if dims_part else _window(tokens, anchor, 0, 3)
+            # слово после числа, за которым сразу идёт другое число, у измеряемых свойств относится к
+            # следующему числу: «92-96 рост 158-164» — «рост» описывает 158-164. У счётных — к предыдущему:
+            # «4 ящика 40×60» — число стоит перед существительным
+            fwd_strict = [k for k in fwd_all if not (k + 1 < len(tokens) and tokens[k + 1].kind == "number")]
+            # слова, уже объяснённые другим признаком («4 ящика»), не называют свойство следующего числа
+            free = lambda ks: [k for k in ks if tokens[k].used_by is None]  # noqa: E731
+            win_count, win = free(back_w + fwd_all), free(back_w + fwd_strict)
             # кандидаты по размерности
             if unit is not None:
                 cand = [g for g in numeric_groups if unit.dimension in g.dims]
@@ -483,26 +609,44 @@ class Extractor:
             def named(groups, use_core: bool):
                 out = []
                 for g in groups:
+                    w = win_count if g.dims == {"count"} else win
                     if use_core:
-                        h = _core_present(g, tokens, win)
+                        h = _core_present(g, tokens, w)
                         hit = [h] if h is not None else None
                     else:
-                        hit = _terms_present(g.terms, tokens, win)
+                        # все слова названия — с одной стороны от числа: «высота шкафа 60 см глубина шкафа 180» —
+                        # «шкафа» слева и «глубина» справа не складываются в «Глубину шкафа» для 60
+                        back_side = [k for k in w if k < min(used)]
+                        fwd_side = [k for k in w if k > anchor]
+                        hit = _terms_present(g.terms, tokens, back_side) or _terms_present(g.terms, tokens, fwd_side)
+                        if hit is None and len(g.terms) > 3:
+                            # длинное название («Длина режущей части полотна (без учета предельного отклонения)») —
+                            # весь отрезок до числа от предыдущей запятой или точки с запятой
+                            seg = []
+                            k = min(used) - 1
+                            while k >= 0 and tokens[k].text not in (",", ";"):
+                                if tokens[k].used_by is None:
+                                    seg.append(k)
+                                k -= 1
+                            hit = _terms_present(g.terms, tokens, sorted(seg))
                     if hit is not None:
                         out.append((1 if use_core else len(g.terms), g, hit))
                 return out
             explicit = named(cand, False) or named(numeric_groups, False) or \
                 named(cand, True) or named(numeric_groups, True)
-            if not explicit and unit is None and op == "eq":
-                # качественное свойство с числовыми значениями («Российский размер»: 44, 46 …)
-                textual = [g for g in self.groups.values() if not g.numeric and fmt(v1) in g.quality]
+            if not explicit and unit is None and op in ("eq", "between"):
+                # качественное свойство с числовыми значениями («Российский размер»: 44, 46 …); диапазон
+                # «размер 48-50» — значения свойства внутри диапазона (docs/DIMENSIONS_PLAN.md, D5)
+                lo_v, hi_v = v1, (v2 if v2 is not None else v1)
+                textual = [g for g in self.groups.values() if not g.numeric and any(
+                    (x := _as_number(q)) is not None and lo_v <= x <= hi_v for q in g.quality)]
                 explicit = named(textual, False) or named(textual, True)
             kw = dict(op=op, value=fmt(v1), value_to=fmt(v2) if v2 is not None else None,
                       min_inclusive=lo_inc, max_inclusive=hi_inc, unit=unit.title if unit else None)
             named_unknown = None
             part = None   # часть товара рядом с названием свойства не совпала со схемой
             if explicit:
-                near = _component_near(tokens, sorted({h for e in explicit for h in e[2]}), forward_only=True)
+                near = _component_near(tokens, sorted({h for e in explicit for h in e[2]}), forward_only=True, include_self=True)
                 if near is not None:
                     same = [e for e in explicit if e[1].component == near[0]]
                     if same:
@@ -528,12 +672,26 @@ class Extractor:
                                       and PROPERTY_SYNONYMS.get(tokens[k].lemma, tokens[k].lemma) in self.known_terms),
                                      None)
             if named_unknown is not None:
-                feats.append(self._feature(None, tokens, used + [named_unknown.i], nq, status="unknown_property",
+                # «глубина сидения 90 см»: название — от слова-оси слева («глубина»), а не одно ближайшее слово
+                k0 = named_unknown.i
+                for k in (k0 - 1, k0 - 2):
+                    if k >= 0 and tokens[k].kind == "word" and tokens[k].lemma in AXES and tokens[k].used_by is None                             and tokens[k0].lemma not in AXES:
+                        k0 = k
+                        break
+                named_text = nq.text[tokens[k0].start:named_unknown.end]
+                feats.append(self._feature(None, tokens, used + list(range(k0, named_unknown.i + 1)), nq,
+                                           status="unknown_property", named_property=named_text,
                                            note=f"у позиций этого типа нет свойства «{named_unknown.text}» "
                                                 "подходящей размерности", **kw))
             elif explicit:
                 top = max(e[0] for e in explicit)
                 best = [e for e in explicit if e[0] == top]
+                if len({e[1].key for e in best}) > 1:
+                    # «глубина 40 см» при «Глубина стеллажа» и «Глубина секции стеллажа»: часть товара не названа —
+                    # берём единственную общую ось (docs/DIMENSIONS_PLAN.md, D3)
+                    overall = [e for e in best if axis_of(e[1].name, self.axis_context)]
+                    if len({e[1].key for e in overall}) == 1:
+                        best = overall
                 if len({e[1].key for e in best}) == 1:
                     g, hit = best[0][1], best[0][2]
                     feats.append(self._feature(g, tokens, used + hit, nq, note="число рядом с названием свойства",
@@ -544,6 +702,11 @@ class Extractor:
                                                note="рядом названия нескольких свойств", **kw))
             elif unit is not None and not dims_part:
                 same_dim = sorted(cand, key=lambda g: g.key)
+                if unit.dimension == "length":
+                    # длина без названия измерения («стол 120 см») не бывает толщиной: толщину нужно назвать явно.
+                    # Размеры частей не исключаются: «сверло 12 мм» — диаметр, «футболка 164 см» — рост
+                    # (docs/DIMENSIONS_PLAN.md)
+                    same_dim = [g for g in same_dim if not g.name.lower().startswith("толщина")]
                 if len(same_dim) == 1:
                     feats.append(self._feature(same_dim[0], tokens, used, nq,
                                                note=f"единственное свойство размерности «{unit.dimension}» в области",
@@ -552,6 +715,10 @@ class Extractor:
                     feats.append(self._feature(None, tokens, used, nq, status="ambiguous",
                                                options=[self._opt(g) for g in same_dim],
                                                note="несколько свойств такой размерности — укажите свойство", **kw))
+                elif unit.dimension == "length" and cand:
+                    feats.append(self._feature(None, tokens, used, nq, status="unknown_property",
+                                               note="размер без названия измерения: у позиций этого типа из "
+                                                    "размеров есть только толщины — их нужно назвать явно", **kw))
                 else:
                     other = [g for g in numeric_groups if g.dims]
                     feats.append(self._feature(None, tokens, used, nq, status="unknown_property",
@@ -563,6 +730,11 @@ class Extractor:
                 feats.append(self._feature(None, tokens, used, nq, status="ambiguous",
                                            options=[self._opt(g) for g in same_dim],
                                            note="габаритный размер без названия измерения", **kw))
+            elif unit is None and not dims_part and self._bare_number_ok(tokens, used, nq):
+                # число без единицы и без названия свойства («молоток 500»): свойство и единицу подбирает движок
+                # по распределениям значений (ktru_assist/unit_infer.py::infer_bare, docs/UNITS_PLAN.md, U2)
+                feats.append(self._feature(None, tokens, used, nq, status="ambiguous", bare=True,
+                                           note="число без названия свойства и без единицы", **kw))
             i = anchor + 1
         return feats
 
@@ -575,10 +747,15 @@ class Extractor:
         for g in sorted(self.groups.values(), key=lambda g: g.key):
             if not g.boolean or not g.terms:
                 continue
-            hit = _terms_present(g.terms, tokens, word_idx)
-            if hit is None or max(hit) - min(hit) > 3:
-                continue
-            matches.append((g, hit))
+            # каждое упоминание отдельно: «с мягким сиденьем …, без мягкого сиденья» — два признака,
+            # противоречие между ними обнаруживает движок
+            free = list(word_idx)
+            while True:
+                hit = _terms_present(g.terms, tokens, free)
+                if hit is None or max(hit) - min(hit) > 3:
+                    break
+                matches.append((g, hit))
+                free = [i for i in free if i not in hit]
         # если одно совпадение строго содержит другое (по токенам), оставить более полное
         kept = []
         for g, hit in matches:
@@ -604,40 +781,58 @@ class Extractor:
         tokens = nq.tokens
         feats = []
         by_token: dict[int, list[tuple[PropGroup, str, list[int]]]] = {}
+        name_tok = self.name_tokens
+        cands: list[tuple[PropGroup, str, list[int], bool]] = []
         for g in sorted(self.groups.values(), key=lambda g: g.key):
             if g.boolean or not g.quality:
                 continue
             for nval, lem in sorted(g.value_lemmas.items()):
-                value_terms = tuple(content_lemmas(g.quality[nval]))
-                designation = value_terms in self.product_names or ("товар" in g.terms and any(
-                    set(value_terms) <= set(name) for name in self.product_names))
-                if g.name in self.explicit_properties and designation:
-                    # A generic catalogue designation ("стол для переговоров") does not
-                    # contradict an explicit subtype ("вид товара: секция стола ...").
-                    continue
                 lem = tuple(x for x in lem if x not in STOPWORDS and len(x) >= 3)
                 if not lem:
                     continue
+                others = {x for k, l2 in g.value_lemmas.items() if k != nval for x in l2}
                 occ = {x: [t.i for t in tokens if t.kind == "word" and t.used_by is None and fuzzy_equal(t.lemma, x)]
                        for x in lem}
+                full = all(occ[x] for x in lem)
+                if not full:
+                    # Частичное совпадение не может опираться на слова наименования типа:
+                    # «перчатки … для защиты от внешних воздействий» не доказывает «От механических воздействий».
+                    occ = {x: [i for i in o if i not in name_tok] for x, o in occ.items()}
                 present = [x for x in lem if occ[x]]
                 if not present:
                     continue
-                # ближайшие друг к другу вхождения («…внешних воздействий, защита от механических воздействий»)
+                # ближайшие вхождения; при равенстве — не занятые наименованием
                 best_combo = min(itertools.product(*(occ[x] for x in present)),
-                                 key=lambda cmb: (max(cmb) - min(cmb), cmb))
+                                 key=lambda cmb: (sum(i in name_tok for i in cmb), max(cmb) - min(cmb), cmb))
                 found = dict(zip(present, best_combo))
-                full = len(found) == len(lem)
-                # A word unique to an enum value is not evidence for the whole value:
-                # «внешние воздействия» must not imply «механические воздействия».
-                # Short/colloquial variants belong in the explicit, reviewed alias table.
-                if not full:
+                unique = [x for x in found if x not in others]
+                if not (full or unique):
+                    continue
+                # значение с отрицанием («Без обивки») по части слов не сопоставляется:
+                # «обивка» в тексте означает скорее наличие обивки, чем её отсутствие
+                if not full and set(lem) & NEGATIONS:
                     continue
                 idxs = sorted(found.values())
-                if max(idxs) - min(idxs) > max(3, len(lem) + 1) or any(
-                        tokens[i].lemma in BOUNDARY for i in range(min(idxs), max(idxs) + 1)):
+                # длинные значения с перечислением («от нефти, нефтепродуктов, масел, жиров») шире окна в 3 слова
+                if max(idxs) - min(idxs) > max(3, 2 * len(lem) - 1):
                     continue
-                by_token.setdefault(idxs[0], []).append((g, g.quality[nval], idxs))
+                cands.append((g, g.quality[nval], idxs, full))
+        # слова полностью найденных значений («трикотажное полотно») не указывают на часть товара
+        full_tok = frozenset(i for _, _, ix, f in cands if f for i in ix)
+        # Более полное значение того же свойства поглощает вложенное: «секция шкафа» ⊃ «шкаф».
+        for g, val, idxs, full in cands:
+            s = set(idxs)
+            if any(g2.key == g.key and f2 and set(i2) > s for g2, _, i2, f2 in cands):
+                continue
+            # значение только из слов наименования («шкаф» → «Шкаф») уступает значению того же свойства,
+            # найденному по другим словам («для уборочного инвентаря» → «Шкаф для хозяйственного инвентаря»)
+            if s <= name_tok and any(g2.key == g.key and set(i2) - name_tok for g2, _, i2, _ in cands):
+                continue
+            # «стол администратора, вид товара: секция стола»: свойство задано явно — «стол» из наименования
+            # не даёт второе значение
+            if s <= name_tok and g.key in getattr(self, "_bound_keys", set()):
+                continue
+            by_token.setdefault(idxs[0], []).append((g, val, idxs))
         for first in sorted(by_token):
             opts = by_token[first]
             if any(tokens[i].used_by for _, _, idxs in opts for i in idxs):
@@ -645,7 +840,8 @@ class Extractor:
             prop_keys = sorted({g.key for g, _, _ in opts})
             neg = _negated(tokens, first)
             comp_idx: list[int] = []
-            near = _component_near(tokens, sorted({i for _, _, ix in opts for i in ix}))
+            own = {i for _, _, ix in opts for i in ix}
+            near = _component_near(tokens, sorted(own), exclude=full_tok - own)
             if near is not None:
                 comp, j = near
                 same = [o for o in opts if o[0].component == comp]

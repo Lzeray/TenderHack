@@ -63,6 +63,12 @@ def numeric_value(prop, rnd: random.Random):
         return None
     if x <= 0:
         return None
+    if v.unit.dimension == "count":
+        # штуки — только целые: «1,5 полки» не бывает
+        base = iv.lo if iv.lo is not None else Decimal(1)
+        x = next((Decimal(k) for k in range(int(base), int(base) + 50)
+                  if Decimal(k) > 0 and iv.contains_point(Decimal(k))), None)
+        return (x, v.unit) if x is not None else None
     x = x.quantize(Decimal("1")) if x >= 10 else x.quantize(Decimal("0.1"))
     if not iv.contains_point(x):
         return None

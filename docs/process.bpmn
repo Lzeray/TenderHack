@@ -4,65 +4,73 @@
                   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
                   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
                   id="ktru_defs" targetNamespace="http://thenderhack/ktru">
-  <bpmn:process id="ktru_process" name="Подбор позиции КТРУ" isExecutable="false">
+  <bpmn:process id="ktru_process" name="Подбор позиции КТРУ (ядро + A/B)" isExecutable="false">
+    <bpmn:documentation>Версия 2.0 (план улучшений S0–S8). Путь A — черновик при вводе (правила + смысловые
+      предложения). Путь B — по Enter и только по эскалации: контекст из снимка КТРУ, один вызов локальной LLM,
+      проверка, согласование, полный пересчёт ядром. Модели только предлагают; код выдаёт ядро.</bpmn:documentation>
     <bpmn:startEvent id="start" name="Описание товара"/>
-    <bpmn:userTask id="t_input" name="Ввод / изменение описания"/>
-    <bpmn:serviceTask id="t_norm" name="Нормализация (регистр, словоформы, числа, единицы)"/>
-    <bpmn:serviceTask id="t_typo" name="Исправление опечаток по словарю каталога"/>
+    <bpmn:userTask id="t_input" name="Ввод / изменение (revision + 1)"/>
+    <bpmn:serviceTask id="t_norm" name="Нормализация с картой координат"/>
+    <bpmn:serviceTask id="t_typo" name="Опечатки по словарю каталога"/>
     <bpmn:exclusiveGateway id="g_typo" name="Исправления однозначны?"/>
     <bpmn:userTask id="t_typo_choice" name="Выбор варианта исправления"/>
-    <bpmn:serviceTask id="t_search" name="Быстрый поиск предмета (словарный разбор / BM25)"/>
-    <bpmn:exclusiveGateway id="g_type" name="Тип товара распознан?"/>
-    <bpmn:endEvent id="e_notfound" name="Не найдено"/>
+    <bpmn:serviceTask id="t_type" name="Реестр типов: главное слово, алиасы"/>
+    <bpmn:exclusiveGateway id="g_type" name="Тип найден?"/>
+    <bpmn:serviceTask id="t_notype" name="Предложения типа (A-semantic) / ближайшие наименования"/>
     <bpmn:serviceTask id="t_domain" name="Все активные позиции типа (исчерпывающе)"/>
-    <bpmn:serviceTask id="t_extract" name="Извлечение и привязка характеристик"/>
-    <bpmn:serviceTask id="t_apply" name="Применение ручных правок и ответов"/>
-    <bpmn:serviceTask id="t_validate" name="Проверка: valid / invalid / unknown"/>
-    <bpmn:serviceTask id="t_rank" name="Фильтрация КТРУ; отдельный поиск примеров СТЕ"/>
+    <bpmn:serviceTask id="t_extract" name="Правила: значения, алиасы значений, части товара"/>
+    <bpmn:serviceTask id="t_apply" name="Ручные правки и ответы (приоритет)"/>
+    <bpmn:serviceTask id="t_plaus" name="Правдоподобие (предупреждения)"/>
+    <bpmn:serviceTask id="t_validate" name="Проверка КТРУ: valid / invalid / unknown"/>
+    <bpmn:serviceTask id="t_rank" name="Без несовместимых и шаблонов, ранжирование"/>
+    <bpmn:serviceTask id="t_sem" name="A-semantic: предложения для неразобранных слов"/>
+    <bpmn:exclusiveGateway id="g_stage" name="Enter?"/>
+    <bpmn:endEvent id="e_draft" name="Черновик показан (preliminary)"/>
+    <bpmn:exclusiveGateway id="g_esc" name="Нужна эскалация?"/>
+    <bpmn:serviceTask id="t_ctx" name="Контекст B из снимка КТРУ"/>
+    <bpmn:serviceTask id="t_llm" name="Один вызов локальной LLM (JSON-схема)"/>
+    <bpmn:exclusiveGateway id="g_llm" name="Ответ валиден и версия актуальна?"/>
+    <bpmn:serviceTask id="t_resolve" name="Согласование: ручное &gt; правила &gt; модели"/>
+    <bpmn:serviceTask id="t_recompute" name="Полный пересчёт ядром с начала"/>
     <bpmn:exclusiveGateway id="g_result" name="Результат"/>
     <bpmn:endEvent id="e_match" name="Конечный код (matched)"/>
     <bpmn:endEvent id="e_conflict" name="Противоречие (conflict)"/>
-    <bpmn:serviceTask id="t_question" name="Выбор уточнения (минимакс по кандидатам)"/>
-    <bpmn:userTask id="t_answer" name="Ответ / правка / ручной выбор"/>
+    <bpmn:serviceTask id="t_question" name="Вопрос: минимакс / тип / подтверждение"/>
+    <bpmn:userTask id="t_answer" name="Ответ, подтверждение, отказ, правка"/>
 
     <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="t_input"/>
     <bpmn:sequenceFlow id="f2" sourceRef="t_input" targetRef="t_norm"/>
     <bpmn:sequenceFlow id="f3" sourceRef="t_norm" targetRef="t_typo"/>
     <bpmn:sequenceFlow id="f4" sourceRef="t_typo" targetRef="g_typo"/>
-    <bpmn:sequenceFlow id="f5" name="да" sourceRef="g_typo" targetRef="t_search"/>
+    <bpmn:sequenceFlow id="f5" name="да" sourceRef="g_typo" targetRef="t_type"/>
     <bpmn:sequenceFlow id="f6" name="нет" sourceRef="g_typo" targetRef="t_typo_choice"/>
     <bpmn:sequenceFlow id="f7" sourceRef="t_typo_choice" targetRef="t_typo"/>
-    <bpmn:sequenceFlow id="f8" sourceRef="t_search" targetRef="g_type"/>
-    <bpmn:sequenceFlow id="f9" name="нет" sourceRef="g_type" targetRef="e_notfound"/>
+    <bpmn:sequenceFlow id="f8" sourceRef="t_type" targetRef="g_type"/>
+    <bpmn:sequenceFlow id="f9" name="нет" sourceRef="g_type" targetRef="t_notype"/>
+    <bpmn:sequenceFlow id="f9b" name="варианты типа" sourceRef="t_notype" targetRef="t_question"/>
     <bpmn:sequenceFlow id="f10" name="да" sourceRef="g_type" targetRef="t_domain"/>
     <bpmn:sequenceFlow id="f11" sourceRef="t_domain" targetRef="t_extract"/>
     <bpmn:sequenceFlow id="f12" sourceRef="t_extract" targetRef="t_apply"/>
-    <bpmn:sequenceFlow id="f13" sourceRef="t_apply" targetRef="t_validate"/>
+    <bpmn:sequenceFlow id="f13" sourceRef="t_apply" targetRef="t_plaus"/>
+    <bpmn:sequenceFlow id="f13b" sourceRef="t_plaus" targetRef="t_validate"/>
     <bpmn:sequenceFlow id="f14" sourceRef="t_validate" targetRef="t_rank"/>
-    <bpmn:sequenceFlow id="f15" sourceRef="t_rank" targetRef="g_result"/>
-    <bpmn:sequenceFlow id="f16" name="1 конечная позиция, область полная, обязательные заполнены" sourceRef="g_result" targetRef="e_match"/>
+    <bpmn:sequenceFlow id="f15" sourceRef="t_rank" targetRef="t_sem"/>
+    <bpmn:sequenceFlow id="f15b" sourceRef="t_sem" targetRef="g_stage"/>
+    <bpmn:sequenceFlow id="f21" name="черновик" sourceRef="g_stage" targetRef="e_draft"/>
+    <bpmn:sequenceFlow id="f22" name="Enter" sourceRef="g_stage" targetRef="g_esc"/>
+    <bpmn:sequenceFlow id="f23" name="нет" sourceRef="g_esc" targetRef="g_result"/>
+    <bpmn:sequenceFlow id="f24" name="да: неразобранное, неоднозначность, тип не подтверждён" sourceRef="g_esc" targetRef="t_ctx"/>
+    <bpmn:sequenceFlow id="f25" sourceRef="t_ctx" targetRef="t_llm"/>
+    <bpmn:sequenceFlow id="f26" sourceRef="t_llm" targetRef="g_llm"/>
+    <bpmn:sequenceFlow id="f27" name="нет: черновик + ручное уточнение" sourceRef="g_llm" targetRef="g_result"/>
+    <bpmn:sequenceFlow id="f28" name="да" sourceRef="g_llm" targetRef="t_resolve"/>
+    <bpmn:sequenceFlow id="f29" sourceRef="t_resolve" targetRef="t_recompute"/>
+    <bpmn:sequenceFlow id="f30" sourceRef="t_recompute" targetRef="g_result"/>
+    <bpmn:sequenceFlow id="f16" name="1 позиция, область полная, обязательные заполнены, гипотезы подтверждены" sourceRef="g_result" targetRef="e_match"/>
     <bpmn:sequenceFlow id="f17" name="0 совместимых" sourceRef="g_result" targetRef="e_conflict"/>
-    <bpmn:sequenceFlow id="f18" name="нужно уточнение" sourceRef="g_result" targetRef="t_question"/>
+    <bpmn:sequenceFlow id="f18" name="нужно уточнение или подтверждение" sourceRef="g_result" targetRef="t_question"/>
     <bpmn:sequenceFlow id="f19" sourceRef="t_question" targetRef="t_answer"/>
-    <bpmn:sequenceFlow id="f20" name="структурированный ответ" sourceRef="t_answer" targetRef="t_apply"/>
-  </bpmn:process>
-
-  <bpmn:process id="model_enrichment" name="Дополнительный локальный разбор; основной поиск не ждёт модель" isExecutable="false">
-    <bpmn:startEvent id="m_start" name="Пауза ввода 1 с / Enter"/>
-    <bpmn:serviceTask id="m_extract" name="Локальная Qwen: признаки и точные цитаты"/>
-    <bpmn:serviceTask id="m_check" name="Проверка чисел, единиц, отрицаний и ревизии"/>
-    <bpmn:exclusiveGateway id="m_valid" name="Ответ пригоден?"/>
-    <bpmn:endEvent id="m_error" name="Сохранить быстрый результат; пояснить сбой"/>
-    <bpmn:userTask id="m_confirm" name="Подтвердить или исправить предложения"/>
-    <bpmn:serviceTask id="m_apply" name="Повторная проверка КТРУ без новой генерации"/>
-    <bpmn:endEvent id="m_end" name="Обновить коды, вопросы и объяснения"/>
-    <bpmn:sequenceFlow id="mf1" sourceRef="m_start" targetRef="m_extract"/>
-    <bpmn:sequenceFlow id="mf2" sourceRef="m_extract" targetRef="m_check"/>
-    <bpmn:sequenceFlow id="mf3" sourceRef="m_check" targetRef="m_valid"/>
-    <bpmn:sequenceFlow id="mf4" name="нет / устарел" sourceRef="m_valid" targetRef="m_error"/>
-    <bpmn:sequenceFlow id="mf5" name="да, только предложения" sourceRef="m_valid" targetRef="m_confirm"/>
-    <bpmn:sequenceFlow id="mf6" sourceRef="m_confirm" targetRef="m_apply"/>
-    <bpmn:sequenceFlow id="mf7" sourceRef="m_apply" targetRef="m_end"/>
+    <bpmn:sequenceFlow id="f20" name="новая версия запроса" sourceRef="t_answer" targetRef="t_input"/>
   </bpmn:process>
 
   <bpmndi:BPMNDiagram id="d1">
@@ -73,19 +81,29 @@
       <bpmndi:BPMNShape id="s_typo" bpmnElement="t_typo"><dc:Bounds x="390" y="180" width="110" height="80"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="s_gtypo" bpmnElement="g_typo" isMarkerVisible="true"><dc:Bounds x="530" y="195" width="50" height="50"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="s_typoch" bpmnElement="t_typo_choice"><dc:Bounds x="500" y="310" width="110" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_search" bpmnElement="t_search"><dc:Bounds x="620" y="180" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_type" bpmnElement="t_type"><dc:Bounds x="620" y="180" width="110" height="80"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="s_gtype" bpmnElement="g_type" isMarkerVisible="true"><dc:Bounds x="760" y="195" width="50" height="50"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_nf" bpmnElement="e_notfound"><dc:Bounds x="767" y="330" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_notype" bpmnElement="t_notype"><dc:Bounds x="730" y="310" width="110" height="80"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="s_domain" bpmnElement="t_domain"><dc:Bounds x="850" y="180" width="110" height="80"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="s_extract" bpmnElement="t_extract"><dc:Bounds x="990" y="180" width="110" height="80"/></bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="s_apply" bpmnElement="t_apply"><dc:Bounds x="1130" y="180" width="110" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_validate" bpmnElement="t_validate"><dc:Bounds x="1270" y="180" width="110" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_rank" bpmnElement="t_rank"><dc:Bounds x="1410" y="180" width="110" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_gres" bpmnElement="g_result" isMarkerVisible="true"><dc:Bounds x="1560" y="195" width="50" height="50"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_match" bpmnElement="e_match"><dc:Bounds x="1700" y="92" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_conf" bpmnElement="e_conflict"><dc:Bounds x="1700" y="202" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_question" bpmnElement="t_question"><dc:Bounds x="1530" y="310" width="110" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="s_answer" bpmnElement="t_answer"><dc:Bounds x="1330" y="430" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_plaus" bpmnElement="t_plaus"><dc:Bounds x="1270" y="180" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_validate" bpmnElement="t_validate"><dc:Bounds x="1410" y="180" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_rank" bpmnElement="t_rank"><dc:Bounds x="1550" y="180" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_sem" bpmnElement="t_sem"><dc:Bounds x="1690" y="180" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_gstage" bpmnElement="g_stage" isMarkerVisible="true"><dc:Bounds x="1840" y="195" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_draft" bpmnElement="e_draft"><dc:Bounds x="1847" y="72" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_gesc" bpmnElement="g_esc" isMarkerVisible="true"><dc:Bounds x="1940" y="195" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_ctx" bpmnElement="t_ctx"><dc:Bounds x="2040" y="310" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_llm" bpmnElement="t_llm"><dc:Bounds x="2180" y="310" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_gllm" bpmnElement="g_llm" isMarkerVisible="true"><dc:Bounds x="2320" y="325" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_resolve" bpmnElement="t_resolve"><dc:Bounds x="2400" y="310" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_recompute" bpmnElement="t_recompute"><dc:Bounds x="2540" y="310" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_gres" bpmnElement="g_result" isMarkerVisible="true"><dc:Bounds x="2700" y="195" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_match" bpmnElement="e_match"><dc:Bounds x="2840" y="92" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_conf" bpmnElement="e_conflict"><dc:Bounds x="2840" y="202" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_question" bpmnElement="t_question"><dc:Bounds x="2670" y="470" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_answer" bpmnElement="t_answer"><dc:Bounds x="1330" y="590" width="110" height="80"/></bpmndi:BPMNShape>
 
       <bpmndi:BPMNEdge id="e1" bpmnElement="f1"><di:waypoint x="76" y="220"/><di:waypoint x="110" y="220"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e2" bpmnElement="f2"><di:waypoint x="220" y="220"/><di:waypoint x="250" y="220"/></bpmndi:BPMNEdge>
@@ -95,37 +113,31 @@
       <bpmndi:BPMNEdge id="e6" bpmnElement="f6"><di:waypoint x="555" y="245"/><di:waypoint x="555" y="310"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e7" bpmnElement="f7"><di:waypoint x="500" y="350"/><di:waypoint x="445" y="350"/><di:waypoint x="445" y="260"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e8" bpmnElement="f8"><di:waypoint x="730" y="220"/><di:waypoint x="760" y="220"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e9" bpmnElement="f9"><di:waypoint x="785" y="245"/><di:waypoint x="785" y="330"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e9" bpmnElement="f9"><di:waypoint x="785" y="245"/><di:waypoint x="785" y="310"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e9b" bpmnElement="f9b"><di:waypoint x="785" y="390"/><di:waypoint x="785" y="510"/><di:waypoint x="2670" y="510"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e10" bpmnElement="f10"><di:waypoint x="810" y="220"/><di:waypoint x="850" y="220"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e11" bpmnElement="f11"><di:waypoint x="960" y="220"/><di:waypoint x="990" y="220"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e12" bpmnElement="f12"><di:waypoint x="1100" y="220"/><di:waypoint x="1130" y="220"/></bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="e13" bpmnElement="f13"><di:waypoint x="1240" y="220"/><di:waypoint x="1270" y="220"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e14" bpmnElement="f14"><di:waypoint x="1380" y="220"/><di:waypoint x="1410" y="220"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e15" bpmnElement="f15"><di:waypoint x="1520" y="220"/><di:waypoint x="1560" y="220"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e16" bpmnElement="f16"><di:waypoint x="1585" y="195"/><di:waypoint x="1585" y="110"/><di:waypoint x="1700" y="110"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e17" bpmnElement="f17"><di:waypoint x="1610" y="220"/><di:waypoint x="1700" y="220"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e18" bpmnElement="f18"><di:waypoint x="1585" y="245"/><di:waypoint x="1585" y="310"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e19" bpmnElement="f19"><di:waypoint x="1585" y="390"/><di:waypoint x="1585" y="470"/><di:waypoint x="1440" y="470"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="e20" bpmnElement="f20"><di:waypoint x="1330" y="470"/><di:waypoint x="1185" y="470"/><di:waypoint x="1185" y="260"/></bpmndi:BPMNEdge>
-    </bpmndi:BPMNPlane>
-  </bpmndi:BPMNDiagram>
-  <bpmndi:BPMNDiagram id="model_diagram">
-    <bpmndi:BPMNPlane id="model_plane" bpmnElement="model_enrichment">
-      <bpmndi:BPMNShape id="ms_start" bpmnElement="m_start"><dc:Bounds x="40" y="150" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ms_extract" bpmnElement="m_extract"><dc:Bounds x="120" y="128" width="150" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ms_check" bpmnElement="m_check"><dc:Bounds x="310" y="128" width="150" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ms_valid" bpmnElement="m_valid" isMarkerVisible="true"><dc:Bounds x="510" y="143" width="50" height="50"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ms_error" bpmnElement="m_error"><dc:Bounds x="517" y="300" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ms_confirm" bpmnElement="m_confirm"><dc:Bounds x="610" y="128" width="150" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ms_apply" bpmnElement="m_apply"><dc:Bounds x="810" y="128" width="150" height="80"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="ms_end" bpmnElement="m_end"><dc:Bounds x="1010" y="150" width="36" height="36"/></bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="me1" bpmnElement="mf1"><di:waypoint x="76" y="168"/><di:waypoint x="120" y="168"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="me2" bpmnElement="mf2"><di:waypoint x="270" y="168"/><di:waypoint x="310" y="168"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="me3" bpmnElement="mf3"><di:waypoint x="460" y="168"/><di:waypoint x="510" y="168"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="me4" bpmnElement="mf4"><di:waypoint x="535" y="193"/><di:waypoint x="535" y="300"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="me5" bpmnElement="mf5"><di:waypoint x="560" y="168"/><di:waypoint x="610" y="168"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="me6" bpmnElement="mf6"><di:waypoint x="760" y="168"/><di:waypoint x="810" y="168"/></bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="me7" bpmnElement="mf7"><di:waypoint x="960" y="168"/><di:waypoint x="1010" y="168"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e13b" bpmnElement="f13b"><di:waypoint x="1380" y="220"/><di:waypoint x="1410" y="220"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e14" bpmnElement="f14"><di:waypoint x="1520" y="220"/><di:waypoint x="1550" y="220"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e15" bpmnElement="f15"><di:waypoint x="1660" y="220"/><di:waypoint x="1690" y="220"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e15b" bpmnElement="f15b"><di:waypoint x="1800" y="220"/><di:waypoint x="1840" y="220"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e21" bpmnElement="f21"><di:waypoint x="1865" y="195"/><di:waypoint x="1865" y="108"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e22" bpmnElement="f22"><di:waypoint x="1890" y="220"/><di:waypoint x="1940" y="220"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e23" bpmnElement="f23"><di:waypoint x="1990" y="220"/><di:waypoint x="2700" y="220"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e24" bpmnElement="f24"><di:waypoint x="1965" y="245"/><di:waypoint x="1965" y="350"/><di:waypoint x="2040" y="350"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e25" bpmnElement="f25"><di:waypoint x="2150" y="350"/><di:waypoint x="2180" y="350"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e26" bpmnElement="f26"><di:waypoint x="2290" y="350"/><di:waypoint x="2320" y="350"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e27" bpmnElement="f27"><di:waypoint x="2345" y="325"/><di:waypoint x="2345" y="270"/><di:waypoint x="2725" y="270"/><di:waypoint x="2725" y="245"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e28" bpmnElement="f28"><di:waypoint x="2370" y="350"/><di:waypoint x="2400" y="350"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e29" bpmnElement="f29"><di:waypoint x="2510" y="350"/><di:waypoint x="2540" y="350"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e30" bpmnElement="f30"><di:waypoint x="2650" y="350"/><di:waypoint x="2690" y="350"/><di:waypoint x="2715" y="240"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e16" bpmnElement="f16"><di:waypoint x="2725" y="195"/><di:waypoint x="2725" y="110"/><di:waypoint x="2840" y="110"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e17" bpmnElement="f17"><di:waypoint x="2750" y="220"/><di:waypoint x="2840" y="220"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e18" bpmnElement="f18"><di:waypoint x="2740" y="235"/><di:waypoint x="2790" y="300"/><di:waypoint x="2790" y="430"/><di:waypoint x="2725" y="470"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e19" bpmnElement="f19"><di:waypoint x="2725" y="550"/><di:waypoint x="2725" y="630"/><di:waypoint x="1440" y="630"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="e20" bpmnElement="f20"><di:waypoint x="1330" y="630"/><di:waypoint x="165" y="630"/><di:waypoint x="165" y="260"/></bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>

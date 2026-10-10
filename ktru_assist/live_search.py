@@ -7,7 +7,7 @@ import hashlib
 from pathlib import Path
 import time
 
-from .catalog.scope import identity_groups, ref
+from .catalog.scope import ref
 from .engine import Engine
 from .models import Constraint, Feature, Issue, ProviderStatus, SearchRequest, Stage
 from .nlp.extract import build_groups
@@ -111,9 +111,6 @@ class LiveSearch:
             response = self.core.search(req, candidate_codes=[p.code for p in positions],
                                         search_features=features, scope_verified=verified)
         response.corrections = rule_response.corrections
-        existing = {(i.code, i.message) for i in response.issues}
-        response.issues.extend(i for i in rule_response.issues
-            if i.code in ("implausible_value", "typo_ambiguous", "modifier_heads") and (i.code, i.message) not in existing)
         response.query = rule_response.query
         response.query_hash = hashlib.sha256(req.text.encode()).hexdigest()[:16]
         response.query["original"] = req.text
@@ -139,12 +136,10 @@ class LiveSearch:
         conflicts = conflicting_conditions(response.features, positions, req.text)
         if conflicts:
             self._set_conflict(response, conflicts)
-        elif response.status == "conflict":
-            self._set_conflict(response, [Issue(level="error", code="catalogue_conflict", message=response.message)])
         elif self.ste:
             response.ste_results = self.ste.search(rule_response.detected_types, response.query_profile["attributes"])
         response.stages[0] = Stage(stage="распознан предмет", remaining=len(positions), note=", ".join(response.detected_types))
-        response.model_pending = response.status != "conflict" and self.o.llm is not None and self.o.cfg.b_mode != "off" and not req.manual_only
+        response.model_pending = not conflicts and self.o.llm is not None and self.o.cfg.b_mode != "off" and not req.manual_only
         return response, positions, features, verified
 
     @staticmethod
@@ -182,9 +177,7 @@ class LiveSearch:
                     value, unit = format(converted.normalize(), "f"), target.title
             attrs.append({"name": f.property_name or "Неоднозначная характеристика", "raw_value": f.value,
                           "raw_unit": f.unit, "value": value, "unit": unit, "source": f.origin,
-                          "status": f.status, "confirmation": f.confirmation, "intent": f.intent,
-                          "quote": f.evidence, "op": f.op, "value_to": f.value_to,
-                          "min_inclusive": f.min_inclusive, "max_inclusive": f.max_inclusive})
+                          "status": f.status, "quote": f.evidence, "op": f.op})
         return {"categories": sorted({p.category for p in positions if p.category}),
                 "items": sorted({p.name for p in positions}), "attributes": attrs}
 
@@ -196,7 +189,10 @@ class LiveSearch:
             fast.model_pending = False
             fast.providers.append(ProviderStatus(name="qwen", enabled=False, status="off"))
             return fast
-        groups = identity_groups(positions)
+        groups = build_groups(positions)
+        hints = [{"name": g.name, "values": sorted(g.quality.values())[:8],
+                  "units": [BY_KEY[k].title for k in sorted(g.unit_keys)]} for g in sorted(groups.values(), key=lambda g: (-g.positions, g.key))[:30]]
+        type_names = sorted({p.name for p in positions})
         # Extraction is independent of catalogue definitions: passing them here encouraged
         # a small model to invent every listed property. Binding happens after extraction.
         key = extractor.cache_key(req.text, [], [], self.o.native_digest, getattr(self.o.llm, "options", {}))
@@ -232,10 +228,10 @@ class LiveSearch:
             selected = self.core.catalog_scope.selected(parsed.catalogue_type)
             if selected:
                 positions = self.core.catalog_scope.positions(selected.ref)
-                groups = identity_groups(positions)
+                groups = build_groups(positions)
         all_facts = self._resolve_numbers(facts, positions, list(content_lemmas(parsed.item)))
         extra_attrs = []
-        proposals = []
+        model_only = False
         for i, (attr, span) in enumerate(attrs):
             item_words = set(fast.query_profile.get("item_terms") or content_lemmas(parsed.item))
             if set(content_lemmas(attr.value)) & item_words and any(w in norm(attr.name) for w in ("назван", "предмет", "вид/назначение")):
@@ -243,9 +239,8 @@ class LiveSearch:
             g = self._bind(attr, groups)
             if g is None:
                 extra_attrs.append({"name": attr.name, "raw_value": attr.value, "raw_unit": attr.unit,
-                     "value": attr.canonical_value or attr.value, "unit": attr.unit, "source": "llm",
-                     "status": "outside_catalogue", "confirmation": "tentative",
-                     "quote": req.text[span[0]:span[1]], "op": attr.op})
+                    "value": attr.canonical_value or attr.value, "unit": attr.unit, "source": "llm",
+                    "status": "outside_catalogue", "quote": req.text[span[0]:span[1]], "op": attr.op})
                 continue
             value = attr.canonical_value or attr.value
             if g.numeric:
@@ -257,23 +252,28 @@ class LiveSearch:
                     value = equivalent[0]
                 else:
                     continue
-            f = Feature(id=f"qwen-{i}", source="model", origin="llm", status="proposed", confirmation="tentative",
-                         property_code=g.codes[0], property_name=g.name, value=value, value_to=attr.value_to,
-                         unit=attr.unit, op=attr.op, evidence=req.text[span[0]:span[1]], raw_span=span,
-                         strict_ref=True, characteristic_ref=g.key,
-                         proposal_key=ref("proposal", req.text, g.key, span, attr.model_dump()),
-                         note="Предложение модели; подтвердите трактовку перед применением")
+            f = Feature(id=f"qwen-{i}", source="model", origin="llm", status="bound", confirmation="confirmed",
+                        property_code=g.codes[0], property_name=g.name, value=value, value_to=attr.value_to,
+                        unit=attr.unit, op=attr.op, evidence=req.text[span[0]:span[1]], raw_span=span,
+                        note="Извлечено Qwen; значение проверяется алгоритмом по КТРУ")
             previous = [f0 for f0 in all_facts if f0.property_name == f.property_name and f0.status == "bound"]
             if previous:
                 if any(same_value(f0, f) for f0 in previous):
                     for f0 in previous:
                         f0.supported_by = list(set(f0.supported_by + ["llm"]))
                 continue  # a model cannot overwrite independently extracted numbers/negations
-            # Hypotheses cannot replace ambiguous facts or narrow the verified domain.
-            proposals.append(f)
+            for old in all_facts:
+                if old.status == "ambiguous" and old.evidence and f.evidence and (old.evidence in f.evidence or f.evidence in old.evidence):
+                    old.status = "overridden"
+            all_facts.append(f)
+            model_only = True
         with self.o.core_lock:
             response = self.core.search(req, candidate_codes=[p.code for p in positions],
-                                        search_features=all_facts, model_features=proposals, scope_verified=verified)
+                                        search_features=all_facts, scope_verified=verified)
+        # These are search results under the displayed interpretation, not an unproved unique code.
+        if model_only and response.status == "matched":
+            response.status, response.final_code, response.final_name = "clarification_needed", None, None
+            response.message = "Найдена одна позиция по разбору модели; проверьте распознанные характеристики."
         response.query_profile = self._profile(response, positions)
         response.query_profile["attributes"] += extra_attrs
         model_names = {norm(a["name"]) for a in response.query_profile["attributes"]}
@@ -287,7 +287,7 @@ class LiveSearch:
         response.detected_types = sorted({p.name for p in positions})
         response.results_total = len(response.candidates)
         response.recognition_mode = "hybrid"
-        response.preliminary = any(f.confirmation == "tentative" for f in response.features)
+        response.preliminary = model_only
         response.model_pending = False
         response.providers = fast.providers + [ProviderStatus(name="qwen", enabled=True, used=True,
             status="cached" if cached else "ok", elapsed_ms=elapsed, detail="независимый разбор предмета и характеристик")]

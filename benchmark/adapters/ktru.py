@@ -26,11 +26,19 @@ CONFIGS = {
 _session = itertools.count(1)
 
 
+def _finals(r: dict) -> list[str]:
+    """Совместимые конечные позиции в порядке ранга системы (первая — лучшая)."""
+    fin = [c for c in r.get("candidates", []) if c["compatible"] and not c["is_template"]]
+    return [c["code"] for c in sorted(fin, key=lambda c: (c.get("rank") is None, c.get("rank") or 0))]
+
+
 def normalize(r: dict) -> dict:
     return {
         "status": STATUS.get(r["status"], "error"),
         "final_code": r.get("final_code"),
-        "compatible_codes": r.get("compatible_codes") or [c["code"] for c in r.get("candidates", []) if c["compatible"] and not c["is_template"]],
+        # полный набор совместимых кодов, если ядро его отдаёт (candidates может быть усечён)
+        "compatible_codes": r.get("compatible_codes") or _finals(r),
+        "ranked_codes": _finals(r),
         "features": [{"property": f.get("property_name"), "value": f.get("value"), "unit": f.get("unit"),
                       "op": f.get("op")} for f in r.get("features", [])
                      if f.get("status") in ("bound", "overridden") and f.get("property_name")],
@@ -45,16 +53,22 @@ class _Dialog:
         raise NotImplementedError
 
     def dialog(self, text, acceptable_codes, max_steps=6):
+        """trace[i] — что видел пользователь после i ответов (ранжированный список и статус); reason — почему
+        диалог закончился: matched | no_question | max_steps | no_option (ни один вариант не сохраняет эталон)."""
         sid = f"bench-{next(_session)}"
         rev = 1
         state = {"answers": [], "rejected": [], "confirmed": []}
         r = self._call({"text": text, "stage": "submitted", "session_id": sid, "revision": rev, **state})
+        trace = []
         for step in range(max_steps + 1):
+            trace.append({"ranked": _finals(r), "status": STATUS.get(r["status"], "error")})
             if r["status"] == "matched":
-                return {"resolved": r["final_code"] in acceptable_codes, "steps": step, "final_code": r["final_code"]}
+                return {"resolved": r["final_code"] in acceptable_codes, "steps": step, "final_code": r["final_code"],
+                        "trace": trace, "reason": "matched"}
             q = r.get("question")
             if not q or step == max_steps or not acceptable_codes:
-                return {"resolved": False, "steps": step, "final_code": None}
+                return {"resolved": False, "steps": step, "final_code": None, "trace": trace,
+                        "reason": "no_question" if not q else "max_steps"}
             chosen = None
             for opt in q["options"]:
                 many = opt.get("answers") or ([opt["answer"]] if opt.get("answer") else [])
@@ -69,9 +83,9 @@ class _Dialog:
                     chosen = (trial, rr)
                     break
             if chosen is None:
-                return {"resolved": False, "steps": step, "final_code": None}
+                return {"resolved": False, "steps": step, "final_code": None, "trace": trace, "reason": "no_option"}
             state, r = chosen
-        return {"resolved": False, "steps": max_steps, "final_code": None}
+        return {"resolved": False, "steps": max_steps, "final_code": None, "trace": trace, "reason": "max_steps"}
 
 
 class KtruInProcess(_Dialog, Adapter):
@@ -135,13 +149,3 @@ class KtruHttp(_Dialog, Adapter):
     def predict(self, text):
         return normalize(self._call({"text": text, "stage": "submitted", "session_id": f"bench-{next(_session)}",
                                      "revision": 1}))
-
-
-class KtruDraftHttp(KtruHttp):
-    """Actual running service, typing branch; never calls the generative model."""
-    def __init__(self, base: str = "http://127.0.0.1:8000"):
-        super().__init__(base)
-        self.name = f"ktru_draft_http:{self.base}"
-
-    def _call(self, payload):
-        return super()._call(dict(payload, stage="draft"))

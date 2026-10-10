@@ -121,6 +121,14 @@ def choose_question(cands: list[Position], constrained: set[str], type_fixed: bo
             best = (worst, 0, "", q)
             if type_first:
                 return q
+        elif len(names) == 1 and type_first:
+            # единственное наименование, но описание его не подкрепляет — подтвердить тип до вопросов о свойствах
+            nm = next(iter(names))
+            return Question(kind="type", text=f"Ваш товар — «{nm}»? Если нет, уточните описание.", required=True,
+                            worst_case_remaining=n, current_remaining=n,
+                            options=[QuestionOption(label=nm, remaining=n,
+                                                    answer=Constraint(property=TYPE_PROP, op="eq", value=nm))],
+                            reason="в области одно наименование, но в описании есть только его главное слово")
     keys = sorted({_property_key(p, strict_refs) for c in cands for p in c.props.values()} - constrained)
     for key in keys:
         opts, sample = _options_for(key, cands, strict_refs)

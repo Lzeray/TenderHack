@@ -20,14 +20,17 @@ from .models import (Candidate, CharacteristicsCompletion, CodeResolution, Compl
                      DomainProperty, Feature, Issue, Predicate, Question, QuestionOption, RawAssertion,
                      Scope, SearchRequest, SearchResponse, Span, Stage, Step)
 from .nlp.extract import Extractor, PropGroup, build_groups, value_aliases_version
-from .nlp.normalize import NormalizedQuery, normalize
+from .nlp.normalize import NormalizedQuery, normalize, set_domain_vocabulary
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
+from . import empirical, suspicious
+from .dims import resolve as resolve_dims
+from .unit_infer import infer as infer_units, infer_bare
 from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
-from .text import fuzzy_equal, norm, tokenize
+from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate
 
@@ -42,10 +45,16 @@ class Engine:
         self.backend = backend
         self.settings = settings
         self.native = settings.recognition_mode in ("semantic", "hybrid")
+        # уровень 2: статистика выгрузок; без файла или с другим снимком КТРУ — not_assessed с причиной
+        self.ste_stats = None if self.native else empirical.SteStats(settings.ste_stats_path,
+                                                                     catalog.meta.get("snapshot"))
         self.catalog_scope = CatalogScope(catalog)
         self.typos = None if self.native else TypoCorrector(catalog.vocabulary_texts())
+        if self.typos is not None:
+            set_domain_vocabulary(self.typos.forms)
         self.registry = None if self.native else TypeRegistry(catalog.search_documents())
         self.head_vocab = [] if self.native else self.registry.head_vocab
+        self._head_set = frozenset(self.head_vocab)
         self.known_terms = set() if self.native else catalog.property_core_terms()
 
     # ------------------------------------------------------------------
@@ -56,6 +65,9 @@ class Engine:
         v["catalog_as_of"] = str(self.catalog.meta.get("as_of"))
         v["search_backend"] = self.backend.name
         v["recognition_mode"] = self.settings.recognition_mode
+        v["morph"] = MORPH_MODE
+        v["suspicious"] = suspicious.VERSION
+        v["ste_stats"] = (self.ste_stats.version or "—") if self.ste_stats and self.ste_stats.available else             f"off: {self.ste_stats.reason if self.ste_stats else 'native'}"
         if not self.native:
             v["components_lexicon"] = components_version()
             v["value_aliases"] = value_aliases_version()
@@ -82,7 +94,7 @@ class Engine:
         issues: list[Issue] = []
         stages: list[Stage] = []
         nq = NormalizedQuery(req.text, req.text, [], offsets=[(i, i + 1) for i in range(len(req.text))]) if self.native else normalize(req.text)
-        corrections = [] if self.native else self.typos.correct(nq.tokens, req.corrections)
+        corrections = [] if self.native else self.typos.correct(nq.tokens, req.corrections, type_heads=self._head_set)
         if corrections:
             fixed = [c for c in corrections if c.corrected]
             if fixed:
@@ -178,6 +190,7 @@ class Engine:
 
         # --- тип по наименованию ---------------------------------------------
         type_confirmed = False
+        weak_single_name = False
         confirmed_scope = None
         # цели неоднозначного алиаса («сидушка» → кресло | табурет) не подтверждают наименование
         q_lemmas = [t.lemma for t in nq.tokens if t.kind in ("word", "code")] + det.unique_alias_terms
@@ -213,7 +226,13 @@ class Engine:
                 positions = sel
                 type_confirmed = len(names) == 1
             elif len(by_name) == 1:
-                type_confirmed = True
+                # Одно наименование в области подтверждает тип, только если описание его подкрепляет:
+                # наименование из одного слова или в описании есть ещё слово наименования кроме главного.
+                # «кресло-качалка» не подтверждает единственное «Кресло компьютерное детское».
+                only = next(iter(by_name.values()))[0]
+                tier, _, matched = name_match(only, q_lemmas)
+                type_confirmed = len(set(only.name_lemmas)) == 1 or len(matched) >= 2
+                weak_single_name = not type_confirmed
             if det.ambiguous_aliases and type_confirmed:
                 # разговорное слово с несколькими трактовками: тип подтверждает только пользователь
                 type_confirmed = False
@@ -229,25 +248,30 @@ class Engine:
 
         groups = identity_groups(positions) if self.native else build_groups(positions)
         domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
-        extractor = None if self.native else Extractor(groups, self.known_terms - domain_name_lemmas,
-                                                     product_names=[p.name for p in positions])
+        extractor = None if self.native else Extractor(
+            groups, self.known_terms - domain_name_lemmas,
+            name_tokens=self._name_tokens(nq.tokens, positions) | det.type_token_idx, type_heads=heads)
         features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
         self._mark_intent(nq, features)
         features = self._apply_constraints(features, [a for a in answers if a.property != TYPE_PROP], "answer",
                                            groups, issues)
         features = self._apply_constraints(features, req.overrides, "override", groups, issues)
+        # габариты «120×60×75»: раскладка по осям — только после выбора пользователя (docs/DIMENSIONS_PLAN.md, D4)
+        dims_question = None if self.native else resolve_dims(features, positions, heads, self.ste_stats)
+        # число без единицы: подставить единицу по КТРУ, выгрузкам и соседним признакам (docs/UNITS_PLAN.md)
+        bare_question = None if self.native else infer_bare(features, positions, heads, self.ste_stats)
+        unit_question = None if self.native else infer_units(features, positions, heads, self.ste_stats)
+        unit_question = unit_question or bare_question
+        if dims_question is None:
+            dims_question = unit_question
         group_names = {c: g.key for g in groups.values() for c in g.codes}
         if self.native:
             from .resolver import MergeResult
             # Model suggestions are visible but NEVER evaluated as constraints before confirmation.
             manual_codes = {(f.property_code, f.property_name) for f in features if f.status in ("bound", "proposed")}
             manual_evidence = {f.proposal_key for f in features if f.source in ("answer", "override")}
-            removed_refs = {g.key for c in req.overrides if c.remove
-                            and (g := self._resolve_group(c.property, groups)) is not None}
             suggestions = []
             for f in model_features or []:
-                if f.characteristic_ref in removed_refs:
-                    continue
                 if f.proposal_key in manual_evidence or "ignore:" + (f.proposal_key or "") in req.rejected:
                     continue
                 if (f.property_code, f.property_name) in manual_codes:
@@ -303,6 +327,16 @@ class Engine:
 
         # --- проверка кандидатов ------------------------------------------------
         evals = {p.code: evaluate(p, features) for p in positions}
+        # уровень 3: сомнительные значения — только предложения, на отбор не влияют
+        level3 = [] if self.native else suspicious.check(features, positions, req.text, set(req.confirmed),
+                                                             heads=heads, stats=self.ste_stats)
+        if not self.native:
+            level3 += suspicious.relations(features, heads, self.ste_stats, set(req.confirmed))
+        for sg in level3:
+            issues.append(Issue(level="warning", code=f"suspect_{sg.rule}", message=sg.message))
+        level2 = [] if self.native else [e for f in features
+                                         for e in [empirical.assess(f, heads, self.ste_stats)
+                                                   or empirical.presence(f, heads, self.ste_stats)] if e is not None]
         ranked = []
         for p in positions:
             ev = evals[p.code]
@@ -334,11 +368,37 @@ class Engine:
             out = [c for _, c, _ in finals][:MAX_CANDIDATES_OUT]
             out += [c for _, c, p in compatible if p.is_template][:20]
             out += [c for _, c, _ in ranked if not c.compatible][:30]
+        # ошибка размерности — отдельное предупреждение с обоснованием, а не только причина исключения
+        for f in features:
+            if f.status != "bound" or not f.unit:
+                continue
+            reasons = [k.reason for ev in evals.values() for k in ev.checks if k.feature_id == f.id
+                       and k.status == "invalid" and k.reason.startswith("несовместимая размерность")]
+            others = [k for ev in evals.values() for k in ev.checks if k.feature_id == f.id
+                      and not k.reason.startswith("несовместимая размерность") and k.status != "unknown"]
+            if reasons and not others:
+                issues.append(Issue(level="error", code="dimension_mismatch",
+                                    message=f"«{f.evidence or f.value}»: {reasons[0]}. Это разные физические величины — "
+                                            f"проверьте единицу для «{f.property_name}»."))
         t = lap("validate", t)
 
         # --- решение ------------------------------------------------------------
+        # Неоднозначная опечатка блокирует код, только если хотя бы один вариант — слово области поиска
+        # (наименования, названия и значения свойств): «Китай» с несколькими вариантами исправления
+        # не может изменить результат.
+        domain_vocab = domain_name_lemmas | {t for g in groups.values() for t in g.terms} | \
+            {l for g in groups.values() for lems in g.value_lemmas.values() for l in lems}
         blocking_feats = [f for f in features if f.status == "ambiguous"] + \
-            [None for c in corrections if c.status == "ambiguous"]
+            [None for c in corrections if c.status == "ambiguous"
+             and any(lemma(o) in domain_vocab for o in c.options)]
+        contradictions = self._contradictions(features, positions)
+        for key, fs in contradictions:
+            vals = " и ".join(f"«{describe(f)}»" for f in fs)
+            issues.append(Issue(level="error", code="contradictory_values",
+                                message=f"Для свойства «{fs[0].property_name}» в описании указано несколько "
+                                        f"несовместимых значений: {vals}. У товара одно значение этого свойства "
+                                        "— укажите верное"))
+            blocking_feats.append(None)
         constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
                        if f.status == "bound" and f.property_name}
         tentative = [f for f in features if f.status in ("bound", "proposed", "unknown_property") and f.confirmation == "tentative"]
@@ -421,7 +481,9 @@ class Engine:
                                        if c.status == "unknown" and c.required and c.property_code in p.props]
                     question = None if self.native and not type_confirmed else choose_question(
                         finals_pos, constrained, type_confirmed, req_unknown,
-                        type_first=bool(det.ambiguous_aliases), strict_refs=self.native)
+                        type_first=bool(det.ambiguous_aliases) or weak_single_name, strict_refs=self.native)
+                if dims_question is not None and (question is None or question.kind != "type"):
+                    question = dims_question
                 if question is not None and question.kind == "manual_choice":
                     status = "manual_choice"
                     message = question.text
@@ -439,8 +501,21 @@ class Engine:
                     if single and ev.blocking:
                         parts.append("не проверено: " + "; ".join(ev.blocking[:3]))
                     message = ". ".join(parts)
-        if status == "conflict":
-            issues.append(Issue(level="error", code="catalogue_conflict", message=message))
+        if contradictions:
+            # переизбыток данных: несовместимые значения одного свойства — сначала выбрать верное
+            key, fs = contradictions[0]
+            status = "conflict"
+            message = (f"Противоречие в описании: «{fs[0].property_name}» указано по-разному "
+                       f"({', '.join(describe(f) for f in fs)}). Выберите верное значение")
+            question = Question(kind="property", property_code=fs[0].property_code, property_name=fs[0].property_name,
+                                text=f"Какое значение «{fs[0].property_name}» верное?", required=True,
+                                worst_case_remaining=len(finals), current_remaining=len(finals),
+                                options=[QuestionOption(label=describe(f), remaining=len(finals), answer=Constraint(
+                                    property=f.property_code or f.property_name, op=f.op, value=f.value,
+                                    value_to=f.value_to, min_inclusive=f.min_inclusive,
+                                    max_inclusive=f.max_inclusive, unit=f.unit)) for f in fs],
+                                reason="в описании несколько несовместимых значений одного свойства")
+            code_res = CodeResolution(status="conflict", reason="противоречивые значения в описании")
         completion = self._completion(finals_pos[0], ev0) if len(finals) == 1 else \
             CharacteristicsCompletion(complete=False, missing=[], unchecked=[])
         if tentative and status == "matched":  # защита: недостижимо при корректной логике выше
@@ -470,7 +545,7 @@ class Engine:
             assertions=self._assertions(nq, features, merge), code_resolution=code_res,
             characteristics_completion=completion, scope=scope, timings=tm,
             elapsed_ms=tm["total"], recognition_mode=self.settings.recognition_mode,
-            compatible_codes=[p.code for p in finals_pos], **base)
+            compatible_codes=[p.code for p in finals_pos], suggestions=level3, empirical=level2, **base)
 
     # ------------------------------------------------------------------
     @staticmethod
@@ -569,6 +644,68 @@ class Engine:
         return head_lemma(name)
 
     @staticmethod
+    def _contradictions(features: list[Feature], positions: list[Position]) -> list[tuple[str, list[Feature]]]:
+        """Несовместимые значения одного свойства из текста (переизбыток данных).
+
+        Учитываются признаки из описания со статусом bound. Свойства с выбором нескольких значений
+        (kind=3 у какой-либо позиции области) не проверяются. Несовместимы: разные качественные
+        значения; «X» и «не X»; числа, чьи интервалы не пересекаются после перевода единиц."""
+        multi = {p_.norm_name for p in positions for p_ in p.props.values() if p_.kind == 3}
+        by_key: dict[str, list[Feature]] = {}
+        for f in features:
+            if f.status == "bound" and f.source == "text" and f.property_name:
+                key = " ".join(tokenize(f.property_name))
+                if key not in multi:
+                    by_key.setdefault(key, []).append(f)
+        out = []
+        for key, fs in sorted(by_key.items()):
+            if len(fs) < 2:
+                continue
+            bad = []
+            for i, a in enumerate(fs):
+                for b in fs[i + 1:]:
+                    if Engine._incompatible(a, b):
+                        bad += [x for x in (a, b) if x not in bad]
+            if bad:
+                out.append((key, bad))
+        return out
+
+    @staticmethod
+    def _incompatible(a: Feature, b: Feature) -> bool:
+        from .validate import user_interval
+        from .units import lookup
+        ia, ib = user_interval(a) if a.op != "ne" else None, user_interval(b) if b.op != "ne" else None
+        if ia is not None and ib is not None:
+            ua, ub = lookup(a.unit) if a.unit else None, lookup(b.unit) if b.unit else None
+            if (ua is None) != (ub is None) or (ua and ub and ua.dimension != ub.dimension):
+                return False
+            if ua and ub:
+                ib = ib.scaled(ub.factor / ua.factor)
+            return not ia.intersects(ib)
+        va, vb = norm(a.value or "").strip(), norm(b.value or "").strip()
+        if a.op == "eq" and b.op == "eq":
+            return va != vb
+        if {a.op, b.op} == {"eq", "ne"}:
+            return va == vb
+        return False
+
+    @staticmethod
+    def _name_tokens(tokens, positions: list[Position]) -> set[int]:
+        """Токены, которыми записано наименование типа: наименование области с наибольшим числом
+        найденных слов, каждое слово наименования — к первому свободному подходящему токену."""
+        best: set[int] = set()
+        for name_lemmas in sorted({tuple(dict.fromkeys(p.name_lemmas)) for p in positions}):
+            used: set[int] = set()
+            for l in name_lemmas:
+                i = next((t.i for t in tokens if t.kind in ("word", "code") and t.i not in used
+                          and fuzzy_equal(t.lemma, l)), None)
+                if i is not None:
+                    used.add(i)
+            if len(used) > len(best):
+                best = used
+        return best
+
+    @staticmethod
     def _unrecognized(nq) -> list[str]:
         return [t.text for t in nq.tokens if t.used_by is None and (t.significant or t.kind == "number")]
 
@@ -594,9 +731,7 @@ class Engine:
                 continue
             g = self._resolve_group(c.property, groups)
             for f in features:
-                same = g is not None and ((f.characteristic_ref == g.key or
-                    (f.property_code in g.codes and f.property_name == g.name)) if self.native else
-                    f.property_name and " ".join(tokenize(f.property_name)) == g.key)
+                same = g is not None and (f.characteristic_ref == g.key if self.native else f.property_name and " ".join(tokenize(f.property_name)) == g.key)
                 if same and f.status == "bound":
                     f.status = "removed" if c.remove else "overridden"
                     f.note = (f.note + "; " if f.note else "") + (

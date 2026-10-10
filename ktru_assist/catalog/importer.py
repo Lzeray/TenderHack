@@ -31,7 +31,7 @@ from typing import Iterator
 from xml.etree.ElementTree import Element, iterparse
 
 from ..config import CATEGORIES, VERSIONS, category_for_okpd2
-from ..text import content_lemmas, head_lemma
+from ..text import MORPH_MODE, content_lemmas, head_lemma
 
 SCHEMA = """
 CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT NOT NULL);
@@ -338,6 +338,7 @@ def run_import(src: Path, db_path: Path, as_of: dt.date, all_characteristics: bo
         "coverage": coverage,
         "issues": {k: sum(1 for i in issues if i[1] == k) for k in sorted({i[1] for i in issues})},
         "characteristics_scope": "all" if all_characteristics else "mvp",
+        "morph": MORPH_MODE,   # нормализация словоформ, которой посчитаны леммы наименований
     }
     for k, v in meta.items():
         con.execute("INSERT INTO meta VALUES(?,?)", (k, json.dumps(v, ensure_ascii=False)))

@@ -107,3 +107,17 @@ def test_feature_role_main_or_other(engine):
     roles = {(f.property_name or f.named_property or "").lower(): f.role for f in r.features}
     assert roles.get("длина") == "main"
     assert any(f.role == "other" and f.status == "unknown_property" for f in r.features)
+
+
+def test_type_word_does_not_filter_positions(engine):
+    # слово наименования («дрель») не считается характеристикой для отбора по обязательным
+    r = search(engine, "дрель ручная электрическая")
+    assert len(r.compatible_codes) == 2
+
+
+def test_override_by_name_survives_type_choice(engine):
+    from ktru_assist.models import Constraint
+    r = search(engine, "дрель ручная электрическая", overrides=[Constraint(property="Тип питания", value="от сети")])
+    f = next(f for f in r.features if f.property_name == "Тип питания" and f.source == "override")
+    assert f.status == "bound" and f.value == "От сети"
+    assert r.compatible_codes == ["28.24.11.000-92000001"]

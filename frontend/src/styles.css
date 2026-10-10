@@ -127,3 +127,12 @@ h2 { font-size: 22px; letter-spacing: -.6px; font-weight: 800; }.quiet-label { f
 .required-input { display: flex; align-items: center; gap: 6px; }.required-input input, .required-input select { flex: 1; border: 1px solid #e4e8f1; border-radius: 7px; padding: 7px 9px; font-size: 11px; background: #fff; color: #3e4a63; }
 .required-input select[aria-label="Единица измерения"] { flex: 0 0 auto; width: auto; }.required-unit { font-size: 10px; color: #8f9cb2; white-space: nowrap; }
 @media (max-width: 760px) { .required-panel { padding: 16px; }.required-table thead { display: none; }.required-table tr { display: block; padding: 8px 0; border-bottom: 1px solid #eff1f6; }.required-table td { display: block; width: auto !important; border: 0; padding: 4px 0; } }
+/* Панель характеристик под поисковой строкой */
+.chars-panel { margin-top: 18px; padding: 20px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; transition: opacity .15s; }
+.chars-stale { opacity: .6; }.chars-column { min-width: 0; }.chars-count { display: inline-block; min-width: 20px; padding: 1px 7px; margin-left: 6px; border-radius: 10px; background: #ecf0ff; color: #3656c7; font-size: 11px; text-align: center; }
+.chars-empty { font-size: 11px; color: #9ba3b4; padding: 12px 0; }.chars-subtitle { font-size: 11px; color: #59657c; margin: 14px 0 4px; }
+.char-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 12px; align-items: start; padding: 9px 0; border-bottom: 1px solid #eff1f6; }
+.char-name { font-size: 11px; color: #2e3950; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }.char-name small { flex-basis: 100%; font-size: 9px; color: #9ba3b4; line-height: 1.6; }.char-name small.char-hint { color: #a8672a; }
+.char-name .mini-tag { padding: 2px 6px; font-size: 9px; }.char-static { font-size: 11px; color: #3e4a63; display: block; padding-top: 6px; }
+.char-select { width: 100%; border: 1px solid #e4e8f1; border-radius: 7px; padding: 7px 9px; font-size: 11px; background: #fff; color: #3e4a63; }
+@media (max-width: 900px) { .chars-panel { grid-template-columns: 1fr; gap: 16px; padding: 16px; }.char-row { grid-template-columns: 1fr; gap: 6px; } }

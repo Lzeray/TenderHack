@@ -204,14 +204,15 @@ function RequiredInput({ row, search }) {
   const save = () => {
     const text = value.trim();
     if (!text || text === (row.value || "")) return;
-    search.override(parseConstraint(row.property_code, text, row.numeric ? unit : null));
+    // по названию: у позиций КТРУ одна характеристика бывает под разными кодами
+    search.override(parseConstraint(row.name, text, row.numeric ? unit : null));
   };
   const options = row.values || [];
   return <div className="required-input">
     {options.length > 0 && options.length <= 12 && !row.numeric
       ? <select aria-label={row.name} value={value} disabled={search.stale} onChange={event => {
           setValue(event.target.value);
-          if (event.target.value) search.override(parseConstraint(row.property_code, event.target.value, null));
+          if (event.target.value) search.override(parseConstraint(row.name, event.target.value, null));
         }}><option value="">Выберите значение</option>{options.map(v => <option key={v} value={v}>{v}</option>)}{value && !options.includes(value) && <option value={value}>{value}</option>}</select>
       : <><input aria-label={row.name} placeholder={row.numeric ? "Число" : "Значение"} list={listId} value={value} disabled={search.stale}
           onChange={event => setValue(event.target.value)} onBlur={save} onKeyDown={event => {
@@ -222,38 +223,85 @@ function RequiredInput({ row, search }) {
           ? <select aria-label="Единица измерения" value={unit} onChange={event => setUnit(event.target.value)}>{row.units.map(u => <option key={u}>{u}</option>)}</select>
           : <span className="required-unit">{unit}</span>)}</>}
     {row.status !== "missing" && <button className="icon-button" title="Очистить" aria-label={`Очистить ${row.name}`} disabled={search.stale}
-      onClick={() => search.override({ property: row.property_code, remove: true })}><Icon name="close" size={15} /></button>}
+      onClick={() => search.override({ property: row.name, remove: true })}><Icon name="close" size={15} /></button>}
   </div>;
 }
 
-export function RequiredTable({ search }) {
+const SOURCE_TAGS = { ste: ["Доп. · есть в СТЕ", "green"], session: ["Доп. · из сессии", "blue"], new: ["Доп. · новая", "blue"], rejected: ["Не характеристика", "amber"] };
+
+function FeatureValueInput({ feature, search }) {
+  const [value, setValue] = useState(featureValue(feature));
+  useEffect(() => setValue(featureValue(feature)), [feature.value, feature.value_to, feature.op]);
+  const key = feature.property_name || feature.characteristic_ref || feature.property_code;
+  const save = () => { if (value.trim() && value !== featureValue(feature)) search.override(parseConstraint(key, value, feature.unit)); };
+  return <div className="required-input">
+    <input aria-label={feature.property_name} value={value} disabled={search.stale} onChange={event => setValue(event.target.value)} onBlur={save}
+      onKeyDown={event => { if (event.key === "Enter") event.target.blur(); if (event.key === "Escape") setValue(featureValue(feature)); }} />
+    {feature.unit && <span className="required-unit">{feature.unit}</span>}
+    <button className="icon-button" title="Убрать" aria-label={`Убрать ${feature.property_name}`} disabled={search.stale}
+      onClick={() => search.override({ property: key, remove: true })}><Icon name="close" size={15} /></button>
+  </div>;
+}
+
+function CharRow({ name, tag, tagClass, hint, evidence, children }) {
+  return <div className="char-row">
+    <div className="char-name"><b>{name}</b>{tag && <span className={`mini-tag ${tagClass}`}>{tag}</span>}
+      {evidence && <small>Из описания: «{evidence}»</small>}{hint && <small className="char-hint">{hint}</small>}</div>
+    <div className="char-value">{children}</div>
+  </div>;
+}
+
+export function CharacteristicsPanel({ search }) {
   const data = search.result;
   const [showAll, setShowAll] = useState(false);
-  if (!data || search.stale || data.status === "not_found") return null;
+  useEffect(() => setShowAll(false), [data?.query?.original]);
+  if (!data || data.status === "not_found") return null;
   const rows = data.required_characteristics || [];
-  if (!rows.length) return null;
+  const features = data.features || [];
+  const byId = Object.fromEntries(features.map(f => [f.id, f]));
+  const filledRequired = rows.filter(r => r.status !== "missing");
+  const requiredIds = new Set(filledRequired.map(r => r.feature_id));
+  const optional = data.optional_characteristics || [];
+  const optionalIds = new Set(optional.map(f => f.id));
+  // распознанные признаки, не попавшие ни в обязательные, ни в необязательные (например, при противоречии)
+  const otherBound = features.filter(f => ["bound", "proposed"].includes(f.status) && f.property_name && !requiredIds.has(f.id) && !optionalIds.has(f.id));
+  const ambiguous = features.filter(f => f.status === "ambiguous");
+  const extra = data.additional || [];
   const missing = rows.filter(r => r.status === "missing");
-  const common = rows.filter(r => r.common);
-  const partial = rows.filter(r => !r.common);
-  const visible = showAll ? partial : partial.filter(r => r.status !== "missing" || r.narrows).slice(0, 8);
-  const statusLabel = { filled: "Заполнена", missing: "Не указана", invalid: "Не подходит", unchecked: "Не проверена" };
-  const matched = data.status === "matched";
-  const table = list => <table className="required-table"><thead><tr><th>Характеристика</th><th>Значение</th><th>Статус</th></tr></thead><tbody>
-    {list.map(row => <tr key={row.property_code} className={`required-${row.status}`}>
-      <td><b>{row.name}</b>{!row.common && <small>обязательна у {row.positions} из {row.total} позиций</small>}{row.narrows && row.status === "missing" && <small className="narrows">сузит выбор</small>}</td>
-      <td><RequiredInput row={row} search={search} /></td>
-      <td><span className={`check-state check-${row.status === "filled" ? "valid" : row.status === "invalid" ? "invalid" : "unknown"}`}>{statusLabel[row.status]}</span>{row.status !== "missing" && row.status !== "filled" && <small>{row.reason}</small>}</td>
-    </tr>)}
-  </tbody></table>;
-  return <section className="required-panel panel" aria-label="Обязательные характеристики КТРУ">
-    <div className="panel-heading"><Icon name="filter" /><h2>{matched ? "Обязательные характеристики позиции" : "Что ещё указать"}</h2></div>
-    <p className="panel-caption">{missing.length
-      ? `Обязательные характеристики КТРУ: не указано ${missing.length} из ${rows.length}.${matched ? " Код уже определён — заполните их для полной карточки." : " Сначала общие для всех оставшихся позиций."}`
-      : "Все обязательные характеристики КТРУ указаны. Значения можно исправить."}</p>
-    {common.length > 0 && <>{partial.length > 0 && <h3>Общие для всех позиций</h3>}{table(common)}</>}
-    {partial.length > 0 && <><h3>Есть только у части позиций</h3>{visible.length > 0 && table(visible)}
-      {partial.length > visible.length && <button className="text-button" onClick={() => setShowAll(true)}>Показать все ({partial.length})</button>}
-      {showAll && partial.length > 8 && <button className="text-button" onClick={() => setShowAll(false)}>Свернуть</button>}</>}
+  const commonMissing = missing.filter(r => r.common);
+  const partialMissing = missing.filter(r => !r.common);
+  const partialShown = showAll ? partialMissing : partialMissing.filter(r => r.narrows).slice(0, commonMissing.length ? 4 : 8);
+  const entered = filledRequired.length + optional.length + otherBound.length + ambiguous.length + extra.length;
+  const statusTag = { filled: ["Обязательная · проверена", "green"], invalid: ["Обязательная · не подходит", "amber"], unchecked: ["Обязательная · не проверена", "amber"] };
+  return <section className={`chars-panel panel ${search.stale ? "chars-stale" : ""}`} aria-label="Характеристики товара">
+    <div className="chars-column">
+      <div className="panel-heading"><Icon name="check" /><h2>Введённые характеристики <span className="chars-count">{entered}</span></h2></div>
+      <p className="panel-caption">Приведены к виду КТРУ. Значение можно исправить.</p>
+      {entered === 0 && <p className="chars-empty">Пока не распознано ни одной характеристики. Добавьте их в описание или заполните справа.</p>}
+      {filledRequired.map(r => <CharRow key={`r-${r.property_code}`} name={r.name} tag={statusTag[r.status][0]} tagClass={statusTag[r.status][1]}
+        evidence={byId[r.feature_id]?.evidence} hint={r.status !== "filled" ? r.reason : null}><RequiredInput row={r} search={search} /></CharRow>)}
+      {[...optional, ...otherBound].map(f => <CharRow key={`o-${f.id}`} name={f.property_name} tag={optionalIds.has(f.id) ? "Необязательная" : "КТРУ"} tagClass="blue"
+        evidence={f.evidence}><FeatureValueInput feature={f} search={search} /></CharRow>)}
+      {ambiguous.map(f => <CharRow key={`a-${f.id}`} name={`«${f.evidence || f.value}»`} tag="Уточните свойство" tagClass="amber" hint={f.note}>
+        <select className="char-select" defaultValue="" disabled={search.stale} onChange={event => {
+          const option = f.options[Number(event.target.value)];
+          search.override({ property: option.property_code, value: option.value ?? f.value, value_to: f.value_to, op: f.op, unit: f.unit });
+        }}><option value="" disabled>К какому свойству относится?</option>{f.options.map((o, i) => <option key={i} value={i}>{o.property_name}{o.value ? ` = ${o.value}` : ""}</option>)}</select>
+      </CharRow>)}
+      {extra.map((a, i) => <CharRow key={`e-${i}`} name={a.name} tag={SOURCE_TAGS[a.source][0]} tagClass={SOURCE_TAGS[a.source][1]} hint={a.reason}>
+        <b className="char-static">{a.value} {a.unit || ""}</b>
+      </CharRow>)}
+    </div>
+    <div className="chars-column">
+      <div className="panel-heading"><Icon name="filter" /><h2>Осталось ввести <span className="chars-count">{missing.length}</span></h2></div>
+      <p className="panel-caption">{missing.length ? "Обязательные характеристики КТРУ оставшихся позиций. Сначала общие для всех." : rows.length ? "Все обязательные характеристики КТРУ указаны." : "Обязательные характеристики появятся, когда будет понятен товар."}</p>
+      {commonMissing.map(r => <CharRow key={`m-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : "Общая"} tagClass="blue"
+        hint={r.positions < r.total ? `обязательна у ${r.positions} из ${r.total}` : null}><RequiredInput row={r} search={search} /></CharRow>)}
+      {partialShown.length > 0 && <h3 className="chars-subtitle">Есть только у части позиций</h3>}
+      {partialShown.map(r => <CharRow key={`p-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue"
+        hint={`обязательна у ${r.positions} из ${r.total} позиций`}><RequiredInput row={r} search={search} /></CharRow>)}
+      {partialMissing.length > partialShown.length && <button className="text-button" onClick={() => setShowAll(true)}>Показать все ({partialMissing.length})</button>}
+    </div>
   </section>;
 }
 

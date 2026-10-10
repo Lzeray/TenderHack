@@ -30,6 +30,7 @@ from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
+from .catalog.scope import ref
 from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate, find_prop
@@ -443,6 +444,14 @@ class Engine:
             blocking_feats.append(None)
         constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
                        if f.status == "bound" and f.property_name}
+        if self.native:
+            # признаки разбора правилами не несут ссылку на характеристику: заданные свойства — по позициям
+            for f in features:
+                if f.status == "bound" and f.property_name:
+                    for _, _, p in finals:
+                        pr = find_prop(p, f)
+                        if pr is not None:
+                            constrained.add(ref("characteristic", pr.code, pr.name))
         tentative = [f for f in features if f.status in ("bound", "proposed", "unknown_property") and f.confirmation == "tentative"]
         final_code = final_name = None
         question = None
@@ -463,7 +472,8 @@ class Engine:
             gate.append("подозрительные значения не подтверждены")
         if merge.disagreements:
             gate.append("расхождение разбора правилами и модели")
-        if self.native and any(f.status == "unknown_property" for f in features):
+        # характеристика вне КТРУ из текста — дополнительная и на код не влияет; блокирует только трактовка модели
+        if self.native and any(f.status == "unknown_property" and f.confirmation == "tentative" for f in features):
             gate.append("есть признаки без подтверждённой привязки к полной схеме")
         code_res: CodeResolution
         ev0 = evals[finals_pos[0].code] if finals else None
@@ -524,12 +534,14 @@ class Engine:
                         p = finals_pos[0]
                         req_unknown = [p.props[c.property_code] for c in ev.checks
                                        if c.status == "unknown" and c.required and c.property_code in p.props]
+                    # вопрос есть всегда, пока позиций больше одной: сначала тип (наименование), затем характеристики;
                     # оставшиеся позиции разных наименований («Брюки», «Брюки спортивные») различает вопрос
                     # о наименовании, даже если базовый тип назван (docs/KTRU_SEARCH_PLAN.md, K5)
                     type_fixed = type_confirmed and len({p.name for p in finals_pos}) == 1
-                    question = None if self.native and not type_confirmed else choose_question(
+                    question = choose_question(
                         finals_pos, constrained, type_fixed, req_unknown,
-                        type_first=bool(det.ambiguous_aliases) or weak_single_name, strict_refs=self.native)
+                        type_first=bool(det.ambiguous_aliases) or weak_single_name or (self.native and not type_confirmed),
+                        strict_refs=self.native)
                 if dims_question is not None and (question is None or question.kind != "type"):
                     question = dims_question
                 if question is not None and question.kind == "manual_choice":
@@ -855,8 +867,14 @@ class Engine:
             if c.property == TYPE_PROP:
                 continue
             g = self._resolve_group(c.property, groups)
+            gname = " ".join(tokenize(g.name)) if g is not None else None
+            # у позиций КТРУ одна и та же характеристика бывает под разными кодами: тогда привязка — по названию
+            strict = self.native and g is not None and \
+                sum(1 for x in groups.values() if " ".join(tokenize(x.name)) == gname) == 1
             for f in features:
-                same = g is not None and (f.characteristic_ref == g.key if self.native else f.property_name and " ".join(tokenize(f.property_name)) == g.key)
+                by_name = bool(f.property_name) and " ".join(tokenize(f.property_name)) == gname
+                same = g is not None and ((f.characteristic_ref == g.key or (f.characteristic_ref is None and by_name))
+                                          if self.native else by_name)
                 if same and f.status == "bound":
                     f.status = "removed" if c.remove else "overridden"
                     f.note = (f.note + "; " if f.note else "") + (
@@ -884,8 +902,8 @@ class Engine:
                                     property_code=g.codes[0], property_name=g.name, op=c.op, value=c.value, values=c.values,
                                     value_to=c.value_to, min_inclusive=c.min_inclusive,
                                     max_inclusive=c.max_inclusive, unit=c.unit,
-                                    strict_ref=self.native,
-                                    characteristic_ref=g.key if self.native else None,
+                                    strict_ref=strict,
+                                    characteristic_ref=g.key if strict else None,
                                     proposal_key=c.evidence_key,
                                     note="ручное редактирование (приоритет над текстом)" if source == "override"
                                     else "ответ на уточняющий вопрос"))
@@ -900,4 +918,5 @@ class Engine:
             return code_matches[0] if len(code_matches) == 1 else None
         key = " ".join(tokenize(prop))
         matches = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
-        return matches[0] if len(matches) == 1 else None
+        # несколько групп с одним названием (разные коды одной характеристики) — привязка по названию
+        return matches[0] if matches else None

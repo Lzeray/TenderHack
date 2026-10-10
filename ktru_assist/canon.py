@@ -92,13 +92,8 @@ def canonicalize(features: list[Feature], groups: dict) -> list[Feature]:
                 f.value = shown.pop()
             elif f.unit is None and f.value and not any(ch.isdigit() for ch in f.value):
                 f.value = display(f.value)
-        elif f.status == "unknown_property":
-            if f.named_property:
-                f.named_property = display(f.named_property)
-            if f.property_name:
-                f.property_name = display(f.property_name)
-            if f.value and f.unit is None and not any(ch.isdigit() for ch in f.value):
-                f.value = display(f.value)
+        # unknown_property не меняется: его исходный текст нужен проверкам по выгрузкам; вид отображения
+        # дополнительных характеристик задаёт extras.classify
     return features
 
 

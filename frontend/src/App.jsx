@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearch } from "./useSearch.js";
-import { Additional, Feedback, Icon, Parameters, ProductArt, ProductCard, ProductDialog, Question, RequiredTable, SearchBox } from "./components.jsx";
+import { Additional, CharacteristicsPanel, Feedback, Icon, ProductArt, ProductCard, ProductDialog, Question, SearchBox } from "./components.jsx";
 
 const examples = ["Молоток слесарный 500 г", "Стул на металлическом каркасе", "Куртка утеплённая"];
 const categories = [
@@ -47,7 +47,6 @@ export default function App() {
   const search = useSearch();
   const [selected, setSelected] = useState(null);
   const [help, setHelp] = useState(false);
-  const [mobile, setMobile] = useState(() => window.matchMedia("(max-width: 760px)").matches);
   const data = search.result;
   const current = data && !search.stale;
   const matched = current && data.status === "matched" && data.final_code;
@@ -55,12 +54,6 @@ export default function App() {
   const candidates = current ? (data.recognition_mode === "semantic" && !data.scope?.confirmed_scope ? data.preview_candidates : data.candidates)?.filter(c => c.compatible && !c.is_template) || [] : [];
   const items = matched ? candidates.filter(c => c.code === data.final_code) : candidates;
   const searching = search.busy.fast || search.stale;
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 760px)");
-    const changed = () => setMobile(media.matches);
-    media.addEventListener("change", changed);
-    return () => media.removeEventListener("change", changed);
-  }, []);
 
   return <>
     <header className="site-header"><div className="container header-inner">
@@ -74,15 +67,14 @@ export default function App() {
         <h1>Опишите товар.<br className="desktop-break" /><span> Код КТРУ подберём вместе.</span></h1>
         <p className="hero-description">Характеристики приводим к виду КТРУ, сужаем список позиций и подсказываем, что ещё указать.</p>
         <SearchBox search={search} />
-        <div className="example-row"><span>Например:</span>{examples.map(example => <button key={example} onClick={() => search.changeText(example)}>{example}<Icon name="arrow" size={13} /></button>)}</div>
+        {!search.text.trim() && <div className="example-row"><span>Например:</span>{examples.map(example => <button key={example} onClick={() => search.changeText(example)}>{example}<Icon name="arrow" size={13} /></button>)}</div>}
+        {search.text.trim() && <CharacteristicsPanel search={search} />}
       </section>
       {help && <section className="help-panel panel"><button className="icon-button" aria-label="Закрыть подсказку" onClick={() => setHelp(false)}><Icon name="close" /></button><h2>Поиск, который объясняет свой результат</h2><p>Поиск идёт только по справочнику КТРУ. Характеристики, которые есть в КТРУ, сужают список позиций; те, которых в КТРУ нет, сохраняются как дополнительные (с проверкой по выгрузкам СТЕ) и на код не влияют.</p><p>Внизу — обязательные характеристики оставшихся позиций: сначала общие для всех. Заполненные можно исправить. Когда остаётся одна позиция, показываем её код.</p></section>}
       <Feedback search={search} />
       {!search.text.trim() ? <Welcome onChoose={search.changeText} /> : <>
         <div className="catalog-layout"><div className="catalog-sidebar"><CodeSummary search={search} />
-          <details className="mobile-parameters" open={!mobile}><summary><Icon name="filter" size={18} />Параметры и уточнения<Icon name="arrow" size={16} /></summary>
-            <Question search={search} /><Parameters search={search} />
-          </details>
+          <Question search={search} />
         </div><section className="catalog-main" aria-label="Результаты подбора" data-query={current ? data.query.original : ""}>
           <div className="results-header"><div><span className="eyebrow">Справочник КТРУ</span><h2>{matched ? "Подобранная позиция" : "Подходящие позиции КТРУ"}</h2></div><span className="view-label"><Icon name="grid" size={17} />{searching ? "…" : count(items.length)}</span></div>
           <div id="result-panel">
@@ -92,7 +84,6 @@ export default function App() {
               : <div className="empty-results"><span className="empty-symbol"><Icon name={data?.status === "conflict" ? "alert" : "search"} size={35} /></span><h3>{data?.status === "conflict" ? "Сначала уточним описание" : search.busy.model ? "Уточняем ваш запрос" : "Подходящих позиций пока нет"}</h3><p>{data?.status === "conflict" ? "Причина указана выше. После исправления покажем подходящие позиции." : "Попробуйте другое название, добавьте характеристику или ответьте на вопрос."}</p><button className="button button-soft" onClick={() => search.changeText("")}>Начать новый поиск</button></div>}
           </div>
         </section></div>
-        <RequiredTable search={search} />
       </>}
     </main>
     <footer className="site-footer container"><span>Портал поставщиков <span className="footer-divider">/</span> TenderHack</span><span>Подбор по справочнику КТРУ; выгрузки СТЕ — для дополнительных характеристик</span></footer>

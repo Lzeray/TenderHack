@@ -58,7 +58,7 @@
 ## 000000000. Слияние main → matvey_develop (2026-10-10)
 
 - Из `main` взят обновлённый `benchmark/` целиком (наборы `independent/`, `metamorphic/`, метрики ранжирования
-  и вопросов, `ranking_codes`, трасса диалога). Поверх версии `main` в `benchmark/adapters/ktru.py` оставлены две
+  и вопросов, `ranked_codes`, трасса диалога). Поверх версии `main` в `benchmark/adapters/ktru.py` оставлены две
   вещи этой ветки: конфигурация `ktru:semantic_catalog` (на неё ссылается `docs/SEMANTIC_PIPELINE.md`) и полный
   набор `compatible_codes` из ответа ядра (список `candidates` может быть усечён). Адаптер `tenderhack2026.py`
   сохранён. `.gitignore` — объединение правил. Код ядра в `main` не менялся — конфликтов в нём нет.

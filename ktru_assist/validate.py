@@ -24,6 +24,8 @@ def user_interval(f: Feature) -> Interval | None:
         v = Decimal((f.value or "").replace(",", "."))
     except InvalidOperation:
         return None
+    if not v.is_finite():
+        return None
     if f.op == "eq":
         return Interval(v, True, v, True)
     if f.op == "ge":
@@ -39,12 +41,16 @@ def user_interval(f: Feature) -> Interval | None:
             v2 = Decimal((f.value_to or "").replace(",", "."))
         except InvalidOperation:
             return None
+        if not v2.is_finite() or v > v2:
+            return None
         lo, hi = min(v, v2), max(v, v2)
         return Interval(lo, f.min_inclusive, hi, f.max_inclusive)
     return None
 
 
 def describe_user(f: Feature) -> str:
+    if f.op == "in":
+        return "один из: " + ", ".join(f.values)
     u = f" {f.unit}" if f.unit else ""
     ops = {"eq": "", "ne": "не ", "ge": "≥ ", "gt": "> ", "le": "≤ ", "lt": "< "}
     if f.op == "between":
@@ -53,6 +59,9 @@ def describe_user(f: Feature) -> str:
 
 
 def find_prop(pos: Position, f: Feature) -> Prop | None:
+    if f.strict_ref:
+        p = pos.props.get(f.property_code or "")
+        return p if p and (f.property_name is None or p.name == f.property_name) else None
     if f.property_code and f.property_code in pos.props:
         p = pos.props[f.property_code]
         if f.property_name is None or p.norm_name == " ".join(tokenize(f.property_name)):
@@ -67,8 +76,10 @@ def find_prop(pos: Position, f: Feature) -> Prop | None:
 
 def check_numeric(prop: Prop, f: Feature, U: Interval) -> tuple[str, str]:
     uu = lookup(f.unit) if f.unit else None
+    if f.unit and uu is None:
+        return "unknown", "единица измерения не распознана; выберите её вручную"
     count_default = False
-    if uu is None and any(v.unit is not None and v.unit.dimension == "count" for v in prop.values):
+    if uu is None and not f.strict_ref and any(v.unit is not None and v.unit.dimension == "count" for v in prop.values):
         # число без единицы у счётного свойства («2 аккумулятора») — это штуки; иные размерности не додумываются
         uu, count_default = lookup("шт"), True
     comparable: list[Interval] = []
@@ -116,8 +127,12 @@ def check_numeric(prop: Prop, f: Feature, U: Interval) -> tuple[str, str]:
     return "unknown", f"{user_txt} частично пересекается с допустимым ({allowed_txt}) — нужно точное значение"
 
 
-def _quality_match(prop: Prop, value: str) -> bool:
+def _quality_match(prop: Prop, value: str, strict: bool = False) -> bool:
     n = norm(value).strip()
+    if any(v.kind == "quality" and norm(v.text or "").strip() == n for v in prop.values):
+        return True
+    if strict:
+        return False
     lem = tuple(content_lemmas(value))
     for v in prop.values:
         if v.kind != "quality" or v.text is None:
@@ -137,18 +152,27 @@ def check_feature(pos: Position, f: Feature) -> tuple[str, str, Prop | None]:
             return "unknown", "свойства нет в позиции; дополнительная характеристика допускается", None
         return "unknown", "свойства нет в позиции; признак запрета доп. характеристик не задан", None
     allowed = [v.label for v in prop.values]
+    if f.op == "in":
+        if not f.values:
+            return "unknown", "не указан набор значений", prop
+        statuses = [check_feature(pos, f.model_copy(update={"op": "eq", "value": v}))[0] for v in f.values]
+        if all(s == "valid" for s in statuses):
+            return "valid", "весь подтверждённый набор значений допустим", prop
+        if all(s == "invalid" for s in statuses):
+            return "invalid", "ни одно значение подтверждённого набора не допустимо", prop
+        return "unknown", "набор значений соответствует лишь частично; уточните выбор", prop
     U = user_interval(f) if f.op != "ne" else None
     quality_values = [v for v in prop.values if v.kind == "quality"]
     if U is not None and prop.is_numeric:
         st, why = check_numeric(prop, f, U)
         return st, why, prop
     if f.op == "ne":
-        others = [v for v in quality_values if not _quality_match(Prop("", "", None, None, False, [v]), f.value or "")]
+        others = [v for v in quality_values if not _quality_match(Prop("", "", None, None, False, [v]), f.value or "", f.strict_ref)]
         if quality_values and not others:
             return "invalid", f"позиция допускает только «{', '.join(allowed)}», а указано «не {f.value}»", prop
         return "unknown", "отрицание не определяет значение однозначно", prop
     if quality_values:
-        if _quality_match(prop, f.value or ""):
+        if _quality_match(prop, f.value or "", f.strict_ref):
             return "valid", f"«{f.value}» есть среди допустимых", prop
         return "invalid", f"«{f.value}» нет среди допустимых: {', '.join(allowed[:12])}" + \
             ("…" if len(allowed) > 12 else ""), prop
@@ -170,7 +194,28 @@ class CandidateEval:
 
 def evaluate(pos: Position, features: list[Feature]) -> CandidateEval:
     ev = CandidateEval()
-    active = [f for f in features if f.status == "bound"]
+    for f in features:
+        if f.strict_ref and f.confirmation == "tentative" and f.status in ("bound", "proposed", "unknown_property"):
+            prop = find_prop(pos, f)
+            ev.checks.append(PropertyCheck(property_code=f.property_code or "", property_name=f.property_name or "Не привязано",
+                required=bool(prop and prop.required), kind=prop.kind if prop else None, status="unknown",
+                reason="модельная трактовка не подтверждена; не используется для исключения", feature_id=f.id,
+                user_value=describe_user(f)))
+            ev.unknown += 1
+    active = [f for f in features if f.status == "bound" and not (f.strict_ref and f.confirmation == "tentative")]
+    for i, f in enumerate(active):
+        if not f.strict_ref:
+            continue
+        a = user_interval(f)
+        for other in active[i + 1:]:
+            if (f.property_code, f.property_name) != (other.property_code, other.property_name):
+                continue
+            b = user_interval(other)
+            ua, ub = lookup(f.unit or ""), lookup(other.unit or "")
+            if a is not None and b is not None and ua and ub and ua.dimension == ub.dimension:
+                if not a.intersects(b.scaled(ub.factor / ua.factor)):
+                    ev.invalid += 1
+                    ev.invalid_reasons.append(f"{f.property_name}: противоречивые ограничения пользователя")
     covered: set[str] = set()
     for f in active:
         st, why, prop = check_feature(pos, f)
@@ -191,7 +236,7 @@ def evaluate(pos: Position, features: list[Feature]) -> CandidateEval:
             ev.invalid_reasons.append(f"{name}: {why}")
         else:
             ev.unknown += 1
-            if prop is not None:  # отсутствующее свойство — предупреждение, а не блокировка
+            if prop is not None or f.strict_ref:
                 ev.blocking.append(f"{name}: {why}")
     for prop in pos.props.values():
         if prop.required and prop.code not in covered:

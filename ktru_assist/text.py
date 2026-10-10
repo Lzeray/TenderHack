@@ -8,9 +8,11 @@ from __future__ import annotations
 import re
 from functools import lru_cache
 
-import pymorphy3
-
-_MORPH = pymorphy3.MorphAnalyzer()
+@lru_cache(maxsize=1)
+def _morph():
+    """Only the legacy lexical recognizer requires morphology dictionaries."""
+    import pymorphy3
+    return pymorphy3.MorphAnalyzer()
 
 TOKEN_RE = re.compile(
     r"\d+(?:[.,]\d+)?"          # число
@@ -45,12 +47,12 @@ def lemma(word: str) -> str:
         return w
     if "-" in w:  # «дрель-шуруповерт» → леммы частей через дефис
         return "-".join(lemma(p) for p in w.split("-") if p)
-    return norm(_MORPH.parse(w)[0].normal_form)
+    return norm(_morph().parse(w)[0].normal_form)
 
 
 @lru_cache(maxsize=200_000)
 def is_known_word(word: str) -> bool:
-    return _MORPH.word_is_known(norm(word))
+    return _morph().word_is_known(norm(word))
 
 
 def content_lemmas(s: str) -> list[str]:
@@ -74,7 +76,7 @@ def head_lemma(name: str) -> str | None:
     for t in tokenize(name):
         if t[0].isdigit():
             continue
-        p = _MORPH.parse(t)[0]
+        p = _morph().parse(t)[0]
         lem = norm(p.normal_form)
         if lem in STOPWORDS:
             continue

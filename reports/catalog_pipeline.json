@@ -1,0 +1,1156 @@
+{
+  "machine": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "python": "3.14.3",
+  "versions": {
+    "api": "2.1",
+    "importer": "1.0",
+    "normalizer": "1.1",
+    "typos": "1.0",
+    "extractor": "1.1",
+    "validator": "1.2",
+    "ranking": "1.0",
+    "clarifier": "1.2",
+    "engine": "2.1",
+    "type_registry": "1.0",
+    "resolver": "1.0",
+    "plausibility": "1.0",
+    "package": "0.1.0",
+    "catalog_snapshot": "nsiKTRUNew_all_actual_20261003020003",
+    "catalog_as_of": "2026-10-09",
+    "search_backend": "catalogue-scope",
+    "recognition_mode": "semantic",
+    "orchestrator": "2.0",
+    "llm_mode": "always",
+    "semantic_encoder": "cointegrated/rubert-tiny2@e8ed3b0c8bbf4fb6984c3de043bf7d2f4e5969ae/transformers-5.0.0/cls+l2/128/catalog-docs-1.2/query-prefixes-1.0",
+    "llm_model": "qwen3:4b-instruct-2507-q4_K_M@0edcdef34593eac1aa2",
+    "llm_prompt": "catalog-parser-1.1",
+    "llm_schema": "a5c014e54101da13221fa601490bd80e67be8e4c07c4f2a2ed8569e7ea3c83b5",
+    "llm_options": "{\"num_ctx\": 16384, \"num_predict\": 2048, \"seed\": 0, \"temperature\": 0}"
+  },
+  "initialization_ms": 2802.5,
+  "draft_cases": 46,
+  "draft_ms": {
+    "p50": 55.51,
+    "p95": 98.09,
+    "cold_first": 101.42
+  },
+  "type_recall_at_8": {
+    "hits": 33,
+    "cases": 37
+  },
+  "draft_matched": 0,
+  "full_cases": [
+    {
+      "id": "T01",
+      "type_confirmation": "simulated from labelled acceptable codes",
+      "full_ms": 10436.44,
+      "status": "clarification_needed",
+      "final_code": null,
+      "features": [
+        {
+          "id": "native-0",
+          "source": "model",
+          "status": "proposed",
+          "property_code": "ee94fa19-1",
+          "property_name": "Длина",
+          "op": "eq",
+          "value": "180",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": "мм",
+          "evidence": "пассатижи слесарные 180 мм",
+          "span": null,
+          "negated": false,
+          "options": [],
+          "note": "Исходное значение; модельная привязка не подтверждена",
+          "origin": "llm",
+          "confirmation": "tentative",
+          "component": null,
+          "canonical_key": null,
+          "intent": "fact",
+          "raw_span": [
+            0,
+            26
+          ],
+          "supported_by": [],
+          "proposal_key": "proposal:8af136bfcd8fa8f75acf0976",
+          "strict_ref": true,
+          "values": [
+            "180"
+          ]
+        }
+      ],
+      "issues": [],
+      "providers": [
+        {
+          "name": "semantic",
+          "enabled": true,
+          "used": true,
+          "status": "ok",
+          "detail": "",
+          "elapsed_ms": null
+        },
+        {
+          "name": "llm",
+          "enabled": true,
+          "used": true,
+          "status": "ok",
+          "detail": "",
+          "elapsed_ms": 10426.5
+        }
+      ],
+      "simulated_confirmation_status": "clarification_needed",
+      "simulated_final_code": null,
+      "simulated_code_correct": null
+    },
+    {
+      "id": "F01",
+      "type_confirmation": "simulated from labelled acceptable codes",
+      "full_ms": 46370.18,
+      "status": "clarification_needed",
+      "final_code": null,
+      "features": [],
+      "issues": [
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Наличие мягкой спинки"
+        },
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Наличие мягкого сидения"
+        },
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Вид материала сидения"
+        },
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Вид материала спинки"
+        },
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Наличие подлокотников"
+        },
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Наличие пюпитра"
+        },
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Форма основания"
+        }
+      ],
+      "providers": [
+        {
+          "name": "semantic",
+          "enabled": true,
+          "used": true,
+          "status": "ok",
+          "detail": "",
+          "elapsed_ms": null
+        },
+        {
+          "name": "llm",
+          "enabled": true,
+          "used": true,
+          "status": "ok",
+          "detail": "",
+          "elapsed_ms": 46363.0
+        }
+      ]
+    },
+    {
+      "id": "C01",
+      "type_confirmation": "simulated from labelled acceptable codes",
+      "full_ms": 13681.45,
+      "status": "clarification_needed",
+      "final_code": null,
+      "features": [
+        {
+          "id": "native-1",
+          "source": "model",
+          "status": "proposed",
+          "property_code": "edda08ca-1",
+          "property_name": "Российский размер",
+          "op": "eq",
+          "value": "52",
+          "value_to": null,
+          "min_inclusive": true,
+          "max_inclusive": true,
+          "unit": "",
+          "evidence": "размер 52",
+          "span": null,
+          "negated": false,
+          "options": [],
+          "note": "Исходное значение; модельная привязка не подтверждена",
+          "origin": "llm",
+          "confirmation": "tentative",
+          "component": null,
+          "canonical_key": null,
+          "intent": "fact",
+          "raw_span": [
+            42,
+            51
+          ],
+          "supported_by": [],
+          "proposal_key": "proposal:668de1498aa68ce54e7aa633",
+          "strict_ref": true,
+          "values": [
+            "52"
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Цитата отсутствует либо повторяется: Натуральная кожа"
+        },
+        {
+          "level": "warning",
+          "code": "llm_item_rejected",
+          "message": "Исходное значение/единица не присутствует в цитате"
+        }
+      ],
+      "providers": [
+        {
+          "name": "semantic",
+          "enabled": true,
+          "used": true,
+          "status": "ok",
+          "detail": "",
+          "elapsed_ms": null
+        },
+        {
+          "name": "llm",
+          "enabled": true,
+          "used": true,
+          "status": "ok",
+          "detail": "",
+          "elapsed_ms": 13672.2
+        }
+      ],
+      "simulated_confirmation_status": "clarification_needed",
+      "simulated_final_code": null,
+      "simulated_code_correct": null
+    }
+  ],
+  "runtime_memory": {
+    "ollama_reported_gpu_bytes": 5106921635,
+    "encoder_device": "cpu",
+    "note": "macOS unified memory; not a Linux CUDA peak VRAM measurement"
+  },
+  "cases": [
+    {
+      "id": "T01",
+      "text": "пассатижи слесарные 180 мм",
+      "draft_ms": 101.42,
+      "expected_types": [
+        "type:243480cb8bbda0f2c867d610"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:c6efa0b0153cacf062a7ed6b",
+        "type:243480cb8bbda0f2c867d610",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:8524ecd0441831fe6462f92d",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:9eaa9cfc504109bd96c9c05d",
+        "type:42962f8619be275412178bdd"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T02",
+      "text": "пасатижи слесарные 200 мм",
+      "draft_ms": 55.99,
+      "expected_types": [
+        "type:243480cb8bbda0f2c867d610"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:c6efa0b0153cacf062a7ed6b",
+        "type:243480cb8bbda0f2c867d610",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:8524ecd0441831fe6462f92d",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:42962f8619be275412178bdd",
+        "type:9eaa9cfc504109bd96c9c05d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T03",
+      "text": "пассатижи рыбацкие",
+      "draft_ms": 54.07,
+      "expected_types": [
+        "type:243480cb8bbda0f2c867d610"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:243480cb8bbda0f2c867d610",
+        "type:272987ac215bc7ba8337ff22",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:8524ecd0441831fe6462f92d",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:9eaa9cfc504109bd96c9c05d",
+        "type:b117b21fc8a3fdebce92eaf9",
+        "type:7e9742191bebed3bc56fb71f"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T04",
+      "text": "пассатижи слесарные рыбацкие 170 мм",
+      "draft_ms": 54.44,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:c6efa0b0153cacf062a7ed6b",
+        "type:243480cb8bbda0f2c867d610",
+        "type:272987ac215bc7ba8337ff22",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:8524ecd0441831fe6462f92d",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:9eaa9cfc504109bd96c9c05d",
+        "type:42962f8619be275412178bdd"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T05",
+      "text": "шуруповерт аккумуляторный",
+      "draft_ms": 54.03,
+      "expected_types": [
+        "type:4d5bda890d102618eb3f518a"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:4d5bda890d102618eb3f518a",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:272987ac215bc7ba8337ff22",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:8f22c448728f0ccfa14e46af"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T06",
+      "text": "шуруповерт от сети",
+      "draft_ms": 91.24,
+      "expected_types": [
+        "type:4d5bda890d102618eb3f518a"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:4d5bda890d102618eb3f518a",
+        "type:272987ac215bc7ba8337ff22",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:42962f8619be275412178bdd"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T07",
+      "text": "шуруповерт сетевой",
+      "draft_ms": 55.12,
+      "expected_types": [
+        "type:4d5bda890d102618eb3f518a"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:4d5bda890d102618eb3f518a",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:272987ac215bc7ba8337ff22",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:42962f8619be275412178bdd"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T08",
+      "text": "молоток кровельный",
+      "draft_ms": 53.9,
+      "expected_types": [
+        "type:8524ecd0441831fe6462f92d"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:42962f8619be275412178bdd",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:b117b21fc8a3fdebce92eaf9",
+        "type:7e9742191bebed3bc56fb71f"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T09",
+      "text": "молоток слесарный масса головки 0,5 кг",
+      "draft_ms": 54.68,
+      "expected_types": [
+        "type:8524ecd0441831fe6462f92d"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:c6efa0b0153cacf062a7ed6b",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:42962f8619be275412178bdd",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:8f22c448728f0ccfa14e46af"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T10",
+      "text": "плоскогубцы комбинированные 160 мм",
+      "draft_ms": 56.65,
+      "expected_types": [
+        "type:b117b21fc8a3fdebce92eaf9"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:b117b21fc8a3fdebce92eaf9",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:8524ecd0441831fe6462f92d",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:243480cb8bbda0f2c867d610",
+        "type:a426c8aaa9a5b8fd42920f8a"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T11",
+      "text": "дрель ручная электрическая от сети мощность 600 вт",
+      "draft_ms": 55.17,
+      "expected_types": [
+        "type:5bb18bb25e6d46e37c5ce25d"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:5bb18bb25e6d46e37c5ce25d",
+        "type:e4629b81e1021873a5963d37",
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:d134e176d7fcfd1fe4670221",
+        "type:6e542d22edd9974a7fef6e76",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:2e548b074a282d3f21e4d078"
+      ],
+      "matched": false
+    },
+    {
+      "id": "T12",
+      "text": "дрель ручная электрическая мощность 500 в",
+      "draft_ms": 90.7,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:5bb18bb25e6d46e37c5ce25d",
+        "type:e4629b81e1021873a5963d37",
+        "type:8524ecd0441831fe6462f92d",
+        "type:d134e176d7fcfd1fe4670221",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:6e542d22edd9974a7fef6e76",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:42de6064dc3a628894f96a9b"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F01",
+      "text": "стул на металлическом каркасе с мягким сиденьем и мягкой спинкой",
+      "draft_ms": 54.69,
+      "expected_types": [
+        "type:1f9c22eba44009e1487b0acc"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:1f9c22eba44009e1487b0acc",
+        "type:ca69260a3c33f60743ee4307",
+        "type:75e311b733853a0c2dadb33f",
+        "type:e98f3c53bfa844648622e93c",
+        "type:cce928d069ccd50decb3dc76",
+        "type:6fcbe4a91c04fdb62b8dfdee",
+        "type:6102e8114ef0b86f3db0c9b3",
+        "type:ba39177abf645a464f4b317d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F02",
+      "text": "стул на металлическом каркасе без мягкого сиденья и без мягкой спинки",
+      "draft_ms": 56.54,
+      "expected_types": [
+        "type:1f9c22eba44009e1487b0acc"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:1f9c22eba44009e1487b0acc",
+        "type:ca69260a3c33f60743ee4307",
+        "type:75e311b733853a0c2dadb33f",
+        "type:e98f3c53bfa844648622e93c",
+        "type:cce928d069ccd50decb3dc76",
+        "type:6fcbe4a91c04fdb62b8dfdee",
+        "type:6102e8114ef0b86f3db0c9b3",
+        "type:ba39177abf645a464f4b317d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F03",
+      "text": "стул на металлическом каркасе с мягким сиденьем, спинка жесткая",
+      "draft_ms": 56.39,
+      "expected_types": [
+        "type:1f9c22eba44009e1487b0acc"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:1f9c22eba44009e1487b0acc",
+        "type:ca69260a3c33f60743ee4307",
+        "type:75e311b733853a0c2dadb33f",
+        "type:e98f3c53bfa844648622e93c",
+        "type:cce928d069ccd50decb3dc76",
+        "type:6fcbe4a91c04fdb62b8dfdee",
+        "type:6102e8114ef0b86f3db0c9b3",
+        "type:ba39177abf645a464f4b317d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F04",
+      "text": "табурет металлический",
+      "draft_ms": 55.51,
+      "expected_types": [
+        "type:7e9742191bebed3bc56fb71f"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:e98f3c53bfa844648622e93c",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:cce928d069ccd50decb3dc76",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:42962f8619be275412178bdd",
+        "type:6fcbe4a91c04fdb62b8dfdee"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F05",
+      "text": "табуретка на металлическом каркасе с мягким сиденьем, ножки, обивка экокожа",
+      "draft_ms": 55.86,
+      "expected_types": [
+        "type:7e9742191bebed3bc56fb71f"
+      ],
+      "type_recall_at_8": false,
+      "offered_types": [
+        "type:1f9c22eba44009e1487b0acc",
+        "type:8524ecd0441831fe6462f92d",
+        "type:e98f3c53bfa844648622e93c",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:42962f8619be275412178bdd",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:272987ac215bc7ba8337ff22"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F06",
+      "text": "шкаф для одежды металлический",
+      "draft_ms": 121.73,
+      "expected_types": [
+        "type:6102e8114ef0b86f3db0c9b3"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:6102e8114ef0b86f3db0c9b3",
+        "type:a10927e7b997d34876547e63",
+        "type:ca69260a3c33f60743ee4307",
+        "type:bbe335c6e3d811af4fa94163",
+        "type:a7a26d1042e2a27354c7b226",
+        "type:cce928d069ccd50decb3dc76",
+        "type:ba39177abf645a464f4b317d",
+        "type:42962f8619be275412178bdd"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F07",
+      "text": "шкаф для одежды металлический секционный",
+      "draft_ms": 54.22,
+      "expected_types": [
+        "type:6102e8114ef0b86f3db0c9b3"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:6102e8114ef0b86f3db0c9b3",
+        "type:a10927e7b997d34876547e63",
+        "type:ca69260a3c33f60743ee4307",
+        "type:bbe335c6e3d811af4fa94163",
+        "type:a7a26d1042e2a27354c7b226",
+        "type:cce928d069ccd50decb3dc76",
+        "type:04d90ceaf3f8848b76678bf2",
+        "type:ba39177abf645a464f4b317d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "F08",
+      "text": "стол письменный длина 120 см",
+      "draft_ms": 55.47,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:7b73042c11f32dc9f264f511",
+        "type:cdc584aa3e477582fa55306a",
+        "type:ba39177abf645a464f4b317d",
+        "type:8524ecd0441831fe6462f92d",
+        "type:ecb03e37a5ca2f6edfd617fa",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:f8e66f335c8b2a69b81c6b16"
+      ],
+      "matched": false
+    },
+    {
+      "id": "C01",
+      "text": "куртка зимняя из натуральной кожи мужская размер 52",
+      "draft_ms": 55.18,
+      "expected_types": [
+        "type:d13e9566b936d418425af034"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:88d7a8450beb374cb492c579",
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:d13e9566b936d418425af034",
+        "type:272987ac215bc7ba8337ff22",
+        "type:555f4ded81e268313ea097d3",
+        "type:15ec276dd3aa740b755bda90",
+        "type:a426c8aaa9a5b8fd42920f8a"
+      ],
+      "matched": false
+    },
+    {
+      "id": "C02",
+      "text": "куртка зимняя из кожи женская, не натуральная кожа, размер 70",
+      "draft_ms": 64.74,
+      "expected_types": [
+        "type:d13e9566b936d418425af034"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:d13e9566b936d418425af034",
+        "type:15ec276dd3aa740b755bda90",
+        "type:88d7a8450beb374cb492c579",
+        "type:8524ecd0441831fe6462f92d",
+        "type:ebd2a70137ec1ee4a9a805f5",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:555f4ded81e268313ea097d3"
+      ],
+      "matched": false
+    },
+    {
+      "id": "C03",
+      "text": "куртка зимняя из кожи мужская размер 38",
+      "draft_ms": 56.67,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:d13e9566b936d418425af034",
+        "type:15ec276dd3aa740b755bda90",
+        "type:88d7a8450beb374cb492c579",
+        "type:8524ecd0441831fe6462f92d",
+        "type:ebd2a70137ec1ee4a9a805f5",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:555f4ded81e268313ea097d3"
+      ],
+      "matched": false
+    },
+    {
+      "id": "C04",
+      "text": "брюки мужские из ткани размер 50",
+      "draft_ms": 135.72,
+      "expected_types": [
+        "type:f09f2cc481e8287522d2d396"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:f09f2cc481e8287522d2d396",
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:90cf4707add2f8230456f9a5",
+        "type:a426c8aaa9a5b8fd42920f8a",
+        "type:ea07a36402a5deb8c6a783ab",
+        "type:272987ac215bc7ba8337ff22",
+        "type:9eaa9cfc504109bd96c9c05d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "C05",
+      "text": "брюки женские трикотажные",
+      "draft_ms": 55.21,
+      "expected_types": [
+        "type:f09f2cc481e8287522d2d396"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:f09f2cc481e8287522d2d396",
+        "type:2332f6e81fb3cc9b602c72b1",
+        "type:1442cb7f5d602339c5eaa754",
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:30621e009ae562f950c18c79",
+        "type:a426c8aaa9a5b8fd42920f8a",
+        "type:ea07a36402a5deb8c6a783ab"
+      ],
+      "matched": false
+    },
+    {
+      "id": "C06",
+      "text": "перчатки трикотажные для защиты от внешних воздействий, защита от механических воздействий",
+      "draft_ms": 55.51,
+      "expected_types": [
+        "type:edf52a2c0cec9eb52627932f"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:edf52a2c0cec9eb52627932f",
+        "type:892b9b67b42e094156d2f6b0",
+        "type:d567014ff7ea13d2a0309664",
+        "type:74687199dff76342f22371aa",
+        "type:e9eb447c5104942cb9addf90",
+        "type:8524ecd0441831fe6462f92d",
+        "type:30dcbcbac8e89f13e46172c4",
+        "type:033806672c8a5519a69d773f"
+      ],
+      "matched": false
+    },
+    {
+      "id": "C07",
+      "text": "одежда специальная для защиты от пониженных температур мужская",
+      "draft_ms": 78.95,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:9f957e071884ec672e2816de",
+        "type:e1b53a4e6dd98b983e2e545f",
+        "type:90e02e644414f4b25ab69508",
+        "type:b612fcea4c873a80d22aff3d",
+        "type:309662df86dd8d59840b7f21",
+        "type:c482be0550079e6e2085e37c",
+        "type:8524ecd0441831fe6462f92d",
+        "type:55ff2286dd4742cdbf382498"
+      ],
+      "matched": false
+    },
+    {
+      "id": "N01",
+      "text": "утюг электрический с паром",
+      "draft_ms": 55.93,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:e4629b81e1021873a5963d37",
+        "type:6e542d22edd9974a7fef6e76",
+        "type:8524ecd0441831fe6462f92d",
+        "type:42de6064dc3a628894f96a9b",
+        "type:d134e176d7fcfd1fe4670221",
+        "type:5bb18bb25e6d46e37c5ce25d",
+        "type:31715ce4567bbb55c7e05ca0",
+        "type:1f05cc4760a343ba902c3acd"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H01",
+      "text": "тумба прикроватная на металлическом каркасе, корпус из ЛДСП",
+      "draft_ms": 56.33,
+      "expected_types": [
+        "type:85411dd5f42411f9a48396b5"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:85411dd5f42411f9a48396b5",
+        "type:8524ecd0441831fe6462f92d",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:1f9c22eba44009e1487b0acc",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:e98f3c53bfa844648622e93c",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:272987ac215bc7ba8337ff22"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H02",
+      "text": "топор колун",
+      "draft_ms": 59.12,
+      "expected_types": [
+        "type:3f3b63e82cf92cb8b2827745"
+      ],
+      "type_recall_at_8": false,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:272987ac215bc7ba8337ff22",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:f0edbe879a8ecb4565db82c4",
+        "type:e713467ad093c19b8ecf9af7"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H03",
+      "text": "топор для рубки мяса",
+      "draft_ms": 97.15,
+      "expected_types": [
+        "type:3f3b63e82cf92cb8b2827745"
+      ],
+      "type_recall_at_8": false,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:272987ac215bc7ba8337ff22",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:a426c8aaa9a5b8fd42920f8a",
+        "type:f0edbe879a8ecb4565db82c4",
+        "type:f9b358237237d66b8dadc3b3"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H04",
+      "text": "топор туристический",
+      "draft_ms": 54.9,
+      "expected_types": [
+        "type:3f3b63e82cf92cb8b2827745"
+      ],
+      "type_recall_at_8": false,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:32a224eab918b62e3d0deacf",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:272987ac215bc7ba8337ff22",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:f0edbe879a8ecb4565db82c4"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H05",
+      "text": "диван на деревянном каркасе раскладной, прямой, 3 посадочных места",
+      "draft_ms": 54.91,
+      "expected_types": [
+        "type:043087caaf456b9c6653faa6"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:75e311b733853a0c2dadb33f",
+        "type:1f9c22eba44009e1487b0acc",
+        "type:3ea6abba6c94100a6b0ed038",
+        "type:bbe335c6e3d811af4fa94163",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:85411dd5f42411f9a48396b5",
+        "type:043087caaf456b9c6653faa6",
+        "type:ba39177abf645a464f4b317d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H06",
+      "text": "диван с механизмом раскладывания на металлическом каркасе прямой",
+      "draft_ms": 57.62,
+      "expected_types": [
+        "type:043087caaf456b9c6653faa6"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:1f9c22eba44009e1487b0acc",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:6fcbe4a91c04fdb62b8dfdee",
+        "type:ba39177abf645a464f4b317d",
+        "type:ecb03e37a5ca2f6edfd617fa",
+        "type:043087caaf456b9c6653faa6",
+        "type:85411dd5f42411f9a48396b5",
+        "type:8524ecd0441831fe6462f92d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H07",
+      "text": "стеллаж офисный металлический стационарный односторонний",
+      "draft_ms": 55.48,
+      "expected_types": [
+        "type:87d1c731487c39d37d74fa9a"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:87d1c731487c39d37d74fa9a",
+        "type:ca69260a3c33f60743ee4307",
+        "type:ecb03e37a5ca2f6edfd617fa",
+        "type:ba39177abf645a464f4b317d",
+        "type:8524ecd0441831fe6462f92d",
+        "type:cce928d069ccd50decb3dc76",
+        "type:42962f8619be275412178bdd",
+        "type:1f05cc4760a343ba902c3acd"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H08",
+      "text": "стеллаж офисный пластиковый",
+      "draft_ms": 57.51,
+      "expected_types": [
+        "type:87d1c731487c39d37d74fa9a"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:87d1c731487c39d37d74fa9a",
+        "type:ecb03e37a5ca2f6edfd617fa",
+        "type:8524ecd0441831fe6462f92d",
+        "type:ba39177abf645a464f4b317d",
+        "type:42962f8619be275412178bdd",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:272987ac215bc7ba8337ff22"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H09",
+      "text": "халат мужской размер 52",
+      "draft_ms": 98.09,
+      "expected_types": [
+        "type:f0edbe879a8ecb4565db82c4"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:1f05cc4760a343ba902c3acd",
+        "type:8524ecd0441831fe6462f92d",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:90cf4707add2f8230456f9a5",
+        "type:f0edbe879a8ecb4565db82c4",
+        "type:d69cf610f072cc6ae3930596",
+        "type:272987ac215bc7ba8337ff22",
+        "type:f8e66f335c8b2a69b81c6b16"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H10",
+      "text": "струбцина винтовая",
+      "draft_ms": 55.07,
+      "expected_types": [
+        "type:e713467ad093c19b8ecf9af7"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:e713467ad093c19b8ecf9af7",
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:42962f8619be275412178bdd",
+        "type:b117b21fc8a3fdebce92eaf9",
+        "type:f9b358237237d66b8dadc3b3"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H11",
+      "text": "струбцина с храповым механизмом",
+      "draft_ms": 54.71,
+      "expected_types": [
+        "type:e713467ad093c19b8ecf9af7"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:e713467ad093c19b8ecf9af7",
+        "type:8524ecd0441831fe6462f92d",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:42962f8619be275412178bdd",
+        "type:f9b358237237d66b8dadc3b3",
+        "type:b117b21fc8a3fdebce92eaf9"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H12",
+      "text": "фартук профессиональный женский для защиты передней части работающего от воды",
+      "draft_ms": 54.6,
+      "expected_types": [
+        "type:5e231f532ac8ba8713798dee"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:d25bc562a74dcb38c6aeccc1",
+        "type:42962f8619be275412178bdd",
+        "type:5e231f532ac8ba8713798dee",
+        "type:e713467ad093c19b8ecf9af7"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H13",
+      "text": "шорты женские размер 40",
+      "draft_ms": 54.84,
+      "expected_types": [
+        "type:ea07a36402a5deb8c6a783ab"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:ea07a36402a5deb8c6a783ab",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:8524ecd0441831fe6462f92d",
+        "type:272987ac215bc7ba8337ff22",
+        "type:f09f2cc481e8287522d2d396",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:2332f6e81fb3cc9b602c72b1"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H14",
+      "text": "шорты мужские размер 40",
+      "draft_ms": 54.18,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:ea07a36402a5deb8c6a783ab",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:8524ecd0441831fe6462f92d",
+        "type:f09f2cc481e8287522d2d396",
+        "type:272987ac215bc7ba8337ff22",
+        "type:90cf4707add2f8230456f9a5",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:d25bc562a74dcb38c6aeccc1"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H15",
+      "text": "кресло компьютерное детское, металлический каркас",
+      "draft_ms": 55.02,
+      "expected_types": [
+        "type:539c3a768631868cc4a67c1b"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:539c3a768631868cc4a67c1b",
+        "type:3fbbbe2c5bf197bf93fe2ffe",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:ecb03e37a5ca2f6edfd617fa",
+        "type:42962f8619be275412178bdd",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:6fcbe4a91c04fdb62b8dfdee",
+        "type:ba39177abf645a464f4b317d"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H16",
+      "text": "кусачки",
+      "draft_ms": 60.29,
+      "expected_types": [
+        "type:272987ac215bc7ba8337ff22"
+      ],
+      "type_recall_at_8": true,
+      "offered_types": [
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:8524ecd0441831fe6462f92d",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:b117b21fc8a3fdebce92eaf9",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:243480cb8bbda0f2c867d610"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H17",
+      "text": "тумба прикроватная",
+      "draft_ms": 90.74,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:85411dd5f42411f9a48396b5",
+        "type:8524ecd0441831fe6462f92d",
+        "type:7e9742191bebed3bc56fb71f",
+        "type:1f05cc4760a343ba902c3acd",
+        "type:272987ac215bc7ba8337ff22",
+        "type:ecac163a0a47cf4b1144b1ef",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:f9b358237237d66b8dadc3b3"
+      ],
+      "matched": false
+    },
+    {
+      "id": "H18",
+      "text": "болгарка 125 мм",
+      "draft_ms": 54.69,
+      "expected_types": [],
+      "type_recall_at_8": null,
+      "offered_types": [
+        "type:8524ecd0441831fe6462f92d",
+        "type:f8e66f335c8b2a69b81c6b16",
+        "type:e713467ad093c19b8ecf9af7",
+        "type:b117b21fc8a3fdebce92eaf9",
+        "type:42962f8619be275412178bdd",
+        "type:a426c8aaa9a5b8fd42920f8a",
+        "type:272987ac215bc7ba8337ff22",
+        "type:6279803dfa162f5e28399f73"
+      ],
+      "matched": false
+    }
+  ],
+  "limitations": "Existing team labels, small sample; full type and feature confirmations simulated, not expert-reviewed. UI debounce/network/render not included."
+}

@@ -106,3 +106,37 @@ class RubertTiny2:
                             self.w[p + "output.LayerNorm.bias"], self.eps)
         cls = x[:, 0, :]
         return cls / np.linalg.norm(cls, axis=1, keepdims=True).clip(1e-12)
+
+
+class TransformersEncoder:
+    """Reference Transformers implementation, local weights, CLS + L2 pooling.
+
+    CPU by default so the small encoder does not compete with the LLM for GPU memory.
+    The legacy numpy adapter remains available for comparison.
+    """
+    def __init__(self, path: Path | str, max_len: int = 128, device: str = "cpu"):
+        import torch
+        from transformers import AutoModel, AutoTokenizer
+        path = Path(path)
+        if hashlib.sha256((path / "model.safetensors").read_bytes()).hexdigest() != WEIGHTS_SHA256:
+            raise ValueError("Encoder weights do not match the pinned rubert-tiny2 revision")
+        torch.set_num_threads(4)
+        self.torch, self.device, self.max_len = torch, device, max_len
+        self.tok = AutoTokenizer.from_pretrained(str(path), local_files_only=True, trust_remote_code=False)
+        self.model = AutoModel.from_pretrained(str(path), local_files_only=True, trust_remote_code=False).eval().to(device)
+        self.dim = self.model.config.hidden_size
+        self._revision = f"{ENCODER_NAME}@{ENCODER_REVISION}/transformers-{__import__('transformers').__version__}/cls+l2/{max_len}"
+
+    @property
+    def revision(self):
+        return self._revision
+
+    def encode(self, texts: list[str], batch: int = 32):
+        out = []
+        with self.torch.inference_mode():
+            for i in range(0, len(texts), batch):
+                args = self.tok(texts[i:i + batch], padding=True, truncation=True, max_length=self.max_len, return_tensors="pt")
+                result = self.model(**{k: v.to(self.device) for k, v in args.items()}).last_hidden_state[:, 0]
+                result = self.torch.nn.functional.normalize(result, p=2, dim=1)
+                out.append(result.cpu().numpy())
+        return np.concatenate(out) if out else np.zeros((0, self.dim), np.float32)

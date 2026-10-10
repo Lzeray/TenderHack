@@ -1,0 +1,53 @@
+{
+  "parser_version": "1.0",
+  "files": {
+    "Инструменты.xlsx": {
+      "features": 975464,
+      "dictionary_prefix": 964775,
+      "needs_review": 43741,
+      "products": 99998,
+      "explicit_separator": 8767,
+      "unresolved": 1922,
+      "category_properties": 41352,
+      "category_properties_needs_review": 18826
+    },
+    "Мебель.xlsx": {
+      "features": 1370200,
+      "dictionary_prefix": 1362795,
+      "needs_review": 39080,
+      "products": 99995,
+      "explicit_separator": 7329,
+      "unresolved": 76,
+      "category_properties": 42395,
+      "category_properties_needs_review": 16728
+    },
+    "Одежда.xlsx": {
+      "features": 1230683,
+      "dictionary_prefix": 1222568,
+      "needs_review": 76500,
+      "products": 99993,
+      "explicit_separator": 8077,
+      "unresolved": 38,
+      "category_properties": 22905,
+      "category_properties_needs_review": 5996
+    }
+  },
+  "issue_counts": {
+    "zero_value_review": 8041,
+    "missing_value": 5954,
+    "unit_not_specified": 119692,
+    "missing_field": 2752,
+    "conflicting_feature_values": 13305,
+    "unrecognized_unit": 91873,
+    "dimension_axes_unassigned": 22344,
+    "duplicate_feature": 131,
+    "unresolved_property": 2036,
+    "reversed_range": 2206,
+    "extra_columns": 3
+  },
+  "products": 299986,
+  "features": 3576347,
+  "category_properties": 106652,
+  "annotation": "automatic quality labels only; no verified KTRU codes",
+  "dictionary_size": 62558
+}

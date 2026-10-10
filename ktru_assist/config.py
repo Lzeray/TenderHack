@@ -9,18 +9,20 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Версии правил: меняются вручную при изменении соответствующего модуля.
 VERSIONS = {
-    "api": "2.0",
+    "api": "3.0",
     "importer": "1.0",
     "normalizer": "1.1",      # карта координат исходного текста, отрицательные числа
     "typos": "1.0",
     "extractor": "1.1",       # алиасы значений, части товара, «не менее» = ≥ (ошибка 1.0: было <)
-    "validator": "1.1",       # семантика требования (intent=requirement)
+    "validator": "1.2",       # strict catalogue refs and finite numbers
     "ranking": "1.0",
-    "clarifier": "1.1",       # сначала тип при неоднозначном алиасе
-    "engine": "2.0",          # реестр типов, защита завершения, code_resolution / completion
+    "clarifier": "1.2",       # full option lists, identity-based properties
+    "engine": "2.2",          # complete live results and structured two-branch search
     "type_registry": "1.0",
     "resolver": "1.0",
     "plausibility": "1.0",
+    "live_search": "1.0",
+    "ste_search": "1.0",
 }
 
 # Направления MVP. Критерий — префикс ОКПД2 (см. docs/DATA.md, почему не рубрикатор).
@@ -52,6 +54,7 @@ class Settings:
     cache_dir: Path = ROOT / "data" / "cache"
     ollama_url: str = "http://127.0.0.1:11434"
     llm_model: str = "qwen3:4b-instruct-2507-q4_K_M"
+    recognition_mode: str = "rules"
 
     @staticmethod
     def from_env() -> "Settings":
@@ -66,4 +69,5 @@ class Settings:
             cache_dir=Path(os.environ.get("CACHE_DIR", str(ROOT / "data" / "cache"))),
             ollama_url=os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434"),
             llm_model=os.environ.get("LLM_MODEL", "qwen3:4b-instruct-2507-q4_K_M"),
+            recognition_mode=os.environ.get("RECOGNITION_MODE", "rules"),
         )

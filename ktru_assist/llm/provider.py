@@ -34,6 +34,7 @@ class OllamaProvider:
         self.options = {"temperature": 0, "seed": seed, "num_ctx": num_ctx, "num_predict": num_predict}
         self._digest: str | None = None
         self._digest_failed_at = 0.0
+        self.expected_digest: str | None = None
 
     def _post(self, path: str, body: dict, timeout: float) -> dict:
         req = urllib.request.Request(self.url + path, data=json.dumps(body).encode(),
@@ -64,6 +65,15 @@ class OllamaProvider:
         return self.digest() not in ("unavailable", "unknown")
 
     def complete(self, messages: list[dict], schema: dict) -> ProviderResult:
+        if self.expected_digest is not None:
+            try:
+                with urllib.request.urlopen(self.url + "/api/tags", timeout=2) as r:
+                    tags = json.loads(r.read().decode())
+                current = next((m.get("digest") for m in tags.get("models", []) if m.get("name") == self.model or m.get("model") == self.model), None)
+                if current != self.expected_digest:
+                    return ProviderResult(ok=False, kind="invalid", error="ревизия модели изменилась; перезапустите сессию сервиса")
+            except Exception as e:
+                return ProviderResult(ok=False, kind="connection", error=str(e))
         body = {"model": self.model, "messages": messages, "format": schema, "stream": False,
                 "options": self.options, "keep_alive": "30m"}
         t0 = time.perf_counter()

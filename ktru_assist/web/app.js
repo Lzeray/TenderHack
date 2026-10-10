@@ -5,7 +5,7 @@ const S = window.KtruState;
 const sess = S.newSession();
 const state = { text: "", overrides: [], answers: [], answersHash: null, corrections: {}, rejected: [], confirmed: [],
   last: null, lastReq: null, latency: { draft: null, submitted: null }, resetNote: "" };
-const DEBOUNCE_MS = 120;   // настраиваемый параметр (план: 100–150 мс), а не гарантированный оптимум
+const DEBOUNCE_MS = Number(new URLSearchParams(location.search).get("debounce")) || 200;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const STATUS_TEXT = {
@@ -13,9 +13,9 @@ const STATUS_TEXT = {
   not_found: "Ничего не найдено", manual_choice: "Нужен ручной выбор", error: "Ошибка",
 };
 const UI_TEXT = {
-  editing: ["Черновик", "предварительный разбор правилами; Enter — полный разбор"],
-  submitted: ["Обработка", "запрос зафиксирован, выполняется полный разбор"],
-  resolved: ["Полный разбор", ""],
+  editing: ["Поиск", "результаты обновляются при вводе"],
+  submitted: ["Qwen анализирует описание", "быстрые результаты уже доступны"],
+  resolved: ["Разбор обновлён", ""],
   stale: ["Устарело", "описание изменилось — результат ниже относится к прежней версии"],
   provider_error: ["Расширенный разбор недоступен", "показан результат по правилам; уточните вручную"],
 };
@@ -28,21 +28,29 @@ const EXAMPLES = [
   "дрель ручная электрическая мощность 500 в",
 ];
 
-let timer = null;
+let timer = null, modelTimer = null;
 
 function changed(kind) {
   // любое изменение ввода — новая версия; прежние вычисления устаревают
   S.bump(sess, performance.now());
+  // Register the new revision immediately, before debounce, so queued old inference is skipped.
+  fetch("/api/revision", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: $("desc").value, session_id: sess.sessionId, revision: sess.revision }) }).catch(() => {});
   if (kind !== "silent") renderUiState();
 }
 
-function schedule() { clearTimeout(timer); timer = setTimeout(() => run("draft"), DEBOUNCE_MS); }
+function schedule() {
+  clearTimeout(timer); clearTimeout(modelTimer);
+  timer = setTimeout(() => run("draft"), DEBOUNCE_MS);
+  modelTimer = setTimeout(() => run("submitted"), 1000);
+}
 
-async function run(stage) {
-  const text = $("desc").value.trim();
+async function run(stage, action = "search") {
+  const text = $("desc").value;
   if (!text) { renderIdle(); return; }
   const rev = sess.revision;
-  const req = { text, session_id: sess.sessionId, revision: rev, stage, overrides: state.overrides,
+   const req = { text, session_id: sess.sessionId, revision: rev, stage, action, overrides: state.overrides,
+    manual_only: $("manualMode").checked,
     answers: state.answers, corrections: state.corrections, rejected: state.rejected, confirmed: state.confirmed };
   if (state.answersHash) req.answers_query_hash = state.answersHash;
   if (stage === "submitted") sess.pending.submitted = rev;
@@ -65,7 +73,7 @@ async function run(stage) {
       renderLatency(data);
     });
   } catch (e) {
-    if (stage === "submitted") sess.pending.submitted = null;
+    if (stage === "submitted" && sess.pending.submitted === rev) sess.pending.submitted = null;
     if (rev !== sess.revision) return;
     $("status").className = "status status--error";
     $("status").textContent = "Ошибка запроса: " + e.message;
@@ -74,6 +82,11 @@ async function run(stage) {
 
 function renderUiState() {
   const ui = S.uiState(sess, state.last);
+  if (ui === "stale") {
+    for (const id of ["features", "question", "proposals", "addRow"]) {
+      $(id).querySelectorAll("button, input, select").forEach((el) => { el.disabled = true; });
+    }
+  }
   const [t, note] = UI_TEXT[ui];
   $("uiState").className = "ui-state ui-state--" + ui;
   $("uiState").innerHTML = (ui === "submitted" ? '<span class="spinner"></span>' : "") + `<b>${esc(t)}</b> ${esc(note)}`
@@ -83,15 +96,19 @@ function renderUiState() {
 function renderIdle() {
   $("status").className = "status status--idle"; $("status").textContent = "Ожидание описания";
   for (const id of ["final", "question", "stages", "candidates", "corrections", "unrecognized", "completeness",
-    "proposals", "resolution", "changes", "providers", "latency"]) $(id).innerHTML = "";
+    "proposals", "resolution", "changes", "providers", "latency", "queryProfile"]) $(id).innerHTML = "";
   $("features").innerHTML = '<tr><td colspan="5" class="muted">Введите описание</td></tr>';
   $("issuesCard").hidden = true; $("historyBox").hidden = true; $("exportBtn").disabled = true; $("addRowBtn").disabled = true;
   state.last = null; renderUiState();
+  $("steCard").hidden = true;
 }
 
 function render(d) {
+  $("addRow").querySelectorAll("button, input, select").forEach((el) => { el.disabled = false; });
+  $("typePicker").hidden = d.recognition_mode !== "semantic";
   $("status").className = "status status--" + d.status;
-  const pre = d.preliminary ? '<span class="tag tag--muted">черновик</span> ' : '<span class="tag tag--answer">полный разбор</span> ';
+  const pre = d.recognition_mode === "hybrid" ? '<span class="tag tag--answer">живой поиск</span> '
+    : d.preliminary ? '<span class="tag tag--muted">черновик</span> ' : '<span class="tag tag--answer">полный разбор</span> ';
   $("status").innerHTML = `${pre}${esc(STATUS_TEXT[d.status] || d.status)}<small>${esc(d.message)}</small>`;
   $("exportBtn").disabled = false;
   $("addRowBtn").disabled = !d.properties.length;
@@ -99,7 +116,47 @@ function render(d) {
   renderCorrections(d); renderHistory(d); renderFeatures(d); renderProposals(d); renderResolution(d); renderFinal(d);
   renderQuestion(d); renderChanges(d); renderIssues(d); renderStages(d); renderCandidates(d); renderProps(d);
   renderProviders(d);
+  renderProfile(d);
+  renderSte(d.ste_results, d.query_profile);
   $("versions").textContent = "Версии: " + Object.entries(d.versions).map(([k, v]) => `${k} ${v}`).join(" · ");
+}
+
+function renderProfile(d) {
+  const p = d.query_profile;
+  if (!p?.items) { $("queryProfile").innerHTML = ""; return; }
+  const cats = { clothes: "Одежда", furniture: "Мебель", tools: "Инструменты" };
+  $("queryProfile").innerHTML = `<div class="small" style="margin-top:12px"><b>Распознано:</b>
+    ${(p.categories || []).map((c) => `<span class="tag">${esc(cats[c] || c)}</span>`).join(" ")}
+    ${p.items.map((item) => `<span class="chip">${esc(item)}</span>`).join(" ")}
+    ${(p.attributes || []).map((a) => `<div>${esc(a.name)}: <b>${esc(a.value ?? a.raw_value)} ${esc(a.unit || "")}</b>
+      ${a.value !== a.raw_value || a.unit !== a.raw_unit ? `<span class="muted">← ${esc(a.raw_value)} ${esc(a.raw_unit || "")}</span>` : ""}
+      <span class="muted">${a.source === "llm" ? "Qwen" : "алгоритм"}</span></div>`).join("")}</div>`;
+}
+
+function renderSte(result, profile) {
+  $("steCard").hidden = !result?.items;
+  if (!result?.items) return;
+  $("steCount").textContent = `(${result.total})`;
+  const filters = (result.applied || []).map((a) => `${a.name}: ${a.raw_value || a.value} ${a.raw_unit || a.unit || ""}`);
+  $("steFilters").textContent = "Фильтры: " + (filters.join(" · ") || "предмет из описания") + ". Данные СТЕ, связь с кодом КТРУ отдельно не подтверждена.";
+  $("steItems").innerHTML = result.items.map((p) => `<div class="cand"><div class="cand__code">СТЕ ${esc(p.ste_id)}</div>
+    <div class="cand__name">${esc(p.name)}</div><div class="small muted">${esc(p.manufacturer)} · ${esc(p.country)}</div>
+    <details><summary>Характеристики из выгрузки</summary><div class="small">${esc(p.characteristics)}</div></details></div>`).join("")
+    || '<div class="muted">Товары с указанными фактическими характеристиками не найдены.</div>';
+  const offset = result.offset || 0, limit = result.limit || 25;
+  $("stePager").innerHTML = `<div class="small">${result.total ? offset + 1 : 0}–${Math.min(offset + limit, result.total)} из ${result.total}</div>
+    ${offset ? '<button class="btn btn--small" data-ste-prev>Назад</button>' : ""}
+    ${offset + limit < result.total ? '<button class="btn btn--small" data-ste-next>Следующие товары</button>' : ""}`;
+  const load = async (nextOffset) => {
+    const rev = sess.revision;
+    const r = await fetch("/api/products", {method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({profile,offset:nextOffset,limit})});
+    if (!r.ok) return;
+    const data = await r.json(); if (rev !== sess.revision) return;
+    renderSte(data, profile);
+  };
+  $("stePager").querySelector("[data-ste-prev]")?.addEventListener("click", () => load(Math.max(0, offset-limit)));
+  $("stePager").querySelector("[data-ste-next]")?.addEventListener("click", () => load(offset+limit));
 }
 
 function renderLatency(d) {
@@ -141,6 +198,7 @@ const FST = {
 };
 
 function featureValue(f) {
+  if (f.op === "in") return "один из: " + (f.values || []).join(", ");
   const ops = { eq: "", ne: "≠ ", ge: "≥ ", gt: "> ", le: "≤ ", lt: "< " };
   if (f.op === "between") return `${f.value}–${f.value_to}`;
   return (ops[f.op] || "") + (f.value ?? "");
@@ -161,6 +219,10 @@ function renderFeatures(d) {
       const [srcT, srcC] = SRC[f.source] || [f.source, ""]; const [stT, stC] = FST[f.status] || [f.status, ""];
       const dim = f.status === "overridden" || f.status === "removed" || f.status === "proposed";
       let prop = f.property_name ? esc(f.property_name) : '<span class="muted">—</span>';
+      if (d.recognition_mode === "semantic" && f.status === "unknown_property") {
+        prop = `<select data-bind="${i}"><option value="">привязать к полной схеме…</option><option value="ignore">Не использовать фрагмент для подбора</option>${d.properties.map((p, k) =>
+          `<option value="${k}">${esc(p.name)} (${esc(p.code)})</option>`).join("")}</select>`;
+      }
       if (f.component) prop += ` <span class="tag tag--muted" title="часть товара">${esc(f.component)}</span>`;
       if (f.status === "ambiguous" && f.options.length) {
         prop = `<select data-amb="${i}"><option value="">выберите свойство…</option>${f.options.map((o, k) => `<option value="${k}">${esc(o.property_name)}${o.value ? " = " + esc(o.value) : ""}</option>`).join("")}</select>`;
@@ -180,11 +242,22 @@ function renderFeatures(d) {
   }
   tb.querySelectorAll("input[data-edit]").forEach((inp) => inp.onchange = () => {
     const f = d.features[+inp.dataset.edit];
-    upsertOverride(parseConstraint(f.property_code || f.property_name, inp.value, f.unit));
+    upsertOverride(parseConstraint(f.characteristic_ref || f.property_code || f.property_name, inp.value, f.unit));
+  });
+  tb.querySelectorAll("select[data-bind]").forEach((s) => s.onchange = () => {
+    if (s.value === "") return;
+    if (s.value === "ignore") {
+      const f = d.features[+s.dataset.bind]; state.rejected.push("ignore:" + f.proposal_key);
+      changed(); run("submitted", "confirm"); return;
+    }
+    const f = d.features[+s.dataset.bind], p = d.properties[+s.value];
+    if (f.proposal_key) state.rejected.push(f.proposal_key);
+    upsertOverride({ property: p.code, value: f.value, value_to: f.value_to, unit: f.unit, op: f.op,
+      values: f.values || [], evidence_key: f.proposal_key });
   });
   tb.querySelectorAll("button[data-del]").forEach((b) => b.onclick = () => {
     const f = d.features[+b.dataset.del];
-    const key = f.property_code || f.property_name;
+    const key = f.characteristic_ref || f.property_code || f.property_name;
     state.overrides = state.overrides.filter((o) => o.property !== key);
     if (f.source === "text") state.overrides.push({ property: key, remove: true });
     if (f.source === "answer") state.answers = state.answers.filter((a) => a.property !== key);
@@ -206,11 +279,33 @@ function renderProposals(d) {
   $("proposals").innerHTML = `<div class="card proposals"><h2>Предложения моделей <span class="muted small">не применяются без вашего подтверждения</span></h2>
     <ul class="plist">${ps.map((p, i) => `<li><span class="tag tag--warn">${esc(p.origin)}</span> ${esc(p.label)}
       <span class="muted small">${esc(p.reason)}</span>
-      ${p.answer ? `<button class="btn btn--small" data-acc="${i}">принять</button>` : ""}
+       ${p.answer ? `<button class="btn btn--small" data-acc="${i}">принять</button>` : ""}
+       ${p.characteristic_ref ? `<button class="btn btn--ghost btn--small" data-all="${i}">Все значения</button>` : ""}
       <button class="btn btn--ghost btn--small" data-rej="${i}">отклонить</button></li>`).join("")}</ul></div>`;
   $("proposals").querySelectorAll("button[data-acc]").forEach((b) => b.onclick = () => answer(ps[+b.dataset.acc].answer, d.query_hash));
+  $("proposals").querySelectorAll("button[data-all]").forEach((b) => b.onclick = async () => {
+    const p = ps[+b.dataset.all], revision = sess.revision;
+    const url = new URL("/api/catalog/values", location.origin);
+    url.search = new URLSearchParams({ type_ref: d.scope.confirmed_scope, characteristic_ref: p.characteristic_ref, text: state.text });
+    const response = await fetch(url);
+    if (!response.ok) return;
+    const result = await response.json();
+    if (sess.revision !== revision) return;
+    const li = b.closest("li"), panel = document.createElement("div");
+    panel.innerHTML = `<div class="small muted">${result.ambiguous ? "Неоднозначно. " : ""}Полный список (${result.options.length}); оценки не являются вероятностями.</div>`;
+    for (const option of result.options) {
+      if (!option.answer) continue;
+      const button = document.createElement("button"); button.className = "chip";
+      button.textContent = option.label + (option.score == null ? "" : ` (${option.score.toFixed(3)})`);
+      button.onclick = () => answer(option.answer, d.query_hash);
+      panel.appendChild(button);
+    }
+    const none = document.createElement("button"); none.className = "chip"; none.textContent = "Ни один / ввести вручную";
+    none.onclick = () => { state.rejected.push(p.key); changed(); run("submitted", "confirm"); $("addRow").hidden = false; };
+    panel.appendChild(none); li.appendChild(panel); b.disabled = true;
+  });
   $("proposals").querySelectorAll("button[data-rej]").forEach((b) => b.onclick = () => {
-    state.rejected.push(ps[+b.dataset.rej].key); changed(); run(state.last?.stage || "draft");
+    state.rejected.push(ps[+b.dataset.rej].key); changed(); run(state.last?.stage || "draft", "confirm");
   });
 }
 
@@ -245,7 +340,7 @@ function parseConstraint(prop, raw, unit) {
 
 function upsertOverride(c) {
   state.overrides = state.overrides.filter((o) => o.property !== c.property);
-  state.overrides.push(c); changed(); run("draft");
+  state.overrides.push(c); changed(); run(state.last?.stage || "draft", "confirm");
 }
 
 function renderFinal(d) {
@@ -281,13 +376,13 @@ function chooseOption(o, d) {
   for (const k of o.reject || []) if (!state.rejected.includes(k)) state.rejected.push(k);
   for (const k of o.confirm || []) if (!state.confirmed.includes(k)) state.confirmed.push(k);
   changed();
-  run(d.stage === "submitted" ? "submitted" : "draft");
+  run(d.stage === "submitted" ? "submitted" : "draft", "confirm");
 }
 
 function answer(c, hash) {
   if (c.property === "__type__") state.overrides = state.overrides.filter((o) => o.property !== "__type__");
   state.answers = state.answers.filter((a) => a.property !== c.property);
-  state.answers.push(c); state.answersHash = hash; changed(); run(state.last?.stage || "draft");
+  state.answers.push(c); state.answersHash = hash; changed(); run(state.last?.stage || "draft", "confirm");
 }
 
 function renderChanges(d) {
@@ -314,8 +409,13 @@ function renderStages(d) {
 }
 
 function renderCandidates(d) {
-  $("candCount").textContent = `(в области ${d.candidates_total}, показано ${d.candidates.length})`;
-  $("candidates").innerHTML = d.candidates.map((c) => {
+  const preview = d.recognition_mode === "semantic" && !d.scope?.confirmed_scope;
+  const candidates = preview ? (d.preview_candidates || []) : d.candidates;
+  $("candTitle").textContent = d.recognition_mode === "hybrid" ? "Подходящие позиции КТРУ" : preview ? "Предварительные совпадения поиска" : "Кандидаты";
+  $("candCount").textContent = preview ? `(найдено ${d.preview_total || 0}, показано ${candidates.length})`
+    : d.recognition_mode === "hybrid" ? `(все ${d.results_total ?? candidates.length})`
+    : `(в области ${d.candidates_total}, показано ${candidates.length})`;
+  $("candidates").innerHTML = (preview ? '<div class="small muted">Похожесть по описанию; характеристики ещё не проверены. Подтвердите тип для точного подбора.</div>' : "") + candidates.map((c) => {
     const rc = c.rank_components;
     const badges = [c.is_template ? '<span class="tag tag--muted">шаблон (укрупнённая)</span>' : "",
       !c.compatible ? '<span class="tag tag--bad">несовместима</span>' : "",
@@ -326,7 +426,7 @@ function renderCandidates(d) {
       <div class="cand__name">${esc(c.name)} <span class="muted small">v${c.version}</span></div>
       <div class="cand__rank">${rank}</div>${c.excluded_reason ? `<div class="small" style="color:var(--red)">${esc(c.excluded_reason)}</div>` : ""}
       ${checks ? `<details><summary class="small">Проверки свойств (${c.checks.length})</summary><ul class="checks">${checks}</ul></details>` : ""}</div>`;
-  }).join("") || '<div class="muted">Нет кандидатов</div>';
+  }).join("") + (!candidates.length ? '<div class="muted">Нет поисковых совпадений. Выберите тип в полном каталоге или уточните описание.</div>' : "");
 }
 
 function renderProps(d) {
@@ -341,8 +441,9 @@ function renderProps(d) {
 
 function resetForNewText() {
   // новое описание: прежние ответы, исправления и отказы больше к нему не относятся (сброс показывается)
-  const had = state.answers.length + Object.keys(state.corrections).length + state.rejected.length + state.confirmed.length;
-  state.answers = []; state.answersHash = null; state.corrections = {}; state.rejected = []; state.confirmed = [];
+   const had = state.overrides.length + state.answers.length + Object.keys(state.corrections).length + state.rejected.length + state.confirmed.length;
+   state.overrides = []; state.answers = []; state.answersHash = null; state.corrections = {}; state.rejected = []; state.confirmed = [];
+   $("manualMode").checked = false;
   state.resetNote = had ? "Описание изменилось: прежние ответы на уточнения и подтверждения сброшены." : "";
 }
 
@@ -360,22 +461,40 @@ $("exportBtn").onclick = () => {
   URL.revokeObjectURL(a.href);
 };
 $("desc").addEventListener("input", () => {
-  if ($("desc").value.trim() !== state.text) resetForNewText();
-  state.text = $("desc").value.trim();
+  if ($("desc").value !== state.text) resetForNewText();
+  state.text = $("desc").value;
   changed();
   schedule();
 });
 $("desc").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); clearTimeout(timer); changed("silent"); run("submitted"); }
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); clearTimeout(timer); clearTimeout(modelTimer); changed("silent"); run("submitted"); }
 });
-$("submitBtn").onclick = () => { clearTimeout(timer); changed("silent"); run("submitted"); };
+$("submitBtn").onclick = () => { clearTimeout(timer); clearTimeout(modelTimer); changed("silent"); run("submitted"); };
 $("examples").innerHTML = EXAMPLES.map((e) => `<button class="chip" type="button">${esc(e)}</button>`).join("");
 $("examples").querySelectorAll("button").forEach((b) => b.onclick = () => {
   $("desc").value = b.textContent; state.overrides = []; resetForNewText(); state.resetNote = "";
-  state.text = b.textContent; changed(); run("draft");
+  state.text = b.textContent; changed(); schedule();
 });
 fetch("/api/catalog").then((r) => r.json()).then((c) => {
   const cov = Object.values(c.coverage || {}).map((x) => `${x.title}: ${x.active_final} кон. / ${x.active_templates} шабл.`).join(" · ");
   $("catalogInfo").innerHTML = `Снимок КТРУ: ${esc(c.snapshot)} · на дату ${esc(c.as_of)} · поиск: ${esc(c.search_backend)}<br>${esc(cov)}`;
 }).catch(() => { $("catalogInfo").textContent = "каталог недоступен"; });
 renderUiState();
+
+let catalogueTypes = [];
+function fillTypes() {
+  const query = $("typeFilter").value.toLocaleLowerCase("ru");
+  $("typeSelect").innerHTML = catalogueTypes.filter((t) => t.name.toLocaleLowerCase("ru").includes(query))
+    .map((t) => `<option value="${esc(t.ref)}">${esc(t.name)} (${esc(t.category)}, ${t.positions} поз.)</option>`).join("");
+}
+fetch("/api/catalog/types").then((r) => r.json()).then((types) => { catalogueTypes = types; fillTypes(); }).catch(() => {});
+$("typeFilter").oninput = fillTypes;
+$("manualMode").onchange = () => { changed(); run("submitted", "confirm"); };
+$("typeApply").onclick = () => {
+  if (!$("typeSelect").value || !state.last) return;
+  answer({ property: "__type__", value: $("typeSelect").value }, state.last.query_hash);
+};
+$("typeNone").onclick = () => {
+  state.answers = []; state.overrides = []; state.answersHash = null;
+  changed(); run("draft");
+};

@@ -91,6 +91,7 @@ class Feature(BaseModel):
     strict_ref: bool = False
     characteristic_ref: Optional[str] = None
     values: list[str] = Field(default_factory=list, max_length=30)
+    named_property: Optional[str] = Field(None, description="название свойства из текста, которого нет в области КТРУ")
 
 
 class Span(BaseModel):
@@ -279,6 +280,19 @@ class DomainProperty(BaseModel):
     ref: Optional[str] = None
 
 
+class EmpiricalCheck(BaseModel):
+    """Уровень 2: типичность значения признака по выгрузкам СТЕ. Относится к признаку, на отбор не влияет."""
+    feature_id: str
+    property_name: str
+    status: Literal["typical", "rare", "unseen", "not_assessed"]
+    reason: str = Field(description="текст для пользователя или причина not_assessed")
+    type_key: Optional[str] = None
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    # для свойства, которого нет в позициях КТРУ: known_for_type — указано у моделей этого типа в выгрузках;
+    # known_elsewhere — у этого типа нет, но есть у других типов
+    presence: Optional[Literal["known_for_type", "known_elsewhere"]] = None
+
+
 class Suggestion(BaseModel):
     """Предложение уровня 3 (сомнительное значение). Не влияет на подбор: принятие — новый ввод."""
     id: str = Field(description="устойчивый ключ; отклонённые передаются в SearchRequest.confirmed")
@@ -338,3 +352,4 @@ class SearchResponse(BaseModel):
     results_total: int = 0
     ste_results: dict[str, Any] = Field(default_factory=dict)
     suggestions: list[Suggestion] = Field(default_factory=list, description="уровень 3: сомнительные значения")
+    empirical: list[EmpiricalCheck] = Field(default_factory=list, description="уровень 2: типичность по выгрузкам СТЕ")

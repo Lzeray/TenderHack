@@ -24,9 +24,10 @@ from decimal import Decimal, InvalidOperation
 from .catalog.repository import Position
 from .models import Feature, Suggestion
 from .units import BY_KEY, UNITS, fmt, lookup
+from .empirical import SteStats, assess
 from .validate import check_feature, find_prop
 
-VERSION = "1.0"
+VERSION = "1.1"   # 1.1 scale по выгрузкам СТЕ: КТРУ допускает, выгрузки — нет; выбор из нескольких вариантов КТРУ
 # Единицы, которые не предлагаем как «перепутанные»: дюймы и километры в описаниях почти не встречаются
 NOT_PROPOSED = {"inch", "km", "dm", "t", "m3", "kv", "mg"}
 POSITIVE_DIMENSIONS = {"length", "area", "mass", "volume", "power", "voltage", "current", "charge", "torque",
@@ -111,7 +112,10 @@ def _replacement(raw: str, f: Feature, new_value: str, new_value_to: str | None,
 
 
 def check(features: list[Feature], positions: list[Position], raw_text: str,
-          dismissed: set[str] | frozenset[str] = frozenset()) -> list[Suggestion]:
+          dismissed: set[str] | frozenset[str] = frozenset(), heads: list[str] | None = None,
+          stats: "SteStats | None" = None) -> list[Suggestion]:
+    """stats/heads — статистика выгрузок (уровень 2); без неё правила работают только по КТРУ."""
+    heads = heads or []
     out: list[Suggestion] = []
     for f in features:
         if f.status != "bound" or f.source != "text" or f.op == "ne" or _num(f.value) is None:
@@ -164,44 +168,67 @@ def check(features: list[Feature], positions: list[Position], raw_text: str,
                 message=f"«{f.property_name}» = {f.value}: не указана единица измерения. В единицах КТРУ: {opts}.",
                 evidence={"source": "ktru", "positions_with_property": have}))
             continue
-        # scale: значение не подходит ни одной позиции со свойством
-        if ok or bad < have:
+        # scale: значение не подходит ни одной позиции со свойством (КТРУ) или по КТРУ допустимо, но не встречается
+        # ни у одной модели в выгрузках (СТЕ, уровень 2)
+        ktru_invalid = not ok and bad == have
+        emp = assess(f, heads, stats) if stats is not None else None
+        # счётные свойства по выгрузкам не правим: распределение зависит от подтипа («фреза дисковая, 40 зубьев»
+        # — реальное значение, хотя у большинства фрез 2–6 зубьев)
+        ste_unseen = emp is not None and emp.status == "unseen" and (unit is None or unit.dimension != "count")             and f.unit is not None
+        if not ktru_invalid and not ste_unseen:
             continue
         fits = []
         for label, g, pref in _variants(f):
-            _, gok, _ = _status_counts(g, positions)
-            if gok:
-                fits.append((pref, label, g, gok))
+            _, gok, gbad = _status_counts(g, positions)
+            if ktru_invalid and not gok:
+                continue
+            if not ktru_invalid and gbad == have:
+                continue                  # вариант не должен противоречить всем позициям КТРУ
+            ge = assess(g, heads, stats) if stats is not None else None
+            typical = ge is not None and ge.status == "typical"
+            if not ktru_invalid and not typical:
+                continue
+            fits.append((pref, label, g, gok, typical))
         if not fits:
             continue
         sid = f"scale:{f.property_name}:{_label(f.value, f.value_to, f.unit)}"
         if sid in dismissed:
             continue
         # варианты с одной физической величиной — одно объяснение («170 см» = «1700 мм»); показываем запись
-        # с другой единицей. Исправление предлагаем, только если величина одна.
+        # с другой единицей. Исправление предлагаем, только если величина одна; если по КТРУ подходят
+        # несколько, выгрузки выбирают единственную обычную.
         fits.sort(key=lambda x: (x[0], -x[3], x[1]))
         by_qty: dict = {}
         for x in fits:
             by_qty.setdefault(_quantity(x[2]), x)
         fits = list(by_qty.values())
-        single = fits[0] if len(fits) == 1 else None
+        narrowed = [x for x in fits if x[4]]
+        single = fits[0] if len(fits) == 1 else narrowed[0] if len(narrowed) == 1 else None
+        source = "ste" if not ktru_invalid else "ktru+ste" if single is not None and len(fits) > 1 else "ktru"
         rep = None
         if single is not None:
             g = single[2]
             rep = _replacement(raw_text, f, g.value, g.value_to, g.unit)
         why = "та же цифра в другой единице" if single and single[0] == 0 else "возможно, лишний или пропущенный ноль"
-        alts = "; ".join(f"{label} — подходит {n} поз." for _, label, _, n in fits[:MAX_ALTERNATIVES])
-        msg = (f"«{f.property_name}» = {_label(f.value, f.value_to, f.unit)} не подходит ни одной из {have} позиций "
-               f"КТРУ с этим свойством. " +
-               (f"Возможно, имелось в виду {single[1]} ({why}): подходит {single[3]} поз." if single else
-                f"Подходят варианты: {alts}. Уточните значение."))
+        orig = _label(f.value, f.value_to, f.unit)
+        if ktru_invalid:
+            head = f"«{f.property_name}» = {orig} не подходит ни одной из {have} позиций КТРУ с этим свойством. "
+        else:
+            head = f"«{f.property_name}» = {orig} по КТРУ допустимо, но {emp.reason}. "
+        if single is not None:
+            tail = f"Возможно, имелось в виду {single[1]} ({why})"
+            tail += f": подходит {single[3]} поз. КТРУ" if single[3] else ""
+            tail += " и это обычное значение по выгрузкам." if single[4] else "."
+        else:
+            tail = "Подходят варианты: " + "; ".join(label for _, label, _, _, _ in fits[:MAX_ALTERNATIVES]) +                 ". Уточните значение."
         out.append(Suggestion(
             id=sid, rule="scale", feature_id=f.id, property_name=f.property_name or "",
-            original=_label(f.value, f.value_to, f.unit), proposed=single[1] if single else None,
-            alternatives=[label for _, label, _, _ in fits[:MAX_ALTERNATIVES]],
+            original=orig, proposed=single[1] if single else None,
+            alternatives=[label for _, label, _, _, _ in fits[:MAX_ALTERNATIVES]],
             replace_span=rep[0] if rep else None, replacement_text=rep[1] if rep else None,
-            message=msg, evidence={"source": "ktru", "positions_with_property": have,
-                                   "fits": {label: n for _, label, _, n in fits[:MAX_ALTERNATIVES]}}))
+            message=head + tail, evidence={"source": source, "positions_with_property": have,
+                                           "fits": {label: n for _, label, _, n, _ in fits[:MAX_ALTERNATIVES]},
+                                           "ste": emp.evidence if emp is not None else {}}))
     return out
 
 

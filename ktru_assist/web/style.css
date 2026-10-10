@@ -140,3 +140,7 @@ details.history ol { font-size: 12.5px; padding-left: 18px; }
 .note { margin: 6px 0; padding: 8px 10px; border-radius: 6px; border-left: 3px solid var(--amber); background: rgba(0,0,0,.02); }
 .note--bad { border-left-color: var(--red); }
 .note__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.emp { font-size: 12px; margin-top: 2px; }
+.emp--ok { color: var(--green); }
+.emp--warn { color: var(--amber); }
+.emp--info { color: var(--muted, #667); }

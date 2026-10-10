@@ -144,7 +144,15 @@ function renderFeatures(d) {
     const normalized = d.query_profile?.attributes?.find((a) => a.name === f.property_name && a.raw_value === f.value);
     const conversion = normalized && (normalized.value !== normalized.raw_value || normalized.unit !== normalized.raw_unit)
       ? `<div class="ev">${esc(String(normalized.value).replace(".",","))} ${esc(normalized.unit || "")}</div>` : "";
-    return `<tr><td>${name}</td><td>${value}${conversion}</td><td>${esc(f.unit || "")}</td><td>${editable ? `<button class="btn btn--danger btn--small" data-delete="${i}" aria-label="Удалить характеристику">✕</button>` : ""}</td></tr>`;
+    // уровень 2: типичность по выгрузкам СТЕ — справка, на подбор кода не влияет
+    const emp = (d.empirical || []).find((e) => e.feature_id === f.id);
+    const empHtml = !emp ? "" : emp.presence
+      ? `<div class="ev emp ${emp.presence === "known_elsewhere" ? "emp--warn" : "emp--info"}">${esc(emp.reason)}</div>`
+      : emp.status === "typical"
+      ? `<div class="ev emp emp--ok" title="${esc(emp.reason)}">по выгрузкам: обычное</div>`
+      : emp.status === "rare" || emp.status === "unseen"
+        ? `<div class="ev emp emp--warn">по выгрузкам СТЕ: ${esc(emp.reason)}</div>` : "";
+    return `<tr><td>${name}</td><td>${value}${conversion}${empHtml}</td><td>${esc(f.unit || "")}</td><td>${editable ? `<button class="btn btn--danger btn--small" data-delete="${i}" aria-label="Удалить характеристику">✕</button>` : ""}</td></tr>`;
   });
   for (const a of extras) rows.push(`<tr><td>${esc(a.name)}</td><td>${esc(a.value ?? a.raw_value)}</td><td>${esc(a.unit || "")}</td><td></td></tr>`);
   $("features").innerHTML = rows.join("") || '<tr><td colspan="4" class="muted">Добавьте нужные свойства</td></tr>';

@@ -355,9 +355,10 @@ class Extractor:
                              for l in left_lemmas)]
             raw_value = nq.text[tokens[right[0]].start:tokens[right[-1]].end]
             if not groups:
+                named = nq.text[tokens[left[0]].start:tokens[left[-1]].end]
                 feats.append(self._feature(None, tokens, left + [colon] + right, nq, status="unknown_property",
-                                           value=raw_value, note="в области поиска нет свойства с таким названием: "
-                                           + nq.text[tokens[left[0]].start:tokens[left[-1]].end]))
+                                           value=raw_value, named_property=named,
+                                           note="в области поиска нет свойства с таким названием: " + named))
                 continue
             if len(groups) > 1:
                 feats.append(self._feature(None, tokens, left + [colon] + right, nq, status="ambiguous",
@@ -542,6 +543,7 @@ class Extractor:
                                      None)
             if named_unknown is not None:
                 feats.append(self._feature(None, tokens, used + [named_unknown.i], nq, status="unknown_property",
+                                           named_property=named_unknown.text,
                                            note=f"у позиций этого типа нет свойства «{named_unknown.text}» "
                                                 "подходящей размерности", **kw))
             elif explicit:

@@ -23,7 +23,7 @@ from .nlp.extract import Extractor, PropGroup, build_groups, value_aliases_versi
 from .nlp.normalize import NormalizedQuery, normalize
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
-from . import suspicious
+from . import empirical, suspicious
 from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
@@ -43,6 +43,9 @@ class Engine:
         self.backend = backend
         self.settings = settings
         self.native = settings.recognition_mode in ("semantic", "hybrid")
+        # уровень 2: статистика выгрузок; без файла или с другим снимком КТРУ — not_assessed с причиной
+        self.ste_stats = None if self.native else empirical.SteStats(settings.ste_stats_path,
+                                                                     catalog.meta.get("snapshot"))
         self.catalog_scope = CatalogScope(catalog)
         self.typos = None if self.native else TypoCorrector(catalog.vocabulary_texts())
         self.registry = None if self.native else TypeRegistry(catalog.search_documents())
@@ -60,6 +63,7 @@ class Engine:
         v["recognition_mode"] = self.settings.recognition_mode
         v["morph"] = MORPH_MODE
         v["suspicious"] = suspicious.VERSION
+        v["ste_stats"] = (self.ste_stats.version or "—") if self.ste_stats and self.ste_stats.available else             f"off: {self.ste_stats.reason if self.ste_stats else 'native'}"
         if not self.native:
             v["components_lexicon"] = components_version()
             v["value_aliases"] = value_aliases_version()
@@ -312,9 +316,13 @@ class Engine:
         # --- проверка кандидатов ------------------------------------------------
         evals = {p.code: evaluate(p, features) for p in positions}
         # уровень 3: сомнительные значения — только предложения, на отбор не влияют
-        level3 = [] if self.native else suspicious.check(features, positions, req.text, set(req.confirmed))
+        level3 = [] if self.native else suspicious.check(features, positions, req.text, set(req.confirmed),
+                                                             heads=heads, stats=self.ste_stats)
         for sg in level3:
             issues.append(Issue(level="warning", code=f"suspect_{sg.rule}", message=sg.message))
+        level2 = [] if self.native else [e for f in features
+                                         for e in [empirical.assess(f, heads, self.ste_stats)
+                                                   or empirical.presence(f, heads, self.ste_stats)] if e is not None]
         ranked = []
         for p in positions:
             ev = evals[p.code]
@@ -521,7 +529,7 @@ class Engine:
             assertions=self._assertions(nq, features, merge), code_resolution=code_res,
             characteristics_completion=completion, scope=scope, timings=tm,
             elapsed_ms=tm["total"], recognition_mode=self.settings.recognition_mode,
-            compatible_codes=[p.code for p in finals_pos], suggestions=level3, **base)
+            compatible_codes=[p.code for p in finals_pos], suggestions=level3, empirical=level2, **base)
 
     # ------------------------------------------------------------------
     @staticmethod

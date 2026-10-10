@@ -71,6 +71,7 @@ def main() -> int:
     st = collections.defaultdict(collections.Counter)
     examples = collections.defaultdict(list)
     base_feats = base_alarms = 0
+    emp_status = collections.Counter()
     for suite in args.suites.split(","):
         rows = [json.loads(l) for l in SUITES[suite].read_text(encoding="utf-8").splitlines() if l.strip()]
         if args.limit:
@@ -81,6 +82,11 @@ def main() -> int:
             nums = [f for f in r.features if f.status == "bound" and f.source == "text" and f.unit and _num(f.value)]
             base_feats += len(nums)
             base_alarms += sum(1 for s in r.suggestions if s.rule in ("scale", "unit_missing"))
+            for e in r.empirical:
+                emp_status[e.status if e.status != "not_assessed" else "na:" + e.reason] += 1
+            if len(examples["clean_alarm"]) < 15:
+                examples["clean_alarm"] += [{"text": text, "msg": s.message} for s in r.suggestions
+                                            if s.rule == "scale"][:1]
             positions = None
             for f in nums:
                 for kind, nv, nv2, nu in corruptions(f):
@@ -106,6 +112,7 @@ def main() -> int:
                     sg = next((s for s in rb.suggestions if s.property_name == f.property_name and s.rule == "scale"), None)
                     if sg is not None:
                         c["flagged"] += 1
+                        c["src_" + sg.evidence.get("source", "?")] += 1
                         c["flagged_detectable"] += detectable
                         orig = _label(f.value, f.value_to, f.unit)
                         if sg.proposed is None:
@@ -128,9 +135,11 @@ def main() -> int:
         summary[kind] = {**c,
                          "ceiling": round(d / n, 3) if n else None,
                          "recall_vs_ceiling": round(c["flagged_detectable"] / d, 3) if d else None,
+                         "flagged_share": round(c["flagged"] / n, 3) if n else None,
+                         "fixed_share": round(c["fixed"] / n, 3) if n else None,
                          "fix_precision": round(c["fixed"] / (c["fixed"] + c["wrong_fix"]), 3)
                          if c["fixed"] + c["wrong_fix"] else None}
-    summary["_clean"] = {"numeric_features": base_feats, "alarms": base_alarms,
+    summary["_clean"] = {"numeric_features": base_feats, "alarms": base_alarms, "empirical": dict(emp_status),
                          "false_alarm_rate": round(base_alarms / base_feats, 4) if base_feats else None}
     Path(args.out).write_text(json.dumps({"summary": summary, "examples": examples}, ensure_ascii=False, indent=1),
                               encoding="utf-8")

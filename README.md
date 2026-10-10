@@ -73,6 +73,10 @@ docker compose up -d app                              # http://localhost:8000
 `KTRU_MORPH` (`pymorphy` — словарная лемматизация, по умолчанию | `snowball` — бесловарный стеммер
 `ktru_assist/morph.py`). Импорт и работа должны идти в одном режиме: режим записывается в базу,
 каталог другого режима не откроется. Сравнение режимов — `docs/EXPERIMENTS.md`.
+`STE_STATS` (`data/ste_stats.sqlite`) — статистика выгрузок СТЕ для проверки типичности значений (уровень 2) и
+поиска сомнительных значений (уровень 3). Сборка — около 20 минут, файл около 60 МБ:
+`python -m ktru_assist.catalog.ste_stats --src "Примеры выгрузок" --db data/ktru.sqlite --out data/ste_stats.sqlite`.
+Без файла сервис работает, проверки по выгрузкам отвечают «не оценивалось». Схема уровней — `docs/LEVELS_PLAN.md`.
 
 Модели и журнал: `SEMANTIC` (`0`/`1`), `ENCODER_PATH` (`data/models/rubert-tiny2`), `CACHE_DIR` (`data/cache`),
 `LLM_MODE` (`off` | `escalate` | `always`), `LLM_MODEL` (`qwen3:4b-instruct-2507-q4_K_M`),

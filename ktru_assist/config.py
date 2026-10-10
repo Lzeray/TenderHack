@@ -23,7 +23,8 @@ VERSIONS = {
     "plausibility": "1.1",
     "live_search": "1.1",
     "ste_search": "1.0",
-    "suspicious": "1.0",      # уровень 3: scale, unit_missing, placeholder (docs/LEVELS_PLAN.md)
+    "suspicious": "1.0",
+    "empirical": "1.3",       # уровень 2: typical/rare/unseen по выгрузкам СТЕ (docs/LEVELS_PLAN.md)      # уровень 3: scale, unit_missing, placeholder (docs/LEVELS_PLAN.md)
 }
 # История изменений правил (подробности и замеры — docs/EXPERIMENTS.md):
 # normalizer 1.1 карта координат исходного текста, отрицательные числа; 1.2 режим KTRU_MORPH (pymorphy | snowball),
@@ -74,6 +75,7 @@ class Settings:
     ollama_url: str = "http://127.0.0.1:11434"
     llm_model: str = "qwen3:4b-instruct-2507-q4_K_M"
     recognition_mode: str = "rules"
+    ste_stats_path: Path = ROOT / "data" / "ste_stats.sqlite"   # уровень 2: статистика выгрузок СТЕ
 
     @staticmethod
     def from_env() -> "Settings":
@@ -89,4 +91,5 @@ class Settings:
             ollama_url=os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434"),
             llm_model=os.environ.get("LLM_MODEL", "qwen3:4b-instruct-2507-q4_K_M"),
             recognition_mode=os.environ.get("RECOGNITION_MODE", "rules"),
+            ste_stats_path=Path(os.environ.get("STE_STATS", str(ROOT / "data" / "ste_stats.sqlite"))),
         )

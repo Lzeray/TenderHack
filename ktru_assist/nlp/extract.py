@@ -282,6 +282,9 @@ class Extractor:
         feats += self._numbers(nq)
         feats += self._booleans(nq)
         feats += self._value_aliases(nq)
+        # свойства, уже заданные явно или найденные раньше, не получают значение только из слов наименования
+        self._bound_keys = {" ".join(tokenize(f.property_name)) for f in feats
+                            if f.status == "bound" and f.property_name}
         feats += self._qualities(nq)
         return feats
 
@@ -665,6 +668,10 @@ class Extractor:
             # значение только из слов наименования («шкаф» → «Шкаф») уступает значению того же свойства,
             # найденному по другим словам («для уборочного инвентаря» → «Шкаф для хозяйственного инвентаря»)
             if s <= name_tok and any(g2.key == g.key and set(i2) - name_tok for g2, _, i2, _ in cands):
+                continue
+            # «стол администратора, вид товара: секция стола»: свойство задано явно — «стол» из наименования
+            # не даёт второе значение
+            if s <= name_tok and g.key in getattr(self, "_bound_keys", set()):
                 continue
             by_token.setdefault(idxs[0], []).append((g, val, idxs))
         for first in sorted(by_token):

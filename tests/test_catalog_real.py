@@ -50,3 +50,10 @@ def test_value_aliases_exist():
             "WHERE p.category IS NOT NULL AND p.active=1 AND c.name=? AND v.text=?",
             (a["property"], a["value"])).fetchone()[0]
         assert n > 0, f"алиас значения «{a['phrase']}» → {a['property']} = {a['value']}: в каталоге нет"
+
+
+def test_explicit_property_beats_name_word(real_engine):
+    # «вид товара: секция стола» задано явно — «стол» из наименования не даёт второе значение
+    r = real_engine.search(SearchRequest(text="стол администратора, тип каркаса: металлический, вид товара: секция стола"))
+    assert not any(i.code == "contradictory_values" for i in r.issues)
+    assert r.status != "conflict"

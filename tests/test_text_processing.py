@@ -73,3 +73,12 @@ def test_catalog_refuses_other_morph_mode(fixture_db, monkeypatch):
     monkeypatch.setattr(repo, "MORPH_MODE", "snowball" if MORPH_MODE == "pymorphy" else "pymorphy")
     with pytest.raises(RuntimeError):
         repo.Catalog(fixture_db[0])
+
+
+def test_clothing_size_notation():
+    assert "размер 66" in normalize("Футболка женская р.66").text
+    assert "размер 48 рост 170-176 см" in normalize("Брюки р-р 48/170-176").text
+    # обхват груди (от 76) и детский рост (трёхзначный) размером не считаются
+    assert "размер" not in normalize("Жакет р. 104-108/170-176").text
+    assert "размер" not in normalize("Жакет р.88").text
+    assert "размер" not in normalize("пила 50 р. за штуку").text

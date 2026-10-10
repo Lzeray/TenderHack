@@ -57,11 +57,28 @@ _STEPS = [
                               (r"(размер\s*[-:]?\s*\d{2}(?:-\d{2})?)\s*/\s*(?=\d{3})", r"\1 рост ")],
      "«р.66» → «размер 66», «размер 48/170» → «размер 48 рост 170 см»"),
     # одежда без слова «размер»: «48-50/182-188», «52/176» (размер/рост по ГОСТ) — слева 40–74, справа 140–200
-    ("размер/рост", [(r"(?<![\d/.,])(?<!размер )(?<!размер)((?:[4-6]\d|7[0-4])(?:-(?:[4-6]\d|7[0-4]))?)\s*/\s*"
+    ("размер/рост", [(r"(?<![\w/.,-])(?<!размер )(?<!размер)((?:[4-6]\d|7[0-4])(?:-(?:[4-6]\d|7[0-4]))?)\s*/\s*"
                       r"((?:1[4-9]\d|200)(?:-(?:1[4-9]\d|200))?)(?![\d.,-])(?:\s*см)?",
                       r"размер \1 рост \2 см")],
      "«48-50/182-188» → «размер 48-50 рост 182-188 см»"),
 ]
+
+
+# Словоформы каталога (задаёт движок при запуске): для проверки «после перевода раскладки получились слова» —
+# доменные термины («электролобзик», «полупальто») есть не во всяком общем словаре
+_DOMAIN_WORDS: frozenset[str] = frozenset()
+
+
+def set_domain_vocabulary(words) -> None:
+    global _DOMAIN_WORDS
+    _DOMAIN_WORDS = frozenset(words)
+
+
+# латинские буквы-двойники кириллических (после перевода в нижний регистр; b, h, m, t — заглавные двойники В, Н, М, Т)
+LAT2CYR = {"a": "а", "c": "с", "e": "е", "o": "о", "p": "р", "x": "х", "y": "у", "k": "к", "b": "в", "h": "н",
+           "m": "м", "t": "т"}
+# клавиши QWERTY → ЙЦУКЕН (знаки на месте русских букв: ; ' , . [ ] `)
+LAYOUT_RU = dict(zip("qwertyuiop[]asdfghjkl;'zxcvbnm,.`", "йцукенгшщзхъфывапролджэячсмитьбюё"))
 
 
 class Tracked:
@@ -78,6 +95,53 @@ class Tracked:
             chars.append(low)
             mp.extend([m] * len(low))
         self.text, self.map = "".join(chars), mp
+
+    def _replace_chars(self, repl: dict[int, str]) -> None:
+        """Посимвольная замена (длина не меняется — карта координат сохраняется)."""
+        if repl:
+            chars = list(self.text)
+            for i, c in repl.items():
+                chars[i] = c
+            self.text = "".join(chars)
+
+    def fix_homoglyphs(self) -> bool:
+        """Смешанный алфавит в слове (docs/SPELLING_VALIDATION.md, шаг 2):
+        * в основном кириллица, а латинские буквы — двойники («шкaф», «cтол», «мужcкой») → кириллица;
+        * размер одежды из «х/x» и «l/s» («ххl», «хs») → латиница («xxl»).
+        Слова с цифрами и с латинскими буквами без двойника («автоdело») не трогаются."""
+        repl: dict[int, str] = {}
+        for m in re.finditer(r"[a-zа-я]+", self.text):
+            w = m.group()
+            lat = [i for i, c in enumerate(w) if "a" <= c <= "z"]
+            cyr = [i for i, c in enumerate(w) if "а" <= c <= "я"]
+            if not lat or not cyr:
+                continue
+            if re.fullmatch(r"[xх]{1,4}[ls]", w):
+                repl.update({m.start() + i: "x" for i in cyr})
+            elif len(cyr) >= len(lat) and all(w[i] in LAT2CYR for i in lat):
+                repl.update({m.start() + i: LAT2CYR[w[i]] for i in lat})
+        self._replace_chars(repl)
+        return bool(repl)
+
+    def fix_layout(self) -> bool:
+        """Текст целиком в латинской раскладке («irfa lkz jlt;ls» = «шкаф для одежды»): кириллицы нет, а после
+        перевода по клавишам ЙЦУКЕН большинство слов (от 2 букв) — слова русского языка. Бренды и коды («Bosch
+        GSR 18») после перевода не дают слов — текст не трогается."""
+        if re.search(r"[а-я]", self.text) or not re.search(r"[a-z]{2,}", self.text):
+            return False
+        # «,» и «.» — буквы «б» и «ю» только перед буквой («nf,ehtn» = «табурет»); перед пробелом, цифрой или в конце —
+        # знаки препинания («детская,» — запятая)
+        t = self.text
+        conv = "".join(c if c in ",." and not (k + 1 < len(t) and t[k + 1].isalpha()) else LAYOUT_RU.get(c, c)
+                       for k, c in enumerate(t))
+        words = re.findall(r"[а-я]{2,}", conv)
+        if not words:
+            return False
+        known = sum(1 for w in words if w in _DOMAIN_WORDS or w in STOPWORDS or is_known_word(w))
+        if known * 10 < len(words) * 6:
+            return False
+        self.text = conv
+        return True
 
     def pair_quotes(self) -> bool:
         """Парные прямые кавычки → «…» посимвольно (карта координат сохраняется). Дюйм — только непарная («16"»)."""
@@ -214,6 +278,14 @@ def normalize(original: str) -> NormalizedQuery:
     tr.lower()
     if tr.text != original:
         history.append(Step(step="регистр и ё", before=original, after=tr.text, note="нижний регистр, ё → е"))
+    before = tr.text
+    if tr.fix_layout():
+        history.append(Step(step="раскладка", before=before, after=tr.text,
+                            note="текст набран в латинской раскладке — переведён на русскую"))
+    before = tr.text
+    if tr.fix_homoglyphs():
+        history.append(Step(step="смешанный алфавит", before=before, after=tr.text,
+                            note="латинские буквы-двойники в русском слове → кириллица (размеры «ххl» → «xxl»)"))
     before = tr.text
     if tr.pair_quotes():
         # парные прямые кавычки — кавычки, а не дюймы: «"CS 23-355"» — не «23-355 дюйм»

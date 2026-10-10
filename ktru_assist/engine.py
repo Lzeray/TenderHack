@@ -20,7 +20,7 @@ from .models import (Candidate, CharacteristicsCompletion, CodeResolution, Compl
                      DomainProperty, Feature, Issue, Predicate, Question, QuestionOption, RawAssertion,
                      Scope, SearchRequest, SearchResponse, Span, Stage, Step)
 from .nlp.extract import Extractor, PropGroup, build_groups, value_aliases_version
-from .nlp.normalize import NormalizedQuery, normalize
+from .nlp.normalize import NormalizedQuery, normalize, set_domain_vocabulary
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
 from . import empirical, suspicious
@@ -50,6 +50,8 @@ class Engine:
                                                                      catalog.meta.get("snapshot"))
         self.catalog_scope = CatalogScope(catalog)
         self.typos = None if self.native else TypoCorrector(catalog.vocabulary_texts())
+        if self.typos is not None:
+            set_domain_vocabulary(self.typos.forms)
         self.registry = None if self.native else TypeRegistry(catalog.search_documents())
         self.head_vocab = [] if self.native else self.registry.head_vocab
         self._head_set = frozenset(self.head_vocab)

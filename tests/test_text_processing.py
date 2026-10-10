@@ -111,3 +111,23 @@ def test_common_length_misspelling():
     assert "длиной от 200" in normalize("молоток длинной от 200").text
     assert "длина 300" in normalize("молоток длинна 300").text
     assert "длинный молоток" in normalize("длинный молоток").text        # прилагательное не трогаем
+
+
+def test_homoglyphs_and_layout():
+    assert normalize("шкaф для одежды").text == "шкаф для одежды"          # латинская a
+    assert normalize("стул мужcкой").text == "стул мужской"
+    assert normalize("куртка ххl").text == "куртка xxl"                    # размер — в латиницу
+    assert normalize("автоdело").text == "автоdело"                        # латиница без двойника — не трогаем
+    assert normalize("irfa lkz jlt;ls").text == "шкаф для одежды"          # раскладка
+    assert normalize("dtnhjdrf ltncrfz, hjcn 74").text == "ветровка детская, рост 74"   # запятая — знак
+    assert normalize("Bosch GSR 18-2-LI").text == "bosch gsr 18-2-li"       # бренд и код — не раскладка
+
+
+def test_typo_stem_fallback_and_ending():
+    # формы «офисное» нет в словаре каталога, но есть лемма «офисный»: находится через основу
+    tc = TypoCorrector(["кресло офисный", "стол круглый", "круг", "дуга"])
+    res = tc.correct(normalize("кресло офиссное").tokens, {})
+    assert res[0].corrected == "офисное"
+    # «кругой»: окончание «-ой» есть только у «круглой» (а не у «круг», «дуга»)
+    res = tc.correct(normalize("стол кругой").tokens, {})
+    assert res[0].status == "corrected" and res[0].corrected == "круглой"

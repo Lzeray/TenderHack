@@ -35,7 +35,7 @@ TITLE = {u.key: u.title for u in UNITS}
 
 def corruptions(f: Feature):
     u = lookup(f.unit) if f.unit else None
-    v = Decimal(f.value)
+    v = Decimal(f.value.replace(",", "."))
     if u is not None:
         for k in LADDER.get(u.key, []):
             yield "unit", f.model_copy(update={"unit": TITLE[k]})
@@ -83,6 +83,20 @@ def main() -> int:
         clean[e.status] += 1
         if e.status == "unseen" and len(examples["clean_unseen"]) < 20:
             examples["clean_unseen"].append({**r, "reason": e.reason})
+        fu = lookup(f.unit) if f.unit else None
+        if e.status == "unseen" and fu is not None and fu.dimension != "count":
+            # ложное предложение уровня 3 на реальном значении: есть единственный «обычный» вариант
+            fits = {}
+            for _, h, _ in _variants(f):
+                he = assess(h, heads, stats)
+                if he is not None and he.status == "typical":
+                    fits.setdefault(_quantity(h), h)
+            if len(fits) == 1:
+                clean["false_fix"] += 1
+                if len(examples["clean_false_fix"]) < 20:
+                    h = next(iter(fits.values()))
+                    examples["clean_false_fix"].append({"name": r["name"], "property": r["property"],
+                                                        "value": f"{f.value} {f.unit}", "fix": f"{h.value} {h.unit}"})
         if e.status != "typical":
             continue                     # портим только значения, которые сами типичны (иначе неясно, что «чисто»)
         for kind, g in corruptions(f):
@@ -110,11 +124,12 @@ def main() -> int:
                                                   "bad": f"{g.value} {g.unit}", "fix": f"{h.value} {h.unit}"})
             elif fits:
                 c["fix_ambiguous"] += 1
-    assessed = sum(v for k, v in clean.items() if not k.startswith("na:"))
+    assessed = sum(v for k, v in clean.items() if k in ("typical", "rare", "unseen"))
     summary = {"sample": len(sample), "clean": dict(clean),
                "clean_assessed_share": round(assessed / max(1, sum(clean.values())), 3),
                "clean_unseen_rate": round(clean["unseen"] / max(1, assessed), 4),
-               "clean_rare_rate": round(clean["rare"] / max(1, assessed), 4)}
+               "clean_rare_rate": round(clean["rare"] / max(1, assessed), 4),
+               "clean_false_fix_rate": round(clean["false_fix"] / max(1, assessed), 4)}
     for kind, c in cor.items():
         a = c["n"] - c["na"]
         summary[kind] = {**c, "detected_unseen": round(c["unseen"] / max(1, a), 3),

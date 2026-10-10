@@ -246,7 +246,7 @@ class Engine:
         domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
         extractor = None if self.native else Extractor(
             groups, self.known_terms - domain_name_lemmas,
-            name_tokens=self._name_tokens(nq.tokens, positions) | det.type_token_idx)
+            name_tokens=self._name_tokens(nq.tokens, positions) | det.type_token_idx, type_heads=heads)
         features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
         self._mark_intent(nq, features)
         features = self._apply_constraints(features, [a for a in answers if a.property != TYPE_PROP], "answer",

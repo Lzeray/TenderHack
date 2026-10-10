@@ -15,6 +15,7 @@ from decimal import Decimal, InvalidOperation
 
 from .catalog.repository import Interval, Position, Prop, merge_intervals
 from .models import Feature, Issue, PropertyCheck
+from .dims import axis_of, context_of
 from .text import content_lemmas, norm, tokenize
 from .units import lookup, fmt
 
@@ -71,6 +72,14 @@ def find_prop(pos: Position, f: Feature) -> Prop | None:
         for p in pos.props.values():
             if p.norm_name == key:
                 return p
+        # одна ось — разные названия у позиций одного типа («Высота шкафа» / «Высота»): единственное числовое
+        # свойство той же общей оси (docs/DIMENSIONS_PLAN.md, D3)
+        ctx = context_of(pos.name_lemmas, [pos.head] if pos.head else [])
+        ax = axis_of(f.property_name, ctx)
+        if ax is not None:
+            same = [p for p in pos.props.values() if p.is_numeric and axis_of(p.name, ctx) == ax]
+            if len(same) == 1:
+                return same[0]
     return None
 
 

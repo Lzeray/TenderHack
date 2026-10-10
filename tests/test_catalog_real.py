@@ -57,3 +57,21 @@ def test_explicit_property_beats_name_word(real_engine):
     r = real_engine.search(SearchRequest(text="стол администратора, тип каркаса: металлический, вид товара: секция стола"))
     assert not any(i.code == "contradictory_values" for i in r.issues)
     assert r.status != "conflict"
+
+
+def test_axis_with_other_name_is_checked(real_engine):
+    # «высота шкафа» проверяется и у позиций, где свойство называется «Высота»
+    from ktru_assist.dims import axis_of, context_of
+    r = real_engine.search(SearchRequest(text="шкаф для одежды высота 1,8 м"))
+    for c in r.candidates:
+        p = real_engine.catalog.get(c.code)
+        ctx = context_of(p.name_lemmas, [p.head])
+        has_height = any(axis_of(pr.name, ctx) == axis_of("Высота", ctx) for pr in p.props.values() if pr.is_numeric)
+        absent = [k for k in c.checks if k.feature_id and k.unknown_reason == "property_absent"]
+        assert not (has_height and absent), c.code
+
+
+def test_overall_axis_preferred_over_part(real_engine):
+    r = real_engine.search(SearchRequest(text="стеллаж высота 2 м ширина 1 м глубина 40 см"))
+    f = next(f for f in r.features if f.evidence and "глубина" in f.evidence)
+    assert f.status == "bound" and f.property_name == "Глубина стеллажа"

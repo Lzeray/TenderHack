@@ -31,6 +31,7 @@ from ..catalog.repository import Position, Prop
 from ..components import canonical_key, component_of_lemma, property_component
 from ..config import ROOT
 from ..models import Feature
+from ..dims import axis_of, context_of
 from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_of_literal, lemma_set, norm, tokenize
 from ..units import BY_KEY, fmt
 from .normalize import NormalizedQuery, Token
@@ -246,8 +247,10 @@ def _negated(tokens: list[Token], first: int) -> bool:
 
 class Extractor:
     def __init__(self, groups: dict[str, PropGroup], known_terms: set[str] | None = None,
-                 name_tokens: set[int] | None = None):
+                 name_tokens: set[int] | None = None, type_heads: list[str] | None = None):
         self.groups = groups
+        # главные слова типа: «Глубина стеллажа» — общая ось, «Глубина секции стеллажа» — размер части
+        self.axis_context = context_of((), type_heads or [])
         # индексы токенов, которыми в описании записано наименование типа
         self.name_tokens = frozenset(name_tokens or ())
         # ключевые слова названий свойств по всему каталогу MVP: чтобы отличать «нет такого
@@ -564,6 +567,12 @@ class Extractor:
             elif explicit:
                 top = max(e[0] for e in explicit)
                 best = [e for e in explicit if e[0] == top]
+                if len({e[1].key for e in best}) > 1:
+                    # «глубина 40 см» при «Глубина стеллажа» и «Глубина секции стеллажа»: часть товара не названа —
+                    # берём единственную общую ось (docs/DIMENSIONS_PLAN.md, D3)
+                    overall = [e for e in best if axis_of(e[1].name, self.axis_context)]
+                    if len({e[1].key for e in overall}) == 1:
+                        best = overall
                 if len({e[1].key for e in best}) == 1:
                     g, hit = best[0][1], best[0][2]
                     feats.append(self._feature(g, tokens, used + hit, nq, note="число рядом с названием свойства",

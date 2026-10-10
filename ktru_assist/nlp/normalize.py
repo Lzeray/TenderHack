@@ -14,11 +14,29 @@ from ..models import Step
 from ..text import NEGATIONS, STOPWORDS, is_known_word, lemma
 from ..units import AMBIGUOUS_SHORT, lookup
 
+def _tolerance(m: re.Match) -> str:
+    """«140±5» → «от 135 до 145»; «600±10%» → «от 540 до 660». Decimal, без округления."""
+    from decimal import Decimal
+    from ..units import fmt
+    a, d = Decimal(m.group(1).replace(",", ".")), Decimal(m.group(2).replace(",", "."))
+    if m.group(3):
+        d = a * d / 100
+    return f"от {fmt(a - d)} до {fmt(a + d)}"
+
+
 # Преобразования: (название, [(шаблон, замена)], пояснение). Регистр обрабатывается отдельно.
 _STEPS = [
     ("пробелы", [(r"\s+", " "), (r"^ | $", "")], "схлопнуты пробелы"),
     ("кв. и куб. единицы", [(r"\bкуб\.?\s*(мм|см|м)\b", r"\g<1>3"), (r"\bкв\.?\s*(мм|см|м)\b", r"\g<1>2")],
      "«кв. м» → «м2», «куб. м» → «м3»"),
+    ("тире в диапазоне", [(r"(?<=\d)\s*[–—]\s*(?=\d)", "-")], "«1200–1400» → «1200-1400»"),
+    # пробел-разделитель разрядов: только «1 200 мм» (одна цифра, пробел, три цифры, единица), чтобы не склеить
+    # «рост 98 104 см» или «размер 52 176»
+    ("разряды", [(r"(?<![\d.,])([1-9]) (\d{3})(?!\d)(?=\s*(?:мм|см|м|кг|г|гр|вт|квт|л|мл)(?![а-я]))", r"\1\2")],
+     "«1 200 мм» → «1200 мм»"),
+    ("допуск", [(r"(\d+(?:[.,]\d+)?)\s*(?:±|\+/-|\+-)\s*(\d+(?:[.,]\d+)?)(\s*%)?", _tolerance)],
+     "«140±5» → «от 135 до 145», «600 ± 10 %» → «от 540 до 660»"),
+    ("приблизительно", [(r"~\s*(?=\d)", "около ")], "«~140» → «около 140»"),
     ("разделитель размеров", [(r"(?<=\d)\s*[xх×*]\s*(?=\d)", " x ")], "«120х60» → «120 x 60»"),
     ("число и единица", [(r"(?<=\d)(?=[a-zа-я°\"%])", " ")], "«75см» → «75 см»"),
     ("сокращения", [(r"\b(мм|см|м|кг|гр|шт|вт|квт|мин)\.(?=\s|$|,)", r"\1")], "точка после сокращения единицы"),
@@ -48,12 +66,13 @@ class Tracked:
             mp.extend([m] * len(low))
         self.text, self.map = "".join(chars), mp
 
-    def sub(self, pattern: str, repl: str) -> None:
+    def sub(self, pattern: str, repl) -> None:
+        """repl — шаблон re или функция от совпадения (для вычисляемых замен, например «140±5»)."""
         out, mp, pos = [], [], 0
         for m in re.finditer(pattern, self.text):
             out.append(self.text[pos:m.start()])
             mp.extend(self.map[pos:m.start()])
-            new = m.expand(repl)
+            new = repl(m) if callable(repl) else m.expand(repl)
             if m.end() > m.start():
                 lo, hi = self.map[m.start()][0], self.map[m.end() - 1][1]
             else:  # вставка: привязка к соседнему символу нулевой ширины

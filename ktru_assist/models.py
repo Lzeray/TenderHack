@@ -190,6 +190,7 @@ class PropertyCheck(BaseModel):
     allowed: list[str] = Field(default_factory=list)
     user_value: Optional[str] = None
     feature_id: Optional[str] = None
+    wider: bool = Field(False, description="valid, но значение КТРУ шире диапазона запроса (включает значения вне него)")
 
 
 class RankComponents(BaseModel):

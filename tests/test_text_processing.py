@@ -82,3 +82,12 @@ def test_clothing_size_notation():
     assert "размер" not in normalize("Жакет р. 104-108/170-176").text
     assert "размер" not in normalize("Жакет р.88").text
     assert "размер" not in normalize("пила 50 р. за штуку").text
+
+
+def test_dimension_notation_normalization():
+    assert "1200-1400 мм" in normalize("длина 1200–1400 мм").text
+    assert "1200 мм" in normalize("длина 1 200 мм").text
+    assert "98 104 см" in normalize("рост 98 104 см").text            # не разряды
+    assert "от 135 до 145 см" in normalize("длина 140±5 см").text
+    assert "от 540 до 660 вт" in normalize("мощность 600 ± 10 % Вт").text
+    assert "около 140" in normalize("~140 см").text

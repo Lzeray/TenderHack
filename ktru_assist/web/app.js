@@ -202,7 +202,8 @@ function productCard(p) {
 }
 // Проверки по КТРУ: «не указано» и «не удалось проверить» — разные состояния (unknown_reason)
 const CHECK_GROUPS = [
-  ["ok", "Совпадает", (k) => k.status === "valid"],
+  ["ok", "Совпадает", (k) => k.status === "valid" && !k.wider],
+  ["warn", "Подходит, но значение КТРУ шире запроса", (k) => k.status === "valid" && k.wider],
   ["bad", "Не подходит", (k) => k.status === "invalid"],
   ["warn", "Уточните в описании", (k) => k.unknown_reason === "ambiguous" || k.unknown_reason === "unconfirmed"],
   ["warn", "Не удалось проверить", (k) => k.unknown_reason === "not_comparable" || k.unknown_reason === "property_absent"],
@@ -214,7 +215,7 @@ function checksBlock(checks) {
     if (!items.length) return "";
     const lines = items.map((k) => {
       const val = k.user_value ? `: ${esc(k.user_value)}` : "";
-      const why = k.status === "valid" || k.unknown_reason === "not_specified" ? "" : ` <span class="muted">— ${esc(k.reason)}</span>`;
+      const why = (k.status === "valid" && !k.wider) || k.unknown_reason === "not_specified" ? "" : ` <span class="muted">— ${esc(k.reason)}</span>`;
       return `<div class="small">${esc(k.property_name)}${val}${why}</div>`;
     }).join("");
     return `<div class="checks-group checks-group--${cls}"><div class="small checks-group__title">${title} (${items.length})</div>${lines}</div>`;

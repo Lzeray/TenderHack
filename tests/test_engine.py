@@ -227,3 +227,31 @@ def test_level3_does_not_change_level1(engine):
     r_keep = engine.search(SearchRequest(text=text, confirmed=[s.id for s in r.suggestions]))
     assert [c.code for c in r.candidates] == [c.code for c in r_keep.candidates]
     assert r.final_code == r_keep.final_code
+
+
+def _check(r, code, name):
+    c = next(c for c in r.candidates if c.code == code)
+    return next(k for k in c.checks if k.property_name == name)
+
+
+def test_range_covering_steps_is_compatible(engine):
+    # «от 160 до 200»: обе ступени [160;180) и [180;200] целиком внутри — подходят, пометки нет
+    k = _check(search(engine, "пассатижи слесарные длина от 160 до 200 мм"), "25.73.30.163-90000001", "Длина")
+    assert k.status == "valid" and not k.wider
+
+
+def test_range_partially_inside_step_is_wider(engine):
+    # «от 170 до 190»: ни одна ступень не внутри целиком — совместимо, но значение КТРУ шире запроса
+    k = _check(search(engine, "пассатижи слесарные длина от 170 до 190 мм"), "25.73.30.163-90000001", "Длина")
+    assert k.status == "valid" and k.wider
+
+
+def test_range_boundary_point_is_not_neighbour_step(engine):
+    # «от 160 до 180»: ступень [160;180); [180;200] касается одной точкой 180 и не считается
+    k = _check(search(engine, "пассатижи слесарные длина от 160 до 180 мм"), "25.73.30.163-90000001", "Длина")
+    assert k.status == "valid" and not k.wider and "180 и" not in k.reason.split("подходит")[1]
+
+
+def test_approx_is_five_percent_for_measures_only(engine):
+    f = next(f for f in search(engine, "пассатижи слесарные длина около 180 мм").features if f.property_name == "Длина")
+    assert (f.op, f.value, f.value_to) == ("between", "171", "189")

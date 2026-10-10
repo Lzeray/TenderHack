@@ -43,6 +43,9 @@ LE_WORDS = {("не", "более"), ("не", "больше"), ("не", "выше
             ("<=",), ("≤",), ("<",), ("максимум",)}
 STRICT = {("более",), ("больше",), ("свыше",), (">",), ("менее",), ("меньше",), ("<",)}
 BOUNDARY = {",", ";", ":", "(", ")"}
+# «около / примерно X»: у измеряемых величин — интервал ±5 % (Decimal, без округления)
+APPROX_WORDS = {"около", "примерно", "приблизительно", "порядка", "ориентировочно"}
+APPROX_LO, APPROX_HI = Decimal("0.95"), Decimal("1.05")
 
 
 @dataclass
@@ -269,6 +272,10 @@ class Extractor:
                 tokens[i].used_by = fid
         raw = nq.raw_span(*span) if span else None
         kw.setdefault("component", g.component if g else None)
+        if any(tokens[i].text in APPROX_WORDS for i in idxs):
+            exact = kw.get("op", "eq") == "eq"
+            kw["note"] = (kw.get("note") or "") + ("; указано приблизительно — проверяется как точное значение" if exact
+                                                   else "; указано приблизительно — допуск ±5 %")
         return Feature(id=fid, source="text", status=status,
                        property_code=g.codes[0] if g else None, property_name=g.name if g else None,
                        evidence=nq.text[span[0]:span[1]] if span else None, span=span, raw_span=raw,
@@ -441,7 +448,15 @@ class Extractor:
             if hits:
                 _, words, kind = max(hits, key=lambda h: h[0])
                 op = {"ge": "gt", "le": "lt"}[kind] if words in STRICT else kind
-            if op == "eq":
+            approx = [k for k in prefix if tokens[k].text in APPROX_WORDS]
+            if op == "eq" and approx:
+                dim = BY_KEY[unit_key].dimension if unit_key else None
+                if dim is not None and dim != "count":
+                    # «около 140 см» = ±5 % (решение команды, docs/DIMENSIONS_PLAN.md); у штук — точное значение
+                    op, v2 = "between", v1 * APPROX_HI
+                    v1 = v1 * APPROX_LO
+                used = approx + [j] + used[used.index(j) + 1:]
+            elif op == "eq":
                 used = [j] + used[used.index(j) + 1:]
         return op, v1, v2, lo_inc, hi_inc, unit_key, used
 
@@ -463,9 +478,9 @@ class Extractor:
                 continue
             start = i
             # отступить назад к словам сравнения
-            while start > 0 and tokens[start - 1].lemma in ("не", "от", "до", "менее", "более", "меньше", "больше",
+            while start > 0 and (tokens[start - 1].text in APPROX_WORDS or tokens[start - 1].lemma in ("не", "от", "до", "менее", "более", "меньше", "больше",
                                                              "свыше", "ниже", "выше", ">=", "<=", "≥", "≤", ">", "<",
-                                                             "минимум", "максимум") and i - start < 2:
+                                                             "минимум", "максимум")) and i - start < 2:
                 start -= 1
             parsed = self._parse_number_expr(tokens, start)
             if parsed is None:

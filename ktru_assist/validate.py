@@ -115,6 +115,22 @@ def conflicting_conditions(features: list[Feature], positions: list[Position], t
     return issues
 
 
+WIDER_MARK = "значение КТРУ шире запроса"
+
+
+def numeric_steps(comparable: list[Interval], U: Interval) -> tuple[list[Interval], list[Interval]]:
+    """Ступени КТРУ для диапазона пользователя: (целиком внутри, пересекаются частично).
+    Касание одной граничной точкой не считается пересечением."""
+    full = [i for i in comparable if i.subset_of(U) and (i.is_point or U.overlaps_more_than_point(i))]
+    part = [i for i in comparable if i not in full and not i.is_point and U.overlaps_more_than_point(i)]
+    return full, part
+
+
+def _steps_txt(items: list[Interval], unit: str | None, limit: int = 4) -> str:
+    out = ", ".join(f"«{i.label(unit)}»" for i in items[:limit])
+    return out + (f" и ещё {len(items) - limit}" if len(items) > limit else "")
+
+
 def check_numeric(prop: Prop, f: Feature, U: Interval) -> tuple[str, str]:
     uu = lookup(f.unit) if f.unit else None
     if f.unit and uu is None:
@@ -150,13 +166,20 @@ def check_numeric(prop: Prop, f: Feature, U: Interval) -> tuple[str, str]:
     unit_t = uu.title if uu else None
     allowed_txt = "; ".join(i.label(unit_t) for i in comparable[:12]) + ("…" if len(comparable) > 12 else "")
     exact = [i for i in comparable if U.subset_of(i)]
-    if f.intent == "requirement" and f.op in ("ge", "gt", "le", "lt", "between"):
-        # требование к будущему товару выполнимо, если хотя бы одно допустимое значение КТРУ
-        # целиком ему удовлетворяет (заказчик выберет это значение)
-        sat = [i for i in comparable if i.subset_of(U)]
-        if sat and not exact:
-            return "valid", (f"требование {user_txt} выполнимо: допустимое значение «{sat[0].label(uu.title if uu else None)}»"
-                             " целиком ему удовлетворяет")
+    if not U.is_point:
+        # Диапазон («от 180 до 250 мм», «не менее 140 см», «около 140» = ±5 %) против ступеней КТРУ
+        # (docs/DIMENSIONS_PLAN.md): подходят все ступени, пересекающиеся с диапазоном больше чем в одной точке.
+        # Ступень целиком внутри диапазона — «подходит»; если таких нет, а есть пересекающиеся частично — позиция
+        # совместима, но значение КТРУ шире запроса (пометка). Касание только границей не считается.
+        full, part = numeric_steps(comparable, U)
+        if full:
+            return "valid", (f"{user_txt}: подходит {_steps_txt(full, unit_t)}"
+                             + (f"; частично — {_steps_txt(part, unit_t)}" if part else ""))
+        if part:
+            return "valid", (f"{user_txt}: {WIDER_MARK} — {_steps_txt(part, unit_t)} "
+                             "(включает значения вне диапазона)")
+        if any(U.intersects(i) for i in comparable):
+            return "unknown", f"{user_txt} совпадает с допустимым ({allowed_txt}) только граничной точкой"
     if exact:
         return "valid", f"{user_txt} входит в допустимое значение «{exact[0].label(unit_t)}»"
     if any(U.subset_of(m) for m in merged):
@@ -269,6 +292,7 @@ def evaluate(pos: Position, features: list[Feature]) -> CandidateEval:
             property_code=code, property_name=name, required=bool(prop and prop.required),
             kind=prop.kind if prop else None, status=st, reason=why,
             unknown_reason=None if st != "unknown" else "property_absent" if prop is None else "not_comparable",
+            wider=st == "valid" and WIDER_MARK in why,
             allowed=[v.label for v in prop.values][:30] if prop else [],
             user_value=describe_user(f), feature_id=f.id))
         if st == "valid":

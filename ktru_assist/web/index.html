@@ -1,63 +1,15 @@
 <!doctype html>
 <html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Поиск товаров</title>
-<link rel="stylesheet" href="/static/style.css?v=202610101322">
-</head>
-<body>
-<header class="topbar">
-  <div class="wrap topbar__inner">
-    <div class="brand">
-      <span class="brand__mark" aria-hidden="true"></span>
-      <div><div class="brand__title">Портал поставщиков</div><div class="brand__sub">Поиск товаров</div></div>
-    </div>
-    <div class="catalog-info">Одежда · Мебель · Инструменты</div>
-  </div>
-</header>
-<main class="wrap layout">
-  <section class="col col--left">
-    <div class="card">
-      <label class="label" for="desc">Что ищете?</label>
-      <textarea id="desc" rows="4" placeholder="Например: стул на металлическом каркасе с мягким сиденьем"></textarea>
-      <div class="hint muted">Добавляйте характеристики — результаты обновятся автоматически.</div>
-      <div class="submit-row"><button class="btn" id="submitBtn" type="button">Найти</button>
-        <span id="uiState" class="search-activity" role="status" aria-live="polite"></span></div>
-      <div class="examples" id="examples"></div>
-      <div id="corrections"></div>
-    </div>
-    <div class="card" id="notesCard" hidden>
-      <div class="card__head"><h2>Замечания</h2></div>
-      <div id="notes"></div>
-    </div>
-    <div class="card" id="featuresCard" hidden>
-      <div class="card__head"><h2>Характеристики</h2><button class="btn btn--ghost" id="addRowBtn" type="button">+ Добавить</button></div>
-      <div class="table-wrap"><table class="feat">
-        <thead><tr><th>Свойство</th><th>Значение</th><th></th></tr></thead>
-        <tbody id="features"></tbody>
-      </table></div>
-      <div id="addRow" class="add-row" hidden>
-        <select id="addProp" aria-label="Характеристика"></select>
-        <select id="addOp" aria-label="Условие"><option value="eq">=</option><option value="ge">≥</option><option value="le">≤</option><option value="ne">≠</option></select>
-        <input id="addValue" list="addValues" placeholder="Значение" aria-label="Значение"><datalist id="addValues"></datalist>
-        <input id="addUnit" placeholder="Ед." size="4" aria-label="Единица измерения">
-        <button class="btn" id="addApply" type="button">Добавить</button>
-      </div>
-    </div>
-  </section>
-  <section class="col col--right">
-    <div id="status" class="status status--idle" role="status" aria-live="polite">Введите описание товара</div>
-    <div id="question"></div>
-    <div id="final"></div>
-    <div class="card" id="resultsCard" hidden>
-      <div class="card__head"><h2>Товары <span id="resultsCount" class="muted"></span></h2></div>
-      <div id="results" class="results-list"></div>
-      <div id="resultsPager"></div>
-    </div>
-  </section>
-</main>
-<script src="/static/state.js?v=202610101322"></script>
-<script src="/static/app.js?v=202610101322"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#3155e7" />
+    <meta name="description" content="Подбор товаров и характеристик СТЕ по описанию. Проверка значений и кода КТРУ." />
+    <title>Портал поставщиков — подбор товаров и КТРУ</title>
+    <script type="module" crossorigin src="/static/assets/index-D8O-pEaJ.js"></script>
+    <link rel="stylesheet" crossorigin href="/static/assets/index-BA-Lx24L.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>

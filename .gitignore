@@ -19,3 +19,5 @@ reports/runs/
 data/exp_*
 reports/exp/
 data/bench_fixture/
+
+frontend/node_modules/

@@ -30,9 +30,10 @@ from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
-from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
+from .catalog.scope import ref
+from .text import MORPH_MODE, content_lemmas, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
-from .validate import check_feature, evaluate, find_prop
+from .validate import check_feature, describe_user, evaluate, find_prop
 
 MAX_CANDIDATES_OUT = 100
 REQUIRED_EMPTY = "обязательное свойство не заполнено"
@@ -421,6 +422,14 @@ class Engine:
             blocking_feats.append(None)
         constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
                        if f.status == "bound" and f.property_name}
+        if self.native:
+            # признаки разбора правилами не несут ссылку на характеристику: заданные свойства — по позициям
+            for f in features:
+                if f.status == "bound" and f.property_name:
+                    for _, _, p in finals:
+                        pr = find_prop(p, f)
+                        if pr is not None:
+                            constrained.add(ref("characteristic", pr.code, pr.name))
         tentative = [f for f in features if f.status in ("bound", "proposed", "unknown_property") and f.confirmation == "tentative"]
         final_code = final_name = None
         question = None
@@ -441,7 +450,8 @@ class Engine:
             gate.append("подозрительные значения не подтверждены")
         if merge.disagreements:
             gate.append("расхождение разбора правилами и модели")
-        if self.native and any(f.status == "unknown_property" for f in features):
+        # характеристика вне КТРУ из текста — дополнительная и на код не влияет; блокирует только трактовка модели
+        if self.native and any(f.status == "unknown_property" and f.confirmation == "tentative" for f in features):
             gate.append("есть признаки без подтверждённой привязки к полной схеме")
         code_res: CodeResolution
         ev0 = evals[finals_pos[0].code] if finals else None
@@ -502,9 +512,11 @@ class Engine:
                         p = finals_pos[0]
                         req_unknown = [p.props[c.property_code] for c in ev.checks
                                        if c.status == "unknown" and c.required and c.property_code in p.props]
-                    question = None if self.native and not type_confirmed else choose_question(
+                    # вопрос есть всегда, пока позиций больше одной: сначала тип (наименование), затем характеристики
+                    question = choose_question(
                         finals_pos, constrained, type_confirmed, req_unknown,
-                        type_first=bool(det.ambiguous_aliases) or weak_single_name, strict_refs=self.native)
+                        type_first=bool(det.ambiguous_aliases) or weak_single_name or (self.native and not type_confirmed),
+                        strict_refs=self.native)
                 if dims_question is not None and (question is None or question.kind != "type"):
                     question = dims_question
                 if question is not None and question.kind == "manual_choice":
@@ -580,23 +592,37 @@ class Engine:
                 and f.intent != "preference" and f.property_name]
 
     def _required_mismatch(self, features: list[Feature], positions: list[Position], evals) -> dict[str, list[str]]:
-        """Характеристика пользователя, обязательная в части позиций КТРУ: позиции, где она не обязательна
-        (или её нет), отбрасываются. Позиции без свойства в остальных случаях остаются (unknown ≠ invalid).
-        Правило не применяется, если ни одна позиция с этой обязательной характеристикой не совместима
-        с описанием: тогда отбор по нему ничего не доказывает."""
+        """Характеристика пользователя, обязательная в части позиций КТРУ: позиции, где её нет среди обязательных,
+        отбрасываются. «Есть» — по смыслу значения, а не по названию свойства: «угловой» поддерживают и
+        «Тип конструкции стола: Угловая», и «Конфигурация стола: Угловой», и «Вид: Угловая внутренняя».
+        Не применяется: к словам наименования товара («стол» → «Вид товара: Стол» — это тип, а не характеристика);
+        если характеристика обязательна у всех позиций или ни одна такая позиция не совместима с описанием."""
         finals = [p for p in positions if not p.is_template]
+        type_words = {l for p in positions for l in p.name_lemmas}
         out: dict[str, list[str]] = {}
         for f in self._user_conditions(features):
-            props = {p.code: find_prop(p, f) for p in finals}
-            holders = [p for p in finals if props[p.code] is not None and props[p.code].required]
+            value_lem = set(content_lemmas(f.value or "")) if f.unit is None and f.op in ("eq", "in") else set()
+            if value_lem and value_lem <= type_words:
+                continue
+
+            def supports(p: Position) -> bool:
+                pr = find_prop(p, f)
+                if pr is not None and pr.required and check_feature(p, f)[0] != "invalid":
+                    return True
+                if not value_lem:
+                    return False
+                return any(pr2.required and any(v.kind == "quality" and v.lemmas and value_lem <= set(v.lemmas)
+                                                for v in pr2.values) for pr2 in p.props.values())
+
+            sup = {p.code: supports(p) for p in finals}
+            holders = [p for p in finals if sup[p.code]]
             if not holders or len(holders) == len(finals) or not any(evals[p.code].invalid == 0 for p in holders):
                 continue
             for p in finals:
-                pr = props[p.code]
-                if pr is None or not pr.required:
+                if not sup[p.code]:
                     out.setdefault(p.code, []).append(
-                        f"{f.property_name}: указана в описании и обязательна в других позициях КТРУ, "
-                        + ("а в этой позиции её нет" if pr is None else "а в этой позиции она необязательная"))
+                        f"«{f.property_name}: {describe_user(f)}» указана в описании, а в этой позиции такого "
+                        "значения нет среди обязательных характеристик")
         return out
 
     @staticmethod
@@ -833,8 +859,14 @@ class Engine:
             if c.property == TYPE_PROP:
                 continue
             g = self._resolve_group(c.property, groups)
+            gname = " ".join(tokenize(g.name)) if g is not None else None
+            # у позиций КТРУ одна и та же характеристика бывает под разными кодами: тогда привязка — по названию
+            strict = self.native and g is not None and \
+                sum(1 for x in groups.values() if " ".join(tokenize(x.name)) == gname) == 1
             for f in features:
-                same = g is not None and (f.characteristic_ref == g.key if self.native else f.property_name and " ".join(tokenize(f.property_name)) == g.key)
+                by_name = bool(f.property_name) and " ".join(tokenize(f.property_name)) == gname
+                same = g is not None and ((f.characteristic_ref == g.key or (f.characteristic_ref is None and by_name))
+                                          if self.native else by_name)
                 if same and f.status == "bound":
                     f.status = "removed" if c.remove else "overridden"
                     f.note = (f.note + "; " if f.note else "") + (
@@ -862,8 +894,8 @@ class Engine:
                                     property_code=g.codes[0], property_name=g.name, op=c.op, value=c.value, values=c.values,
                                     value_to=c.value_to, min_inclusive=c.min_inclusive,
                                     max_inclusive=c.max_inclusive, unit=c.unit,
-                                    strict_ref=self.native,
-                                    characteristic_ref=g.key if self.native else None,
+                                    strict_ref=strict,
+                                    characteristic_ref=g.key if strict else None,
                                     proposal_key=c.evidence_key,
                                     note="ручное редактирование (приоритет над текстом)" if source == "override"
                                     else "ответ на уточняющий вопрос"))
@@ -878,4 +910,5 @@ class Engine:
             return code_matches[0] if len(code_matches) == 1 else None
         key = " ".join(tokenize(prop))
         matches = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
-        return matches[0] if len(matches) == 1 else None
+        # несколько групп с одним названием (разные коды одной характеристики) — привязка по названию
+        return matches[0] if matches else None

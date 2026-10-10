@@ -71,10 +71,24 @@ def test_user_property_required_elsewhere_drops_positions_without_it(engine):
     r = search(engine, "дрель ручная электрическая мощность 600 Вт")
     assert r.compatible_codes == ["28.24.11.000-92000001"]
     dropped = next(c for c in r.candidates if c.code == "28.24.11.000-92000002")
-    assert not dropped.compatible and "обязательна в других позициях" in dropped.excluded_reason
+    assert not dropped.compatible and "нет среди обязательных" in dropped.excluded_reason
 
 
 def test_question_prefers_property_common_to_all(engine):
     r = search(engine, "дрель ручная электрическая")
     if r.question is not None and r.question.kind == "property":
         assert r.question.property_name == "Тип питания"
+
+
+def test_type_word_does_not_filter_positions(engine):
+    # слово наименования («дрель») не считается характеристикой для отбора по обязательным
+    r = search(engine, "дрель ручная электрическая")
+    assert len(r.compatible_codes) == 2
+
+
+def test_override_by_name_survives_type_choice(engine):
+    from ktru_assist.models import Constraint
+    r = search(engine, "дрель ручная электрическая", overrides=[Constraint(property="Тип питания", value="от сети")])
+    f = next(f for f in r.features if f.property_name == "Тип питания" and f.source == "override")
+    assert f.status == "bound" and f.value == "От сети"
+    assert r.compatible_codes == ["28.24.11.000-92000001"]

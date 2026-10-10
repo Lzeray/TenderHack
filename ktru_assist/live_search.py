@@ -92,7 +92,8 @@ class LiveSearch:
     def fast(self, req):
         started = time.perf_counter()
         with self.o.core_lock:
-            rule_response = self.rules.search(req.model_copy(update={"overrides": [], "answers": []}))
+            # без session_id: дополнительные характеристики запоминаются один раз — в _additional
+            rule_response = self.rules.search(req.model_copy(update={"overrides": [], "answers": [], "session_id": None}))
             positions = self._domain(rule_response)
             if positions:
                 # Retain all catalogue names not ruled out by explicit name terms.

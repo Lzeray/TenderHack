@@ -37,7 +37,9 @@ def test_code_resolution_separate_from_completion(engine):
     r = search(engine, "дрель ручная электрическая сетевая")
     assert r.code_resolution.status == "resolved" and r.code_resolution.code == "28.24.11.000-92000001"
     assert not r.characteristics_completion.complete and "Мощность" in r.characteristics_completion.missing
-    assert r.status == "clarification_needed" and r.final_code is None
+    # единственная позиция даёт код; незаполненная «Мощность» остаётся в списке «осталось ввести»
+    assert r.status == "matched" and r.final_code == "28.24.11.000-92000001"
+    assert any(x.name == "Мощность" and x.status == "missing" for x in r.required_characteristics)
 
 
 def test_negative_number_kept_and_flagged(engine):

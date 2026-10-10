@@ -105,7 +105,9 @@ def test_manual_override_has_priority(engine):
 def test_remove_extracted_value(engine):
     r = search(engine, "пассатижи слесарные 150 мм", overrides=[Constraint(property="Длина", remove=True)])
     assert next(f for f in r.features if f.property_name == "Длина").status == "removed"
-    assert r.final_code is None                                # длина обязательна
+    # позиция единственная — код есть; обязательная «Длина» снова в списке «осталось ввести»
+    assert r.final_code == "25.73.30.163-90000001"
+    assert next(x for x in r.required_characteristics if x.name == "Длина").status == "missing"
 
 
 def test_conflicting_values_conflict(engine):
@@ -120,10 +122,10 @@ def test_no_new_features_rule(engine):
 
 
 def test_answer_and_stale_answer(engine):
-    r1 = search(engine, "пассатижи слесарные")
-    opt = next(o for o in r1.question.options if o.label.startswith("≥ 160"))
-    r2 = search(engine, "пассатижи слесарные", answers=[opt.answer], answers_query_hash=r1.query_hash)
-    assert r2.status == "matched"
+    r1 = search(engine, "пассатижи")
+    opt = next(o for o in r1.question.options if o.label == "Слесарные")
+    r2 = search(engine, "пассатижи", answers=[opt.answer], answers_query_hash=r1.query_hash)
+    assert r2.status == "matched" and r2.final_code == "25.73.30.163-90000001"
     r3 = search(engine, "пассатижи рыбацкие", answers=[opt.answer], answers_query_hash=r1.query_hash)
     assert any(i.code == "stale_answers" for i in r3.issues)
 

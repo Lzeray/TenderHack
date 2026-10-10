@@ -166,6 +166,7 @@ class Engine:
 
         # --- тип по наименованию ---------------------------------------------
         type_confirmed = False
+        weak_single_name = False
         confirmed_scope = None
         # цели неоднозначного алиаса («сидушка» → кресло | табурет) не подтверждают наименование
         q_lemmas = [t.lemma for t in nq.tokens if t.kind in ("word", "code")] + det.unique_alias_terms
@@ -201,7 +202,13 @@ class Engine:
                 positions = sel
                 type_confirmed = len(names) == 1
             elif len(by_name) == 1:
-                type_confirmed = True
+                # Одно наименование в области подтверждает тип, только если описание его подкрепляет:
+                # наименование из одного слова или в описании есть ещё слово наименования кроме главного.
+                # «кресло-качалка» не подтверждает единственное «Кресло компьютерное детское».
+                only = next(iter(by_name.values()))[0]
+                tier, _, matched = name_match(only, q_lemmas)
+                type_confirmed = len(set(only.name_lemmas)) == 1 or len(matched) >= 2
+                weak_single_name = not type_confirmed
             if det.ambiguous_aliases and type_confirmed:
                 # разговорное слово с несколькими трактовками: тип подтверждает только пользователь
                 type_confirmed = False
@@ -389,7 +396,7 @@ class Engine:
                         req_unknown = [p.props[c.property_code] for c in ev.checks
                                        if c.status == "unknown" and c.required and c.property_code in p.props]
                     question = choose_question(finals_pos, constrained, type_confirmed, req_unknown,
-                                               type_first=bool(det.ambiguous_aliases))
+                                               type_first=bool(det.ambiguous_aliases) or weak_single_name)
                 if question is not None and question.kind == "manual_choice":
                     status = "manual_choice"
                     message = question.text

@@ -154,3 +154,13 @@ def test_repeatability(engine):
 def test_ambiguous_number_binding(engine):
     r = search(engine, "дрель ручная электрическая 15")
     assert r.final_code is None
+
+
+def test_single_name_needs_support_from_text(engine):
+    # в области одно наименование «Дрель ручная электрическая», но в описании только главное слово:
+    # тип не подтверждается автоматически, первым идёт вопрос-подтверждение
+    r = search(engine, "дрель от сети мощность 600 вт")
+    assert r.status != "matched" and r.final_code is None
+    assert r.question is not None and r.question.kind == "type"
+    r2 = search(engine, "дрель электрическая от сети мощность 600 вт")
+    assert r2.status == "matched" and r2.final_code == "28.24.11.000-92000001"

@@ -241,8 +241,11 @@ def _negated(tokens: list[Token], first: int) -> bool:
 
 
 class Extractor:
-    def __init__(self, groups: dict[str, PropGroup], known_terms: set[str] | None = None):
+    def __init__(self, groups: dict[str, PropGroup], known_terms: set[str] | None = None,
+                 name_tokens: set[int] | None = None):
         self.groups = groups
+        # индексы токенов, которыми в описании записано наименование типа
+        self.name_tokens = frozenset(name_tokens or ())
         # ключевые слова названий свойств по всему каталогу MVP: чтобы отличать «нет такого
         # свойства у этого типа» от «непонятного слова»
         self.known_terms = known_terms or set()
@@ -601,6 +604,8 @@ class Extractor:
         tokens = nq.tokens
         feats = []
         by_token: dict[int, list[tuple[PropGroup, str, list[int]]]] = {}
+        name_tok = self.name_tokens
+        cands: list[tuple[PropGroup, str, list[int], bool]] = []
         for g in sorted(self.groups.values(), key=lambda g: g.key):
             if g.boolean or not g.quality:
                 continue
@@ -611,14 +616,18 @@ class Extractor:
                 others = {x for k, l2 in g.value_lemmas.items() if k != nval for x in l2}
                 occ = {x: [t.i for t in tokens if t.kind == "word" and t.used_by is None and fuzzy_equal(t.lemma, x)]
                        for x in lem}
+                full = all(occ[x] for x in lem)
+                if not full:
+                    # Частичное совпадение не может опираться на слова наименования типа:
+                    # «перчатки … для защиты от внешних воздействий» не доказывает «От механических воздействий».
+                    occ = {x: [i for i in o if i not in name_tok] for x, o in occ.items()}
                 present = [x for x in lem if occ[x]]
                 if not present:
                     continue
-                # ближайшие друг к другу вхождения («…внешних воздействий, защита от механических воздействий»)
+                # ближайшие вхождения; при равенстве — не занятые наименованием
                 best_combo = min(itertools.product(*(occ[x] for x in present)),
-                                 key=lambda cmb: (max(cmb) - min(cmb), cmb))
+                                 key=lambda cmb: (sum(i in name_tok for i in cmb), max(cmb) - min(cmb), cmb))
                 found = dict(zip(present, best_combo))
-                full = len(found) == len(lem)
                 unique = [x for x in found if x not in others]
                 if not (full or unique):
                     continue
@@ -627,9 +636,16 @@ class Extractor:
                 if not full and set(lem) & NEGATIONS:
                     continue
                 idxs = sorted(found.values())
-                if max(idxs) - min(idxs) > 3:
+                # длинные значения с перечислением («от нефти, нефтепродуктов, масел, жиров») шире окна в 3 слова
+                if max(idxs) - min(idxs) > max(3, 2 * len(lem) - 1):
                     continue
-                by_token.setdefault(idxs[0], []).append((g, g.quality[nval], idxs))
+                cands.append((g, g.quality[nval], idxs, full))
+        # Более полное значение того же свойства поглощает вложенное: «секция шкафа» ⊃ «шкаф».
+        for g, val, idxs, full in cands:
+            s = set(idxs)
+            if any(g2.key == g.key and f2 and set(i2) > s for g2, _, i2, f2 in cands):
+                continue
+            by_token.setdefault(idxs[0], []).append((g, val, idxs))
         for first in sorted(by_token):
             opts = by_token[first]
             if any(tokens[i].used_by for _, _, idxs in opts for i in idxs):

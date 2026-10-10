@@ -214,7 +214,8 @@ class Engine:
 
         groups = build_groups(positions)
         domain_name_lemmas = {l for p in positions for l in p.name_lemmas}
-        extractor = Extractor(groups, self.known_terms - domain_name_lemmas)
+        extractor = Extractor(groups, self.known_terms - domain_name_lemmas,
+                              name_tokens=self._name_tokens(nq.tokens, positions))
         features = extractor.extract(nq)
         self._mark_intent(nq, features)
         features = self._apply_constraints(features, req.overrides, "override", groups, issues)
@@ -525,6 +526,22 @@ class Engine:
     def _head_of_name(self, name: str) -> str | None:
         from .text import head_lemma
         return head_lemma(name)
+
+    @staticmethod
+    def _name_tokens(tokens, positions: list[Position]) -> set[int]:
+        """Токены, которыми записано наименование типа: наименование области с наибольшим числом
+        найденных слов, каждое слово наименования — к первому свободному подходящему токену."""
+        best: set[int] = set()
+        for name_lemmas in sorted({tuple(dict.fromkeys(p.name_lemmas)) for p in positions}):
+            used: set[int] = set()
+            for l in name_lemmas:
+                i = next((t.i for t in tokens if t.kind in ("word", "code") and t.i not in used
+                          and fuzzy_equal(t.lemma, l)), None)
+                if i is not None:
+                    used.add(i)
+            if len(used) > len(best):
+                best = used
+        return best
 
     @staticmethod
     def _unrecognized(nq) -> list[str]:

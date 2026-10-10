@@ -117,3 +117,13 @@ h2 { font-size: 22px; letter-spacing: -.6px; font-weight: 800; }.quiet-label { f
   .card-name { font-size: 12px; }.card-description { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition: none !important; } }
+/* Обязательные характеристики КТРУ (таблица внизу) и дополнительные характеристики */
+.parameter-group { margin-top: 18px; }.parameter-group h3 { font-size: 11px; color: #2e3950; margin-bottom: 4px; }.parameter-group h3 small { font-weight: 500; color: #9ba3b4; }
+.feature-rejected { opacity: .75; }.additional-compact { margin-top: 12px; }.additional-compact .feature-row { padding: 8px 0; }
+.required-panel { margin: 28px 0 10px; padding: 24px; }.required-panel h3 { font-size: 12px; color: #2e3950; margin: 18px 0 8px; }
+.required-table { width: 100%; border-collapse: collapse; font-size: 11px; }.required-table th { text-align: left; font-size: 10px; color: #8f9cb2; font-weight: 600; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+.required-table td { padding: 10px 6px; border-bottom: 1px solid #eff1f6; vertical-align: top; }.required-table td small { display: block; font-size: 9px; color: #9ba3b4; margin-top: 4px; }.required-table td small.narrows { color: var(--blue); }
+.required-table td:first-child { width: 34%; }.required-table td:last-child { width: 20%; }.required-missing td:first-child b { color: #a8672a; }
+.required-input { display: flex; align-items: center; gap: 6px; }.required-input input, .required-input select { flex: 1; border: 1px solid #e4e8f1; border-radius: 7px; padding: 7px 9px; font-size: 11px; background: #fff; color: #3e4a63; }
+.required-input select[aria-label="Единица измерения"] { flex: 0 0 auto; width: auto; }.required-unit { font-size: 10px; color: #8f9cb2; white-space: nowrap; }
+@media (max-width: 760px) { .required-panel { padding: 16px; }.required-table thead { display: none; }.required-table tr { display: block; padding: 8px 0; border-bottom: 1px solid #eff1f6; }.required-table td { display: block; width: auto !important; border: 0; padding: 4px 0; } }

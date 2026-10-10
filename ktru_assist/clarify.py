@@ -4,8 +4,10 @@
 строятся варианты ответа из допустимых значений кандидатов. Для каждого варианта считается,
 сколько кандидатов останется совместимыми (кандидат без этого свойства остаётся при любом
 ответе; пересекающиеся допустимые значения учитываются — кандидат попадает во все варианты,
-с которыми пересекается). Выбирается свойство с минимальным худшим случаем (max по вариантам).
-При равенстве: обязательное свойство (тип считается обязательным и идёт первым), затем код.
+с которыми пересекается). Сначала спрашиваются характеристики, которые есть у всех оставшихся позиций (у карточек КТРУ одного товара
+наборы характеристик бывают разными): пока общие, сужающие список, не кончились, частные не спрашиваются.
+Внутри группы: обязательное свойство (тип считается обязательным и общим), затем минимальный худший случаем
+(max по вариантам), затем код.
 Если ни одно свойство не сокращает множество — ручной выбор из списка кандидатов.
 """
 from __future__ import annotations
@@ -105,7 +107,7 @@ def choose_question(cands: list[Position], constrained: set[str], type_fixed: bo
                     strict_refs: bool = False) -> Question | None:
     """type_first — сначала подтвердить тип (разговорное слово с несколькими трактовками)."""
     n = len(cands)
-    best = None  # (worst, not_required, code_key, question)
+    best = None  # (not_common, not_required, worst, code_key, question)
     if not type_fixed:
         names: dict[str, int] = {}
         for c in cands:
@@ -118,7 +120,7 @@ def choose_question(cands: list[Position], constrained: set[str], type_fixed: bo
             q = Question(kind="type", text="Уточните тип товара (наименование позиции КТРУ)", required=True,
                           worst_case_remaining=worst, current_remaining=n, options=opts if strict_refs else opts[:MAX_OPTIONS],
                          reason=f"кандидаты относятся к {len(names)} разным наименованиям")
-            best = (worst, 0, "", q)
+            best = (0, 0, worst, "", q)
             if type_first:
                 return q
         elif len(names) == 1 and type_first:
@@ -147,9 +149,10 @@ def choose_question(cands: list[Position], constrained: set[str], type_fixed: bo
         if worst >= n:
             continue
         required = any(p.required for c in cands for p in c.props.values() if _property_key(p, strict_refs) == key)
+        common = all(any(_property_key(p, strict_refs) == key for p in c.props.values()) for c in cands)
         code = key if strict_refs else sample.code
-        cand_key = (worst, 0 if required else 1, "1" + code)
-        if best is None or cand_key < best[:3]:
+        cand_key = (0 if common else 1, 0 if required else 1, worst, "1" + code)
+        if best is None or cand_key < best[:4]:
             unit = next((v.unit for v in sample.values if v.unit), None)
             q = Question(kind="property", property_code=code, property_name=sample.name,
                          text=_question_text(sample), required=required, worst_case_remaining=worst,
@@ -157,10 +160,11 @@ def choose_question(cands: list[Position], constrained: set[str], type_fixed: bo
                          unit=unit.title if unit else None,
                          options=[QuestionOption(label=o.label, remaining=cnt, answer=o.answer)
                                    for o, cnt in sorted(counts, key=lambda oc: (oc[1], oc[0].label))][:None if strict_refs else MAX_OPTIONS],
-                         reason=f"в худшем случае останется {worst} из {n}")
+                         reason=(f"характеристика есть у всех {n} позиций; " if common else
+                                 "общие характеристики позиций уже заданы; ") + f"в худшем случае останется {worst} из {n}")
             best = (*cand_key, q)
     if best is not None:
-        return best[3]
+        return best[4]
     if n == 1 and required_unknown:
         p = sorted(required_unknown, key=lambda p: p.code)[0]
         opts, _ = _options_for(_property_key(p, strict_refs), cands, strict_refs)

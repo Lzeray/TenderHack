@@ -166,36 +166,95 @@ function FeatureEditor({ feature, search }) {
 
 export function Parameters({ search }) {
   const data = search.result;
-  const properties = data?.properties || [];
-  const features = (data?.features || []).filter(f => !["overridden", "removed"].includes(f.status));
-  const extras = (data?.query_profile?.attributes || []).filter(a => !features.some(f => f.property_name === a.name));
-  const [selected, setSelected] = useState(0);
-  const [value, setValue] = useState("");
-  const [unit, setUnit] = useState("");
-  const [op, setOp] = useState("eq");
-  const property = properties[selected] || properties[0];
-  useEffect(() => { setSelected(0); setUnit(properties[0]?.units?.[0] || ""); }, [data?.query?.original]);
+  // Обязательные характеристики КТРУ — в таблице внизу; здесь неоднозначные и необязательные.
+  const ambiguous = (data?.features || []).filter(f => f.status === "ambiguous");
+  const optional = data?.optional_characteristics || [];
+  const empty = !ambiguous.length && !optional.length && !(data?.additional || []).length;
   return <aside className="parameters panel">
-    <div className="panel-heading"><Icon name="filter" /><h2>Параметры товара</h2></div>
-    <p className="panel-caption">Извлекаем из описания. Вы можете уточнить любое значение.</p>
-    {features.length ? <div>{features.map(f => <FeatureEditor key={`${f.id}-${f.property_code}`} feature={f} search={search} />)}</div> : <div className="parameter-empty"><Icon name="sparkle" size={28} /><p>Характеристики появятся здесь после поиска</p></div>}
-    {extras.map(a => <div className="feature-row" key={a.name}><div className="feature-label">{a.name}</div><b>{a.value} {a.unit}</b><small className="feature-evidence">{a.confirmation === "tentative" ? "Предложено моделью · не применяется" : "Не проверено по КТРУ"}</small></div>)}
-    {properties.length > 0 && <details className="add-feature"><summary><Icon name="plus" size={17} />Добавить характеристику</summary>
-      <form onSubmit={event => { event.preventDefault(); if (!value.trim()) return;
-        const constraint = parseConstraint(property.ref || property.code, value, unit);
-        if (constraint.op === "eq") constraint.op = op;
-        search.override(constraint); setValue("");
-      }}><fieldset disabled={search.stale}>
-        <label>Характеристика<select value={selected} onChange={event => { const i = Number(event.target.value); setSelected(i); setUnit(properties[i].units[0] || ""); }}>{properties.map((p, i) => <option key={p.ref || p.code} value={i}>{p.name}</option>)}</select></label>
-        <div className="add-feature-grid"><select value={op} aria-label="Операция сравнения" onChange={event => setOp(event.target.value)}><option value="eq">=</option><option value="ge">≥</option><option value="le">≤</option><option value="ne">≠</option></select>
-          <input aria-label="Значение новой характеристики" placeholder="Значение" list="property-values" value={value} onChange={event => setValue(event.target.value)} required />
-          <input aria-label="Единица измерения" placeholder="Ед." value={unit} onChange={event => setUnit(event.target.value)} />
-        </div><datalist id="property-values">{property?.values?.map(v => <option key={v} value={v} />)}</datalist>
-        <button className="button button-soft" type="submit">Применить</button>
-      </fieldset></form>
-    </details>}
+    <div className="panel-heading"><Icon name="filter" /><h2>Распознанные характеристики</h2></div>
+    <p className="panel-caption">Названия и значения приведены к виду КТРУ. Обязательные характеристики — в таблице внизу.</p>
+    {ambiguous.length > 0 && <div className="parameter-group"><h3>Нужно уточнить</h3>{ambiguous.map(f => <FeatureEditor key={`${f.id}-amb`} feature={f} search={search} />)}</div>}
+    {optional.length > 0 && <div className="parameter-group"><h3>Необязательные характеристики КТРУ</h3>{optional.map(f => <FeatureEditor key={`${f.id}-${f.property_code}`} feature={f} search={search} />)}</div>}
+    <Additional data={data} />
+    {empty && <div className="parameter-empty"><Icon name="sparkle" size={28} /><p>Необязательные и дополнительные характеристики появятся здесь после поиска</p></div>}
     <div className="parameter-tip"><Icon name="alert" size={16} /><p>Неизвестное значение не считается подтверждённым. КТРУ проверяем по справочнику.</p></div>
   </aside>;
+}
+
+const SOURCE_LABELS = { ste: "Есть в выгрузках СТЕ", session: "Запомнена в сессии", new: "Новая, запомнена в сессии", rejected: "Не принята" };
+
+export function Additional({ data, compact = false }) {
+  const items = (data?.additional || []).filter(a => !compact || a.accepted);
+  if (!items.length) return null;
+  return <div className={`parameter-group additional ${compact ? "additional-compact" : ""}`}>
+    <h3>Дополнительные характеристики <small>(нет в КТРУ, на код не влияют)</small></h3>
+    {items.map((a, i) => <div className={`feature-row ${a.accepted ? "" : "feature-rejected"}`} key={`${a.name}-${i}`}>
+      <div className="feature-label">{a.name}<span className={`mini-tag ${a.accepted ? (a.source === "ste" ? "green" : "blue") : "amber"}`}>{SOURCE_LABELS[a.source]}</span></div>
+      {a.value && <b>{a.value} {a.unit || ""}</b>}
+      {!compact && <small className="feature-evidence">{a.reason}</small>}
+    </div>)}
+  </div>;
+}
+
+function RequiredInput({ row, search }) {
+  const [value, setValue] = useState(row.value || "");
+  const [unit, setUnit] = useState(row.unit || row.units?.[0] || "");
+  useEffect(() => { setValue(row.value || ""); setUnit(row.unit || row.units?.[0] || ""); }, [row.value, row.unit, row.property_code]);
+  const listId = `req-values-${row.property_code}`;
+  const save = () => {
+    const text = value.trim();
+    if (!text || text === (row.value || "")) return;
+    search.override(parseConstraint(row.property_code, text, row.numeric ? unit : null));
+  };
+  const options = row.values || [];
+  return <div className="required-input">
+    {options.length > 0 && options.length <= 12 && !row.numeric
+      ? <select aria-label={row.name} value={value} disabled={search.stale} onChange={event => {
+          setValue(event.target.value);
+          if (event.target.value) search.override(parseConstraint(row.property_code, event.target.value, null));
+        }}><option value="">Выберите значение</option>{options.map(v => <option key={v} value={v}>{v}</option>)}{value && !options.includes(value) && <option value={value}>{value}</option>}</select>
+      : <><input aria-label={row.name} placeholder={row.numeric ? "Число" : "Значение"} list={listId} value={value} disabled={search.stale}
+          onChange={event => setValue(event.target.value)} onBlur={save} onKeyDown={event => {
+            if (event.key === "Enter") event.target.blur();
+            if (event.key === "Escape") setValue(row.value || "");
+          }} /><datalist id={listId}>{options.slice(0, 50).map(v => <option key={v} value={v} />)}</datalist>
+        {row.numeric && (row.units?.length > 1
+          ? <select aria-label="Единица измерения" value={unit} onChange={event => setUnit(event.target.value)}>{row.units.map(u => <option key={u}>{u}</option>)}</select>
+          : <span className="required-unit">{unit}</span>)}</>}
+    {row.status !== "missing" && <button className="icon-button" title="Очистить" aria-label={`Очистить ${row.name}`} disabled={search.stale}
+      onClick={() => search.override({ property: row.property_code, remove: true })}><Icon name="close" size={15} /></button>}
+  </div>;
+}
+
+export function RequiredTable({ search }) {
+  const data = search.result;
+  const [showAll, setShowAll] = useState(false);
+  if (!data || search.stale || data.status === "not_found") return null;
+  const rows = data.required_characteristics || [];
+  if (!rows.length) return null;
+  const missing = rows.filter(r => r.status === "missing");
+  const common = rows.filter(r => r.common);
+  const partial = rows.filter(r => !r.common);
+  const visible = showAll ? partial : partial.filter(r => r.status !== "missing" || r.narrows).slice(0, 8);
+  const statusLabel = { filled: "Заполнена", missing: "Не указана", invalid: "Не подходит", unchecked: "Не проверена" };
+  const matched = data.status === "matched";
+  const table = list => <table className="required-table"><thead><tr><th>Характеристика</th><th>Значение</th><th>Статус</th></tr></thead><tbody>
+    {list.map(row => <tr key={row.property_code} className={`required-${row.status}`}>
+      <td><b>{row.name}</b>{!row.common && <small>обязательна у {row.positions} из {row.total} позиций</small>}{row.narrows && row.status === "missing" && <small className="narrows">сузит выбор</small>}</td>
+      <td><RequiredInput row={row} search={search} /></td>
+      <td><span className={`check-state check-${row.status === "filled" ? "valid" : row.status === "invalid" ? "invalid" : "unknown"}`}>{statusLabel[row.status]}</span>{row.status !== "missing" && row.status !== "filled" && <small>{row.reason}</small>}</td>
+    </tr>)}
+  </tbody></table>;
+  return <section className="required-panel panel" aria-label="Обязательные характеристики КТРУ">
+    <div className="panel-heading"><Icon name="filter" /><h2>{matched ? "Обязательные характеристики позиции" : "Что ещё указать"}</h2></div>
+    <p className="panel-caption">{missing.length
+      ? `Обязательные характеристики КТРУ: не указано ${missing.length} из ${rows.length}.${matched ? " Код уже определён — заполните их для полной карточки." : " Сначала общие для всех оставшихся позиций."}`
+      : "Все обязательные характеристики КТРУ указаны. Значения можно исправить."}</p>
+    {common.length > 0 && <>{partial.length > 0 && <h3>Общие для всех позиций</h3>}{table(common)}</>}
+    {partial.length > 0 && <><h3>Есть только у части позиций</h3>{visible.length > 0 && table(visible)}
+      {partial.length > visible.length && <button className="text-button" onClick={() => setShowAll(true)}>Показать все ({partial.length})</button>}
+      {showAll && partial.length > 8 && <button className="text-button" onClick={() => setShowAll(false)}>Свернуть</button>}</>}
+  </section>;
 }
 
 export function Question({ search }) {

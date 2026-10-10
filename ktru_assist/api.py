@@ -195,7 +195,8 @@ class ProductSearch(BaseModel):
 
 @app.post("/api/products")
 def api_products(req: ProductSearch):
-    if req.profile.get("conflicts"):
+    # Подбор идёт только по КТРУ; товары СТЕ не выдаются (выгрузки подтверждают доп. характеристики).
+    if os.environ.get("STE_PRODUCTS", "off") != "on" or req.profile.get("conflicts"):
         return {"total": 0, "items": [], "offset": req.offset, "limit": req.limit}
     o = get_orchestrator()
     service = getattr(o, "live", None)

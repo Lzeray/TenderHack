@@ -7,6 +7,7 @@ import hashlib
 from pathlib import Path
 import time
 
+from . import canon, extras
 from .catalog.scope import ref
 from .engine import Engine
 from .models import Constraint, Feature, Issue, ProviderStatus, SearchRequest, Stage
@@ -133,14 +134,30 @@ class LiveSearch:
                         "value": token.text, "raw_unit": None, "unit": None, "source": "rule",
                         "status": "outside_catalogue", "quote": token.text, "op": "eq"})
         response.query_profile["item_terms"] = rule_response.detected_types
+        response.query_profile["unrecognized"] = rule_response.unrecognized
+        # Поиск идёт только по КТРУ; выгрузки СТЕ лишь подтверждают дополнительные характеристики.
+        self._additional(req, response, rule_response.detected_types,
+                         [a for a in response.query_profile["attributes"] if a["status"] == "outside_catalogue"])
         conflicts = conflicting_conditions(response.features, positions, req.text)
         if conflicts:
             self._set_conflict(response, conflicts)
-        elif self.ste:
-            response.ste_results = self.ste.search(rule_response.detected_types, response.query_profile["attributes"])
         response.stages[0] = Stage(stage="распознан предмет", remaining=len(positions), note=", ".join(response.detected_types))
         response.model_pending = not conflicts and self.o.llm is not None and self.o.cfg.b_mode != "off" and not req.manual_only
         return response, positions, features, verified
+
+    def _additional(self, req, response, heads, extra_attrs):
+        """Характеристики вне КТРУ: смысл → выгрузки СТЕ → память сессии. Товары СТЕ не выдаются."""
+        response.additional = extras.classify(response.features, extra_attrs, list(heads or []),
+                                              self.rules.ste_stats, req.session_id)
+        response.ste_results = {}
+        for w in extras.subjective_words(response.query_profile.get("unrecognized", [])):
+            response.issues.append(Issue(level="warning", code="not_a_characteristic",
+                message=f"«{w}» — оценочное слово, а не характеристика товара: оно не влияет на подбор. "
+                        "Укажите конкретное свойство (материал, цвет, размер …)"))
+        for a in response.additional:
+            if not a.accepted and not any(i.code == "not_a_characteristic" and a.name in i.message for i in response.issues):
+                response.issues.append(Issue(level="warning", code="not_a_characteristic",
+                    message=f"«{a.name}{': ' + a.value if a.value else ''}» не принята как характеристика: {a.reason}"))
 
     @staticmethod
     def _set_conflict(response, conflicts):
@@ -175,6 +192,10 @@ class LiveSearch:
                 if target:
                     converted = convert(number, source_unit, target)
                     value, unit = format(converted.normalize(), "f"), target.title
+            if g is not None and g.quality and unit is None:
+                value = canon.match_value(value, g.quality) or value
+            elif value and unit is None and not any(ch.isdigit() for ch in value):
+                value = canon.display(value)
             attrs.append({"name": f.property_name or "Неоднозначная характеристика", "raw_value": f.value,
                           "raw_unit": f.unit, "value": value, "unit": unit, "source": f.origin,
                           "status": f.status, "quote": f.evidence, "op": f.op})
@@ -238,19 +259,17 @@ class LiveSearch:
                 continue
             g = self._bind(attr, groups)
             if g is None:
-                extra_attrs.append({"name": attr.name, "raw_value": attr.value, "raw_unit": attr.unit,
-                    "value": attr.canonical_value or attr.value, "unit": attr.unit, "source": "llm",
+                extra_attrs.append({"name": canon.display(attr.name), "raw_value": attr.value, "raw_unit": attr.unit,
+                    "value": canon.display(attr.canonical_value or attr.value), "unit": attr.unit, "source": "llm",
                     "status": "outside_catalogue", "quote": req.text[span[0]:span[1]], "op": attr.op})
                 continue
             value = attr.canonical_value or attr.value
             if g.numeric:
                 value = attr.value
-            elif norm(value) not in g.quality:
-                raw_words = tuple(content_lemmas(attr.value))
-                equivalent = [v for v in g.quality.values() if tuple(content_lemmas(v)) == raw_words]
-                if len(equivalent) == 1:
-                    value = equivalent[0]
-                else:
+            else:
+                # единый формат: значение в написании КТРУ («угловой» → «Угловой»)
+                value = canon.match_value(value, g.quality) or canon.match_value(attr.value, g.quality)
+                if value is None:
                     continue
             f = Feature(id=f"qwen-{i}", source="model", origin="llm", status="bound", confirmation="confirmed",
                         property_code=g.codes[0], property_name=g.name, value=value, value_to=attr.value_to,
@@ -279,11 +298,12 @@ class LiveSearch:
         model_names = {norm(a["name"]) for a in response.query_profile["attributes"]}
         response.query_profile["attributes"] += [a for a in fast.query_profile["attributes"] if norm(a["name"]) not in model_names]
         response.query_profile["item_terms"] = fast.query_profile.get("item_terms") or content_lemmas(parsed.item)
+        response.query_profile["unrecognized"] = fast.query_profile.get("unrecognized", [])
+        self._additional(req, response, response.query_profile["item_terms"],
+                         [a for a in response.query_profile["attributes"] if a["status"] == "outside_catalogue"])
         conflicts = conflicting_conditions(response.features, positions, req.text)
         if conflicts:
             self._set_conflict(response, conflicts)
-        elif self.ste:
-            response.ste_results = self.ste.search(response.query_profile["item_terms"], response.query_profile["attributes"])
         response.detected_types = sorted({p.name for p in positions})
         response.results_total = len(response.candidates)
         response.recognition_mode = "hybrid"
@@ -306,6 +326,14 @@ class LiveSearch:
         matching = [g for g in groups.values() if set(name) <= set(content_lemmas(g.name))]
         if len(matching) == 1:
             return matching[0]
+        # «Тип: угловой» — общее слово названия подходит к нескольким свойствам: выбрать по значению КТРУ
+        value = attr.canonical_value or attr.value
+        for pool in ([exact, matching] if exact or matching else [None]):
+            if pool is not None and not pool:
+                continue
+            by_value = canon.groups_with_value(value, groups, pool) or canon.groups_with_value(attr.value, groups, pool)
+            if len(by_value) == 1:
+                return by_value[0]
         u = lookup(attr.unit or "")
         if u:
             matching = [g for g in groups.values() if g.numeric and u.dimension in g.dims]

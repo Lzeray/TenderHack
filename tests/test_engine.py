@@ -72,17 +72,21 @@ def test_incomplete_data_asks_question(engine):
     assert r.question.worst_case_remaining < r.question.current_remaining
 
 
-def test_required_property_question_when_single_candidate(engine):
-    r = search(engine, "пассатижи слесарные")                   # длина обязательна и не указана
-    assert r.status == "clarification_needed" and r.final_code is None
-    assert r.question.property_name == "Длина" and r.question.required
+def test_single_candidate_gives_code_and_lists_missing_required(engine):
+    # позиция единственная — код выдаётся; незаполненная обязательная «Длина» остаётся в списке «что ещё указать»
+    r = search(engine, "пассатижи слесарные")
+    assert r.status == "matched" and r.final_code == "25.73.30.163-90000001"
+    row = next(x for x in r.required_characteristics if x.name == "Длина")
+    assert row.status == "missing" and row.common
 
 
 def test_unknown_property_reported(engine):
     r = search(engine, "пассатижи слесарные 190 мм, цвет: красный")
     f = next(f for f in r.features if f.evidence and "цвет" in f.evidence)
     assert f.status == "unknown_property"
-    assert any(i.code == "unknown_property" for i in r.issues)
+    # свойства нет в КТРУ: принято как дополнительное (на код не влияет), без предупреждения
+    extra = next(a for a in r.additional if a.name == "Цвет")
+    assert extra.accepted and extra.value == "Красный"
 
 
 def test_unrecognized_fragment_returned(engine):

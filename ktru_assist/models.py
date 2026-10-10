@@ -287,6 +287,37 @@ class DomainProperty(BaseModel):
     ref: Optional[str] = None
 
 
+class RequiredCharacteristic(BaseModel):
+    """Обязательная характеристика КТРУ оставшихся позиций: заполнена пользователем или ещё нет."""
+    property_code: str
+    name: str
+    common: bool = Field(description="обязательна во всех оставшихся конечных позициях")
+    positions: int = Field(description="у скольких оставшихся позиций характеристика обязательна")
+    total: int = Field(description="сколько конечных позиций осталось")
+    numeric: bool = False
+    boolean: bool = False
+    units: list[str] = Field(default_factory=list)
+    values: list[str] = Field(default_factory=list, description="допустимые значения КТРУ (до 50)")
+    status: Literal["filled", "missing", "invalid", "unchecked"] = "missing"
+    value: Optional[str] = Field(None, description="значение пользователя в едином формате")
+    unit: Optional[str] = None
+    feature_id: Optional[str] = None
+    narrows: bool = Field(False, description="ответ сузит список оставшихся позиций")
+    reason: str = ""
+
+
+class AdditionalCharacteristic(BaseModel):
+    """Характеристика пользователя, которой нет в позициях КТРУ: на код не влияет, запоминается в сессии."""
+    name: str
+    value: Optional[str] = None
+    unit: Optional[str] = None
+    feature_id: Optional[str] = None
+    origin: str = "rule"
+    accepted: bool
+    source: Literal["ste", "session", "new", "rejected"]
+    reason: str
+
+
 class EmpiricalCheck(BaseModel):
     """Уровень 2: типичность значения признака по выгрузкам СТЕ. Относится к признаку, на отбор не влияет."""
     feature_id: str
@@ -360,3 +391,9 @@ class SearchResponse(BaseModel):
     ste_results: dict[str, Any] = Field(default_factory=dict)
     suggestions: list[Suggestion] = Field(default_factory=list, description="уровень 3: сомнительные значения")
     empirical: list[EmpiricalCheck] = Field(default_factory=list, description="уровень 2: типичность по выгрузкам СТЕ")
+    required_characteristics: list[RequiredCharacteristic] = Field(
+        default_factory=list, description="обязательные характеристики КТРУ оставшихся позиций: сначала общие")
+    optional_characteristics: list[Feature] = Field(
+        default_factory=list, description="распознанные необязательные характеристики КТРУ (заполнять не предлагаются)")
+    additional: list[AdditionalCharacteristic] = Field(
+        default_factory=list, description="характеристики вне КТРУ: из СТЕ, из памяти сессии или новые")

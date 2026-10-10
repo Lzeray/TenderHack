@@ -1,0 +1,105 @@
+"""Единый формат характеристик: название свойства и значение в написании КТРУ.
+
+Любой источник (правила, модель, ручной ввод, ответ на вопрос) приводится к одному виду:
+* название свойства — точное название характеристики КТРУ области поиска;
+* качественное значение — допустимое значение КТРУ этой характеристики («угловой», «УГЛОВАЯ» → «Угловой»).
+  Сравнение без учёта регистра, «ё» и словоформы (леммы, поэтому род и падеж не мешают);
+* значение, которого нет в КТРУ, — в едином виде отображения: без лишних пробелов, с прописной первой буквой,
+  как значения КТРУ. Само слово не исправляется и не подменяется.
+Числа и единицы не трогаются (их приводит units.py без округления).
+"""
+from __future__ import annotations
+
+from .models import Feature
+from .text import content_lemmas, norm, tokenize
+
+VERSION = "1.0"
+
+
+def display(text: str | None) -> str | None:
+    """Вид отображения значения вне КТРУ: пробелы схлопнуты, первая буква прописная."""
+    if text is None:
+        return None
+    s = " ".join(text.split()).strip(" .,;:")
+    if not s:
+        return s
+    return s[0].upper() + s[1:]
+
+
+def _lemkey(text: str) -> tuple[str, ...]:
+    return tuple(content_lemmas(text))
+
+
+def match_value(text: str | None, allowed: dict[str, str]) -> str | None:
+    """Допустимое значение КТРУ для текста пользователя. allowed: норм. текст → исходное написание КТРУ.
+    Сначала точное совпадение без регистра и «ё», затем единственное совпадение по леммам."""
+    if not text or not allowed:
+        return None
+    n = " ".join(norm(text).split()).strip(" .")
+    if n in allowed:
+        return allowed[n]
+    lem = _lemkey(text)
+    if not lem:
+        return None
+    hits = sorted({orig for k, orig in allowed.items() if _lemkey(k) == lem})
+    return hits[0] if len(hits) == 1 else None
+
+
+def match_group(name: str | None, groups: dict) -> object | None:
+    """Группа свойства КТРУ по названию из текста: точное совпадение без регистра, затем по леммам."""
+    if not name:
+        return None
+    key = " ".join(tokenize(name))
+    exact = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
+    if len(exact) == 1:
+        return exact[0]
+    lem = _lemkey(name)
+    if not lem:
+        return None
+    same = [g for g in groups.values() if _lemkey(g.name) == lem]
+    return same[0] if len(same) == 1 else None
+
+
+def groups_with_value(text: str | None, groups: dict, among=None) -> list:
+    """Группы, у которых значение есть среди допустимых (для привязки «Тип: угловой» по значению)."""
+    pool = among if among is not None else list(groups.values())
+    return [g for g in pool if not getattr(g, "numeric", False) and match_value(text, g.quality)]
+
+
+def canonicalize(features: list[Feature], groups: dict) -> list[Feature]:
+    """Приводит признаки к единому формату на месте. Привязку и статус не меняет: только написание."""
+    by_name = {g.name: g for g in groups.values()}
+    for f in features:
+        g = by_name.get(f.property_name or "")
+        if g is None and f.property_name and f.status in ("bound", "proposed", "overridden"):
+            g = match_group(f.property_name, groups)
+            if g is not None:
+                f.property_name = g.name
+        if g is not None and g.quality:
+            if f.value is not None and f.unit is None:
+                v = match_value(f.value, g.quality)
+                if v is not None:
+                    f.value = v
+            if f.values:
+                f.values = [match_value(v, g.quality) or v for v in f.values]
+        elif f.status == "ambiguous":
+            for o in f.options:
+                og = by_name.get(o.get("property_name") or "")
+                if og is not None and o.get("value"):
+                    o["value"] = match_value(o["value"], og.quality) or o["value"]
+            shown = {o.get("value") for o in f.options if o.get("value")}
+            if len(shown) == 1 and f.unit is None:
+                f.value = shown.pop()
+            elif f.unit is None and f.value and not any(ch.isdigit() for ch in f.value):
+                f.value = display(f.value)
+        elif f.status == "unknown_property":
+            if f.named_property:
+                f.named_property = display(f.named_property)
+            if f.property_name:
+                f.property_name = display(f.property_name)
+            if f.value and f.unit is None and not any(ch.isdigit() for ch in f.value):
+                f.value = display(f.value)
+    return features
+
+
+__all__ = ["display", "match_value", "match_group", "groups_with_value", "canonicalize", "VERSION"]

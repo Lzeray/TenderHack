@@ -18,12 +18,12 @@ from .components import components_version
 from .config import VERSIONS, Settings
 from .models import (Candidate, CharacteristicsCompletion, CodeResolution, Completeness, Constraint,
                      DomainProperty, Feature, Issue, Predicate, Question, QuestionOption, RawAssertion,
-                     Scope, SearchRequest, SearchResponse, Span, Stage, Step)
+                     RequiredCharacteristic, Scope, SearchRequest, SearchResponse, Span, Stage, Step)
 from .nlp.extract import Extractor, PropGroup, build_groups, value_aliases_version
 from .nlp.normalize import NormalizedQuery, normalize, set_domain_vocabulary
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
-from . import empirical, suspicious
+from . import canon, empirical, extras, suspicious
 from .dims import resolve as resolve_dims
 from .unit_infer import infer as infer_units, infer_bare
 from .rank import components, name_match, term_coverage
@@ -32,9 +32,10 @@ from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
 from .text import MORPH_MODE, fuzzy_equal, lemma, norm, tokenize
 from .units import BY_KEY
-from .validate import check_feature, evaluate
+from .validate import check_feature, evaluate, find_prop
 
 MAX_CANDIDATES_OUT = 100
+REQUIRED_EMPTY = "обязательное свойство не заполнено"
 PREFERENCE_WORDS = {"желательно", "предпочтительно", "желательный", "предпочтительный"}
 REQUIREMENT_WORDS = {"нужный", "нужно", "нужен", "требоваться", "требуется", "должный", "должен", "необходимый"}
 
@@ -286,13 +287,28 @@ class Engine:
         else:
             merge = merge_model_features(features, model_features or [], group_names, set(req.rejected), issues)
         features = merge.features
+        # единый формат: названия и значения в написании КТРУ («угловой» → «Угловой»), иное — в одном виде
+        canon.canonicalize(features, groups)
+        # характеристики вне КТРУ: проверка смысла, затем выгрузки СТЕ и память сессии (на код не влияют)
+        additional = [] if self.native else extras.classify(features, [], heads, self.ste_stats, req.session_id)
+        accepted_extra = {a.feature_id for a in additional if a.accepted and a.feature_id}
         for f in features:
             if f.status == "ambiguous":
                 issues.append(Issue(level="warning", code="feature_ambiguous",
                                     message=f"«{f.evidence}»: {f.note}"))
-            elif f.status == "unknown_property" and f.source == "text":
+            elif f.status == "unknown_property" and f.source == "text" and f.id not in accepted_extra:
                 issues.append(Issue(level="warning", code="unknown_property",
                                     message=f"«{f.evidence}»: {f.note}"))
+        for a in additional:
+            if not a.accepted:
+                issues.append(Issue(level="warning", code="not_a_characteristic",
+                                    message=f"«{a.name}{': ' + a.value if a.value else ''}» не принята как характеристика: "
+                                            f"{a.reason}"))
+        if not self.native:
+            for w in extras.subjective_words(self._unrecognized(nq)):
+                issues.append(Issue(level="warning", code="not_a_characteristic",
+                                    message=f"«{w}» — оценочное слово, а не характеристика товара: оно не влияет на "
+                                            "подбор. Укажите конкретное свойство (материал, цвет, размер …)"))
         # слова наименований области считаются объяснёнными типом
         name_lemmas = {l for p in positions for l in p.name_lemmas}
         for tok in nq.tokens:
@@ -337,6 +353,7 @@ class Engine:
         level2 = [] if self.native else [e for f in features
                                          for e in [empirical.assess(f, heads, self.ste_stats)
                                                    or empirical.presence(f, heads, self.ste_stats)] if e is not None]
+        req_mismatch = self._required_mismatch(features, positions, evals)
         ranked = []
         for p in positions:
             ev = evals[p.code]
@@ -344,18 +361,21 @@ class Engine:
             ok_ids = {c.feature_id for c in ev.checks if c.status == "valid" and c.feature_id}
             tcov = term_coverage(nq.tokens, matched, ok_ids)
             rc, key = components(p, tier, ncov, tcov, ev.valid, ev.unknown, scores.get(p.code))
-            compatible = ev.invalid == 0
+            compatible = ev.invalid == 0 and p.code not in req_mismatch
             c = Candidate(code=p.code, name=p.name, version=p.version, okpd2=p.okpd2_code, category=p.category,
                           is_template=p.is_template, active=p.active, parent_code=p.parent_code,
                           no_new_features=p.no_new_features, compatible=compatible,
-                          excluded_reason="; ".join(ev.invalid_reasons) if not compatible else None,
+                          excluded_reason="; ".join(ev.invalid_reasons + req_mismatch.get(p.code, []))
+                          if not compatible else None,
                           rank_components=rc, checks=ev.checks)
             ranked.append((key, c, p))
         ranked.sort(key=lambda x: x[0])
         compatible = [(k, c, p) for k, c, p in ranked if c.compatible]
         n_invalid = len(ranked) - len(compatible)
+        n_req = sum(1 for _, c, p in ranked if p.code in req_mismatch and evals[p.code].invalid == 0)
         stages.append(Stage(stage="проверка характеристик", remaining=len(compatible), removed=n_invalid,
-                            note="исключены позиции с противоречием (invalid)"))
+                            note="исключены позиции с противоречием (invalid)"
+                                 + (f"; без указанной характеристики среди обязательных: {n_req}" if n_req else "")))
         finals = [(k, c, p) for k, c, p in compatible if not p.is_template]
         templates = len(compatible) - len(finals)
         stages.append(Stage(stage="только конечные позиции", remaining=len(finals), removed=templates,
@@ -459,7 +479,10 @@ class Engine:
                 code_res = CodeResolution(status="multiple", remaining=len(finals),
                                           reason=f"совместимых конечных позиций: {len(finals)}")
             ambiguous_feature = next((f for f in features if f.status == "ambiguous"), None)
-            if proven and not gate and not ev.blocking:
+            # незаполненные обязательные характеристики не мешают коду, если позиция уже единственная:
+            # они остаются в списке «что ещё указать»
+            ev_blocking = [b for b in ev.blocking if not b.endswith(REQUIRED_EMPTY)]
+            if proven and not gate and not ev_blocking:
                 status = "matched"
                 final_code, final_name = finals[0][2].code, finals[0][2].name
                 message = (f"Определена конечная позиция {final_code}: все условия проверены в полной области "
@@ -498,8 +521,8 @@ class Engine:
                         parts.append("есть неоднозначности в описании")
                     if gate:
                         parts.append("нужно подтверждение: " + "; ".join(gate))
-                    if single and ev.blocking:
-                        parts.append("не проверено: " + "; ".join(ev.blocking[:3]))
+                    if single and ev_blocking:
+                        parts.append("не проверено: " + "; ".join(ev_blocking[:3]))
                     message = ". ".join(parts)
         if contradictions:
             # переизбыток данных: несовместимые значения одного свойства — сначала выбрать верное
@@ -518,6 +541,7 @@ class Engine:
             code_res = CodeResolution(status="conflict", reason="противоречивые значения в описании")
         completion = self._completion(finals_pos[0], ev0) if len(finals) == 1 else \
             CharacteristicsCompletion(complete=False, missing=[], unchecked=[])
+        required_rows, optional_feats = self._required_rows(finals_pos, features, evals)
         if tentative and status == "matched":  # защита: недостижимо при корректной логике выше
             raise AssertionError("matched с неподтверждёнными трактовками моделей")
         scope = Scope(detected_types=heads, type_basis=type_basis,
@@ -545,9 +569,88 @@ class Engine:
             assertions=self._assertions(nq, features, merge), code_resolution=code_res,
             characteristics_completion=completion, scope=scope, timings=tm,
             elapsed_ms=tm["total"], recognition_mode=self.settings.recognition_mode,
-            compatible_codes=[p.code for p in finals_pos], suggestions=level3, empirical=level2, **base)
+            compatible_codes=[p.code for p in finals_pos], suggestions=level3, empirical=level2,
+            required_characteristics=required_rows, optional_characteristics=optional_feats,
+            additional=additional, **base)
 
     # ------------------------------------------------------------------
+    @staticmethod
+    def _user_conditions(features: list[Feature]) -> list[Feature]:
+        return [f for f in features if f.status == "bound" and f.confirmation == "confirmed"
+                and f.intent != "preference" and f.property_name]
+
+    def _required_mismatch(self, features: list[Feature], positions: list[Position], evals) -> dict[str, list[str]]:
+        """Характеристика пользователя, обязательная в части позиций КТРУ: позиции, где она не обязательна
+        (или её нет), отбрасываются. Позиции без свойства в остальных случаях остаются (unknown ≠ invalid).
+        Правило не применяется, если ни одна позиция с этой обязательной характеристикой не совместима
+        с описанием: тогда отбор по нему ничего не доказывает."""
+        finals = [p for p in positions if not p.is_template]
+        out: dict[str, list[str]] = {}
+        for f in self._user_conditions(features):
+            props = {p.code: find_prop(p, f) for p in finals}
+            holders = [p for p in finals if props[p.code] is not None and props[p.code].required]
+            if not holders or len(holders) == len(finals) or not any(evals[p.code].invalid == 0 for p in holders):
+                continue
+            for p in finals:
+                pr = props[p.code]
+                if pr is None or not pr.required:
+                    out.setdefault(p.code, []).append(
+                        f"{f.property_name}: указана в описании и обязательна в других позициях КТРУ, "
+                        + ("а в этой позиции её нет" if pr is None else "а в этой позиции она необязательная"))
+        return out
+
+    @staticmethod
+    def _required_rows(finals: list[Position], features: list[Feature], evals) -> tuple[list[RequiredCharacteristic], list[Feature]]:
+        """Обязательные характеристики оставшихся конечных позиций: сначала общие для всех, затем остальные.
+        Заполненные — со значением пользователя в едином формате (их можно исправить), незаполненные — пустые.
+        Распознанные необязательные характеристики КТРУ возвращаются отдельно."""
+        total = len(finals)
+        rows: dict[str, dict] = {}
+        bound_to: dict[str, Feature] = {}
+        active = [f for f in features if f.status in ("bound", "proposed") and f.property_name]
+        used: set[str] = set()
+        for p in finals:
+            for pr in p.props.values():
+                if not pr.required:
+                    continue
+                r = rows.setdefault(pr.norm_name, {"prop": pr, "count": 0, "values": {}, "units": set(),
+                                                    "sets": set()})
+                r["count"] += 1
+                r["sets"].add(tuple(sorted(v.label for v in pr.values)))
+                for v in pr.values:
+                    r["values"].setdefault(v.label, None)
+                    if v.unit:
+                        r["units"].add(v.unit.title)
+            for f in active:
+                pr = find_prop(p, f)
+                if pr is not None:
+                    used.add(f.id)
+                    if pr.required:
+                        bound_to.setdefault(pr.norm_name, f)
+        out = []
+        for key, r in rows.items():
+            pr, f = r["prop"], bound_to.get(key)
+            status, value, unit, reason = "missing", None, None, "не указана"
+            if f is not None:
+                sts = {k.status for p in finals for k in evals[p.code].checks if k.feature_id == f.id}
+                status = "filled" if "valid" in sts else "invalid" if sts == {"invalid"} else "unchecked"
+                ops = {"ne": "не ", "ge": "≥ ", "gt": "> ", "le": "≤ ", "lt": "< "}
+                value = (f"{f.value}–{f.value_to}" if f.op == "between" else
+                         " / ".join(f.values) if f.op == "in" else ops.get(f.op, "") + (f.value or ""))
+                unit = f.unit
+                reason = {"filled": "заполнена и проверена по КТРУ", "invalid": "значение не подходит позициям КТРУ",
+                          "unchecked": "указана, но сравнить с КТРУ не удалось — уточните значение"}[status]
+            out.append(RequiredCharacteristic(
+                property_code=pr.code, name=pr.name, common=r["count"] == total, positions=r["count"], total=total,
+                numeric=pr.is_numeric, boolean=pr.is_boolean, units=sorted(r["units"]),
+                values=list(r["values"])[:50], status=status, value=value, unit=unit,
+                feature_id=f.id if f is not None else None,
+                narrows=total > 1 and (r["count"] < total or len(r["sets"]) > 1), reason=reason))
+        out.sort(key=lambda r: (not r.common, -r.positions, not r.narrows, r.name))
+        required_ids = {f.id for f in bound_to.values()}
+        optional = [f for f in active if f.id in used and f.id not in required_ids]
+        return out, optional
+
     @staticmethod
     def _mark_intent(nq: NormalizedQuery, features: list[Feature]) -> None:
         """Факт о товаре / требование / предпочтение. Предпочтение не становится жёстким условием."""

@@ -23,6 +23,7 @@ from .nlp.extract import Extractor, PropGroup, build_groups, value_aliases_versi
 from .nlp.normalize import NormalizedQuery, normalize
 from .nlp.typos import TypoCorrector
 from .plausibility import check as plausibility_check, rules_version as plausibility_version
+from . import suspicious
 from .rank import components, name_match, term_coverage
 from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
@@ -58,6 +59,7 @@ class Engine:
         v["search_backend"] = self.backend.name
         v["recognition_mode"] = self.settings.recognition_mode
         v["morph"] = MORPH_MODE
+        v["suspicious"] = suspicious.VERSION
         if not self.native:
             v["components_lexicon"] = components_version()
             v["value_aliases"] = value_aliases_version()
@@ -309,6 +311,10 @@ class Engine:
 
         # --- проверка кандидатов ------------------------------------------------
         evals = {p.code: evaluate(p, features) for p in positions}
+        # уровень 3: сомнительные значения — только предложения, на отбор не влияют
+        level3 = [] if self.native else suspicious.check(features, positions, req.text, set(req.confirmed))
+        for sg in level3:
+            issues.append(Issue(level="warning", code=f"suspect_{sg.rule}", message=sg.message))
         ranked = []
         for p in positions:
             ev = evals[p.code]
@@ -515,7 +521,7 @@ class Engine:
             assertions=self._assertions(nq, features, merge), code_resolution=code_res,
             characteristics_completion=completion, scope=scope, timings=tm,
             elapsed_ms=tm["total"], recognition_mode=self.settings.recognition_mode,
-            compatible_codes=[p.code for p in finals_pos], **base)
+            compatible_codes=[p.code for p in finals_pos], suggestions=level3, **base)
 
     # ------------------------------------------------------------------
     @staticmethod

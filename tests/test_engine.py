@@ -197,3 +197,33 @@ def test_unknown_reason_separates_not_specified(engine):
             assert (k.status == "unknown") == (k.unknown_reason is not None)
             if k.feature_id is None and k.status == "unknown":
                 assert k.unknown_reason in ("not_specified", "ambiguous")
+
+
+def test_level3_scale_suggestion_and_keep(engine):
+    # 140 В не подходит ни одной позиции (12–18 В); ровно одно объяснение — пропущенная запятая: 14 В
+    text = "дрель ручная электрическая аккумуляторная напряжение аккумулятора 140 В"
+    r = search(engine, text)
+    s = next(s for s in r.suggestions if s.rule == "scale")
+    assert s.proposed == "14 В"
+    a, b = s.replace_span
+    fixed = text[:a] + s.replacement_text + text[b:]
+    assert fixed.endswith("напряжение аккумулятора 14 В")
+    assert not search(engine, fixed).suggestions
+    # «Оставить»: ключ в confirmed — предложение больше не показывается, проверка по КТРУ не меняется
+    r2 = engine.search(SearchRequest(text=text, confirmed=[s.id]))
+    assert not r2.suggestions and r2.status == r.status
+
+
+def test_level3_other_unit(engine):
+    r = search(engine, "дрель ручная электрическая от сети мощность 0,6 Вт")
+    s = next(s for s in r.suggestions if s.rule == "scale")
+    assert s.proposed == "0,6 кВт"
+
+
+def test_level3_does_not_change_level1(engine):
+    # уровень 3 не влияет на кандидатов и код
+    text = "дрель ручная электрическая аккумуляторная напряжение аккумулятора 140 В"
+    r = search(engine, text)
+    r_keep = engine.search(SearchRequest(text=text, confirmed=[s.id for s in r.suggestions]))
+    assert [c.code for c in r.candidates] == [c.code for c in r_keep.candidates]
+    assert r.final_code == r_keep.final_code

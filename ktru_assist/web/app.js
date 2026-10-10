@@ -59,7 +59,8 @@ function renderUiState() {
 function renderIdle() {
   state.last = null; state.loadedProducts = []; state.productKey = null;
   $("status").hidden = false; $("status").className = "status status--idle"; $("status").textContent = "Введите описание товара";
-  for (const id of ["results","question","final","corrections","features","resultsPager"]) $(id).innerHTML = "";
+  for (const id of ["results","question","final","corrections","features","resultsPager","notes"]) $(id).innerHTML = "";
+  $("notesCard").hidden = true;
   $("resultsCard").hidden = true; $("featuresCard").hidden = true; $("uiState").textContent = "";
 }
 function activeCandidates(d) {
@@ -67,7 +68,7 @@ function activeCandidates(d) {
   return candidates.filter((c) => c.compatible && !c.is_template);
 }
 function render(d) {
-  renderCorrections(d); renderFeatures(d); renderQuestion(d); renderFinal(d); renderResults(d); renderStatus(d); renderProps(d);
+  renderCorrections(d); renderNotes(d); renderFeatures(d); renderQuestion(d); renderFinal(d); renderResults(d); renderStatus(d); renderProps(d);
   $("addRow").querySelectorAll("input,select,button").forEach((el) => {el.disabled=false;});
   renderUiState();
 }
@@ -95,6 +96,34 @@ function renderCorrections(d) {
       `<button class="chip" data-original="${esc(c.original)}" data-correction="${esc(o)}">${esc(o)}</button>`).join(" ")}</div>`).join("");
   $("corrections").querySelectorAll("[data-correction]").forEach((b) => b.onclick = () => {
     state.corrections[b.dataset.original] = b.dataset.correction; changed(); schedule();
+  });
+}
+// Замечания: предложения уровня 3 (сомнительные значения) и предупреждения ядра.
+// «Заменить» правит текст описания — это новый ввод, который заново проходит проверку по КТРУ.
+// «Оставить» передаёт ключ в confirmed: в этом описании предложение больше не показывается.
+function renderNotes(d) {
+  const sugg = d.suggestions || [];
+  const issues = (d.issues || []).filter((i) => !i.code.startsWith("suspect_") && i.level !== "info");
+  $("notesCard").hidden = !sugg.length && !issues.length;
+  const sHtml = sugg.map((s, k) => {
+    const fix = s.replace_span && s.replacement_text != null
+      ? `<button class="btn" data-fix="${k}" type="button">Заменить на «${esc(s.replacement_text)}»</button>` : "";
+    return `<div class="note note--warn"><div class="small">${esc(s.message)}</div>
+      <div class="note__actions">${fix}<button class="btn btn--ghost" data-keep="${k}" type="button">Оставить как есть</button></div></div>`;
+  }).join("");
+  const iHtml = issues.map((i) => `<div class="note note--${i.level === "error" ? "bad" : "warn"} small">${esc(i.message)}</div>`).join("");
+  $("notes").innerHTML = sHtml + iHtml;
+  $("notes").querySelectorAll("[data-fix]").forEach((b) => b.onclick = () => {
+    const s = sugg[+b.dataset.fix], text = $("desc").value, [a, z] = s.replace_span;
+    // текст мог измениться с момента ответа: заменяем, только если на месте прежний фрагмент
+    if (state.last?.query?.original !== undefined && state.last.query.original !== text) return;
+    const next = text.slice(0, a) + s.replacement_text + text.slice(z);
+    resetForNewText(); $("desc").value = next; state.text = next; changed(); schedule();
+  });
+  $("notes").querySelectorAll("[data-keep]").forEach((b) => b.onclick = () => {
+    const s = sugg[+b.dataset.keep];
+    if (!state.confirmed.includes(s.id)) state.confirmed.push(s.id);
+    changed(); schedule();
   });
 }
 function featureValue(f) {

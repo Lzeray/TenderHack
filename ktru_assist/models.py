@@ -279,6 +279,21 @@ class DomainProperty(BaseModel):
     ref: Optional[str] = None
 
 
+class Suggestion(BaseModel):
+    """Предложение уровня 3 (сомнительное значение). Не влияет на подбор: принятие — новый ввод."""
+    id: str = Field(description="устойчивый ключ; отклонённые передаются в SearchRequest.confirmed")
+    rule: Literal["scale", "unit_missing", "placeholder", "outlier"]
+    feature_id: str
+    property_name: str
+    original: str
+    proposed: Optional[str] = None
+    alternatives: list[str] = Field(default_factory=list)
+    replace_span: Optional[tuple[int, int]] = Field(None, description="что заменить в исходном тексте")
+    replacement_text: Optional[str] = None
+    message: str
+    evidence: dict[str, Any] = Field(default_factory=dict)
+
+
 class SearchResponse(BaseModel):
     status: Literal["matched", "clarification_needed", "conflict", "not_found", "manual_choice", "error"]
     session_id: Optional[str] = None
@@ -322,3 +337,4 @@ class SearchResponse(BaseModel):
     model_pending: bool = False
     results_total: int = 0
     ste_results: dict[str, Any] = Field(default_factory=dict)
+    suggestions: list[Suggestion] = Field(default_factory=list, description="уровень 3: сомнительные значения")

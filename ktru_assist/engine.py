@@ -325,6 +325,14 @@ class Engine:
         blocking_feats = [f for f in features if f.status == "ambiguous"] + \
             [None for c in corrections if c.status == "ambiguous"
              and any(lemma(o) in domain_vocab for o in c.options)]
+        contradictions = self._contradictions(features, positions)
+        for key, fs in contradictions:
+            vals = " и ".join(f"«{describe(f)}»" for f in fs)
+            issues.append(Issue(level="error", code="contradictory_values",
+                                message=f"Для свойства «{fs[0].property_name}» в описании указано несколько "
+                                        f"несовместимых значений: {vals}. У товара одно значение этого свойства "
+                                        "— укажите верное"))
+            blocking_feats.append(None)
         constrained = {" ".join(tokenize(f.property_name)) for f in features
                        if f.status == "bound" and f.property_name}
         tentative = [f for f in features if f.status == "bound" and f.confirmation == "tentative"]
@@ -422,6 +430,21 @@ class Engine:
                     if single and ev.blocking:
                         parts.append("не проверено: " + "; ".join(ev.blocking[:3]))
                     message = ". ".join(parts)
+        if contradictions:
+            # переизбыток данных: несовместимые значения одного свойства — сначала выбрать верное
+            key, fs = contradictions[0]
+            status = "conflict"
+            message = (f"Противоречие в описании: «{fs[0].property_name}» указано по-разному "
+                       f"({', '.join(describe(f) for f in fs)}). Выберите верное значение")
+            question = Question(kind="property", property_code=fs[0].property_code, property_name=fs[0].property_name,
+                                text=f"Какое значение «{fs[0].property_name}» верное?", required=True,
+                                worst_case_remaining=len(finals), current_remaining=len(finals),
+                                options=[QuestionOption(label=describe(f), remaining=len(finals), answer=Constraint(
+                                    property=f.property_code or f.property_name, op=f.op, value=f.value,
+                                    value_to=f.value_to, min_inclusive=f.min_inclusive,
+                                    max_inclusive=f.max_inclusive, unit=f.unit)) for f in fs],
+                                reason="в описании несколько несовместимых значений одного свойства")
+            code_res = CodeResolution(status="conflict", reason="противоречивые значения в описании")
         completion = self._completion(finals_pos[0], ev0) if len(finals) == 1 else \
             CharacteristicsCompletion(complete=False, missing=[], unchecked=[])
         if tentative and status == "matched":  # защита: недостижимо при корректной логике выше
@@ -541,6 +564,52 @@ class Engine:
     def _head_of_name(self, name: str) -> str | None:
         from .text import head_lemma
         return head_lemma(name)
+
+    @staticmethod
+    def _contradictions(features: list[Feature], positions: list[Position]) -> list[tuple[str, list[Feature]]]:
+        """Несовместимые значения одного свойства из текста (переизбыток данных).
+
+        Учитываются признаки из описания со статусом bound. Свойства с выбором нескольких значений
+        (kind=3 у какой-либо позиции области) не проверяются. Несовместимы: разные качественные
+        значения; «X» и «не X»; числа, чьи интервалы не пересекаются после перевода единиц."""
+        multi = {p_.norm_name for p in positions for p_ in p.props.values() if p_.kind == 3}
+        by_key: dict[str, list[Feature]] = {}
+        for f in features:
+            if f.status == "bound" and f.source == "text" and f.property_name:
+                key = " ".join(tokenize(f.property_name))
+                if key not in multi:
+                    by_key.setdefault(key, []).append(f)
+        out = []
+        for key, fs in sorted(by_key.items()):
+            if len(fs) < 2:
+                continue
+            bad = []
+            for i, a in enumerate(fs):
+                for b in fs[i + 1:]:
+                    if Engine._incompatible(a, b):
+                        bad += [x for x in (a, b) if x not in bad]
+            if bad:
+                out.append((key, bad))
+        return out
+
+    @staticmethod
+    def _incompatible(a: Feature, b: Feature) -> bool:
+        from .validate import user_interval
+        from .units import lookup
+        ia, ib = user_interval(a) if a.op != "ne" else None, user_interval(b) if b.op != "ne" else None
+        if ia is not None and ib is not None:
+            ua, ub = lookup(a.unit) if a.unit else None, lookup(b.unit) if b.unit else None
+            if (ua is None) != (ub is None) or (ua and ub and ua.dimension != ub.dimension):
+                return False
+            if ua and ub:
+                ib = ib.scaled(ub.factor / ua.factor)
+            return not ia.intersects(ib)
+        va, vb = norm(a.value or "").strip(), norm(b.value or "").strip()
+        if a.op == "eq" and b.op == "eq":
+            return va != vb
+        if {a.op, b.op} == {"eq", "ne"}:
+            return va == vb
+        return False
 
     @staticmethod
     def _name_tokens(tokens, positions: list[Position]) -> set[int]:

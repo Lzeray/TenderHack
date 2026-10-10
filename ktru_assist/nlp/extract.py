@@ -472,7 +472,15 @@ class Extractor:
             dims_part = (i + 1 < len(tokens) and tokens[i + 1].text in ("x", "х")) or \
                         (i > 0 and tokens[i - 1].text in ("x", "х"))
             anchor = max(used)
-            win = _window(tokens, min(used), 4, 0) + _window(tokens, anchor, 0, 3)
+            back_w = _window(tokens, min(used), 1 if dims_part else 4, 0)
+            fwd_all = [] if dims_part else _window(tokens, anchor, 0, 3)
+            # слово после числа, за которым сразу идёт другое число, у измеряемых свойств относится к
+            # следующему числу: «92-96 рост 158-164» — «рост» описывает 158-164. У счётных — к предыдущему:
+            # «4 ящика 40×60» — число стоит перед существительным
+            fwd_strict = [k for k in fwd_all if not (k + 1 < len(tokens) and tokens[k + 1].kind == "number")]
+            # слова, уже объяснённые другим признаком («4 ящика»), не называют свойство следующего числа
+            free = lambda ks: [k for k in ks if tokens[k].used_by is None]  # noqa: E731
+            win_count, win = free(back_w + fwd_all), free(back_w + fwd_strict)
             # кандидаты по размерности
             if unit is not None:
                 cand = [g for g in numeric_groups if unit.dimension in g.dims]
@@ -484,11 +492,12 @@ class Extractor:
             def named(groups, use_core: bool):
                 out = []
                 for g in groups:
+                    w = win_count if g.dims == {"count"} else win
                     if use_core:
-                        h = _core_present(g, tokens, win)
+                        h = _core_present(g, tokens, w)
                         hit = [h] if h is not None else None
                     else:
-                        hit = _terms_present(g.terms, tokens, win)
+                        hit = _terms_present(g.terms, tokens, w)
                     if hit is not None:
                         out.append((1 if use_core else len(g.terms), g, hit))
                 return out
@@ -576,10 +585,15 @@ class Extractor:
         for g in sorted(self.groups.values(), key=lambda g: g.key):
             if not g.boolean or not g.terms:
                 continue
-            hit = _terms_present(g.terms, tokens, word_idx)
-            if hit is None or max(hit) - min(hit) > 3:
-                continue
-            matches.append((g, hit))
+            # каждое упоминание отдельно: «с мягким сиденьем …, без мягкого сиденья» — два признака,
+            # противоречие между ними обнаруживает движок
+            free = list(word_idx)
+            while True:
+                hit = _terms_present(g.terms, tokens, free)
+                if hit is None or max(hit) - min(hit) > 3:
+                    break
+                matches.append((g, hit))
+                free = [i for i in free if i not in hit]
         # если одно совпадение строго содержит другое (по токенам), оставить более полное
         kept = []
         for g, hit in matches:
@@ -647,6 +661,10 @@ class Extractor:
         for g, val, idxs, full in cands:
             s = set(idxs)
             if any(g2.key == g.key and f2 and set(i2) > s for g2, _, i2, f2 in cands):
+                continue
+            # значение только из слов наименования («шкаф» → «Шкаф») уступает значению того же свойства,
+            # найденному по другим словам («для уборочного инвентаря» → «Шкаф для хозяйственного инвентаря»)
+            if s <= name_tok and any(g2.key == g.key and set(i2) - name_tok for g2, _, i2, _ in cands):
                 continue
             by_token.setdefault(idxs[0], []).append((g, val, idxs))
         for first in sorted(by_token):

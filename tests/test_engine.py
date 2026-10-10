@@ -170,3 +170,20 @@ def test_word_after_preposition_is_not_type(engine):
     # «подставка для дрели»: дрель — назначение, а не тип товара
     r = search(engine, "подставка для дрели ручной электрической")
     assert r.status == "not_found" and r.final_code is None
+
+
+def test_contradictory_values_block_code(engine):
+    # переизбыток данных: одно свойство указано двумя несовместимыми значениями
+    r = search(engine, "пассатижи слесарные длина 170 мм, длина 210 мм")
+    assert r.status == "conflict" and r.final_code is None
+    assert any(i.code == "contradictory_values" for i in r.issues)
+    assert r.question is not None and len(r.question.options) == 2
+    # одно и то же значение в разных единицах — не противоречие
+    r2 = search(engine, "пассатижи слесарные длина 17 см, 170 мм")
+    assert not any(i.code == "contradictory_values" for i in r2.issues)
+
+
+def test_repeated_boolean_mentions_are_all_checked(engine):
+    r = search(engine, "стул на металлическом каркасе с мягким сиденьем, без мягкого сиденья")
+    assert r.final_code is None
+    assert any(i.code == "contradictory_values" for i in r.issues)

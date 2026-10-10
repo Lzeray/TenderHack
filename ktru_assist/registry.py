@@ -153,7 +153,12 @@ class TypeRegistry:
         for t in tokens:
             if t.kind != "word" or not t.significant:
                 continue
-            prev = tokens[t.i - 1].lemma if t.i > 0 else ""
+            # предлог ищется назад через числа и обрывки («с 4-мя полками»)
+            j = t.i - 1
+            while j >= 0 and (tokens[j].kind == "number" or len(tokens[j].text) <= 2 and tokens[j].lemma
+                              not in PREPOSITIONS):
+                j -= 1
+            prev = tokens[j].lemma if j >= 0 else ""
             after_prep = prev in PREPOSITIONS
             if t.i in alias_at:
                 a = alias_at[t.i]

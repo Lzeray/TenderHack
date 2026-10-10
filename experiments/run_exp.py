@@ -58,6 +58,25 @@ def apply_ablations(adapter, names: set[str]) -> None:
         engine_mod.plausibility_check = lambda features, categories: []
     if "typos" in names:
         eng.typos.correct = lambda tokens, choices: []
+    if "deriv" in names:
+        # H9: словообразовательное совпадение — общая основа ≥ 6 букв и ≥ 80 % более короткого слова
+        base = text.fuzzy_equal
+
+        def deriv(a: str, b: str) -> bool:
+            if base(a, b):
+                return True
+            n = 0
+            for x, y in zip(a, b):
+                if x != y:
+                    break
+                n += 1
+            return n >= 6 and n >= 0.8 * min(len(a), len(b))
+        import ktru_assist.registry as reg
+        import ktru_assist.rank as rank
+        import ktru_assist.components as comp2
+        for mod in (text, ex, engine_mod, reg, rank, comp2):
+            if hasattr(mod, "fuzzy_equal"):
+                setattr(mod, "fuzzy_equal", deriv)
     if "fuzzy" in names:
         exact = lambda a, b: a == b  # noqa: E731
         for mod in (text, ex, engine_mod):

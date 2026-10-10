@@ -4,10 +4,13 @@
   python -m benchmark.compare reports/bench/core.json reports/bench/core_sem_b.json
 
 Наборы (benchmark/suites/*.jsonl), формат кейса — benchmark/README.md. Для каждого набора считаются:
-pass_rate, status_accuracy, auto_coverage, auto_correct, auto_incorrect, auto_precision,
+pass_rate, status_accuracy, status_counts, auto_coverage, auto_correct, auto_incorrect, auto_precision,
 required_auto_hit, forbidden_auto_violations, forbidden_code_hits, compatible_recall, checks_pass,
 dialog_resolved, dialog_steps_mean, latency p50/p95/max, errors, determinism (при --repeat ≥ 2),
-error_upper95 («правило трёх» при 0 ошибочных автоматических решений).
+error_upper95 («правило трёх» при 0 ошибочных автоматических решений);
+ranking — что показано первым и как эталон приближается к вершине по вопросам (benchmark/ranking.py):
+hit@1/@3/@5, mrr, ndcg@3, type_hit@1, rank_by_step, hit1_by_step, questions_to_top1, bits_per_question,
+useless_question_rate, dead_end_rate; over_asking — вопросы там, где код был обязан выдаваться сразу.
 """
 from __future__ import annotations
 
@@ -22,7 +25,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from benchmark import ranking  # noqa: E402
 SUITES_DIR = Path(__file__).resolve().parent / "suites"
+DIALOG_STEPS = 6
 SHORTCUTS = {"ktru": ("benchmark.adapters.ktru", "KtruInProcess"),
              "ktru_http": ("benchmark.adapters.ktru", "KtruHttp")}
 
@@ -37,7 +42,8 @@ def load_adapter(spec: str):
 
 
 def load_suites(names: list[str], split: str | None) -> dict[str, list[dict]]:
-    files = sorted(SUITES_DIR.glob("*.jsonl")) if names == ["all"] else [SUITES_DIR / f"{n}.jsonl" for n in names]
+    files = sorted(SUITES_DIR.glob("*.jsonl")) if names == ["all"] else \
+        [Path(n) if n.endswith(".jsonl") else SUITES_DIR / f"{n}.jsonl" for n in names]
     out = {}
     for f in files:
         cases = [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -88,7 +94,8 @@ def evaluate_case(case: dict, pred: dict, predict_cached) -> dict:
     acc = set(case.get("acceptable_codes") or [])
     matched = pred["status"] == "matched"
     auto = case.get("auto", "allowed")
-    incorrect = matched and pred["final_code"] not in acc
+    # неразмеченный кейс (живой запрос без эталона): верность кода не оценивается
+    incorrect = matched and pred["final_code"] not in acc and not case.get("unlabeled")
     if auto == "required":
         auto_ok = matched and not incorrect
     elif auto == "forbidden":
@@ -104,7 +111,8 @@ def evaluate_case(case: dict, pred: dict, predict_cached) -> dict:
     return {"id": case["id"], "text": case["text"], "split": case.get("split"), "auto": auto,
             "acceptable": sorted(acc), "status": pred["status"], "final_code": pred["final_code"],
             "pass": passed, "status_ok": status_ok, "auto_ok": auto_ok, "auto_incorrect": incorrect,
-            "forbidden_code_hit": forbidden_hit, "compatible_recall": recall, "checks": checks}
+            "forbidden_code_hit": forbidden_hit, "compatible_recall": recall, "checks": checks,
+            "ranking": ranking.rank_stats(pred, acc)}
 
 
 def summarize(rows: list[dict], lat: list[float], errors: int, determinism) -> dict:
@@ -124,8 +132,11 @@ def summarize(rows: list[dict], lat: list[float], errors: int, determinism) -> d
     dl = [r for r in rows if "dialog" in r]
     dls = [r for r in dl if r["dialog"] is not None]
     ratio = lambda a, b: round(a / b, 3) if b else None  # noqa: E731
+    statuses: dict[str, int] = {}
+    for r in rows:
+        statuses[r["status"]] = statuses.get(r["status"], 0) + 1
     return {
-        "cases": n, "errors": errors,
+        "cases": n, "errors": errors, "status_counts": dict(sorted(statuses.items())),
         "pass_rate": ratio(sum(r["pass"] for r in rows), n),
         "status_accuracy": ratio(sum(r["status_ok"] for r in st), len(st)),
         "auto_coverage": ratio(len(m), n),
@@ -146,6 +157,8 @@ def summarize(rows: list[dict], lat: list[float], errors: int, determinism) -> d
         "latency_ms": {"p50": pct(lat, 50), "p95": pct(lat, 95), "max": round(max(lat), 2) if lat else None,
                        "mean": round(statistics.mean(lat), 2) if lat else None},
         "determinism": determinism,
+        "over_asking": ratio(sum(r["status"] != "matched" for r in req), len(req)),
+        "ranking": ranking.summarize(rows, DIALOG_STEPS),
     }
 
 
@@ -174,8 +187,18 @@ def run_suite(adapter, cases: list[dict], dialog: bool, repeat: int):
             rep_n += 1
             same += (p2["status"], p2["final_code"], sorted(p2.get("compatible_codes") or [])) == \
                 (pred["status"], pred["final_code"], sorted(pred.get("compatible_codes") or []))
-        if dialog and pred["status"] != "matched" and c.get("acceptable_codes") and c.get("auto") != "forbidden":
-            row["dialog"] = adapter.dialog(c["text"], set(c["acceptable_codes"]))
+        acc = set(c.get("acceptable_codes") or [])
+        if dialog and acc:
+            if pred["status"] == "matched":
+                # код выдан сразу: вопросов не было, трасса — один шаг
+                row["trace"] = ranking.trace_stats([{"ranked": ranking.ranked_list(pred)}], acc,
+                                                   pred["final_code"] in acc, DIALOG_STEPS)
+            else:
+                # диалог — и там, где автокод запрещён, но эталон есть: именно там нужны вопросы
+                d = adapter.dialog(c["text"], acc, max_steps=DIALOG_STEPS)
+                row["dialog"] = None if d is None else {k: v for k, v in d.items() if k != "trace"}
+                row["trace"] = None if d is None else ranking.trace_stats(
+                    d.get("trace"), acc, bool(d.get("resolved")), DIALOG_STEPS, d.get("reason"))
         rows.append(row)
     det = round(same / rep_n, 3) if rep_n else None
     return summarize(rows, lat, errors, det), rows
@@ -193,6 +216,11 @@ def to_markdown(report: dict) -> str:
     lines.append("| latency p50 / p95, мс | " + " | ".join(
         f"{report['suites'][s]['summary']['latency_ms']['p50']} / {report['suites'][s]['summary']['latency_ms']['p95']}"
         for s in suites) + " |")
+    lines += ["", "Ранжирование и диалог (hit@k — эталон в первых k строках до вопросов; *_by_step — после 0, 1, 2… "
+              "ответов; type_hit@1 — первая строка того же ОКПД2):", ""]
+    lines += ranking.markdown_rows({s: report["suites"][s]["summary"]["ranking"] for s in suites})
+    lines.append(f"| over_asking | " + " | ".join(str(report["suites"][s]["summary"].get("over_asking"))
+                                                 for s in suites) + " |")
     lines += ["", "Непройденные кейсы:", ""]
     for s in suites:
         for r in report["suites"][s]["cases"]:
@@ -219,7 +247,9 @@ def main() -> int:
     for name, cases in load_suites(args.suites, args.split).items():
         summary, rows = run_suite(adapter, cases, args.dialog, args.repeat)
         report["suites"][name] = {"summary": summary, "cases": rows}
-        print(f"[{name}] " + json.dumps({k: v for k, v in summary.items() if k != "checks_by_type"},
+        rk = summary["ranking"]
+        print(f"[{name}] " + json.dumps({k: v for k, v in summary.items() if k not in ("checks_by_type", "ranking")}
+                                        | {k: rk.get(k) for k in ("hit@1", "hit@3", "mrr", "questions_to_top1_mean")},
                                         ensure_ascii=False))
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)

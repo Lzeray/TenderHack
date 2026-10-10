@@ -272,3 +272,69 @@ def test_gold_recomputed_on_real_catalog():
             if list(ln.gold_expect(cat, c["name"], c["facts"])) != [c["gold_codes"], c["expect"]]:
                 bad.append(c["id"])
     assert not bad, bad[:20]
+
+
+# ---------------------------------------------------------------- человеческие опечатки и ошибки в числах
+from benchmark.metamorphic import typos as ty  # noqa: E402
+
+VOCAB = ty.vocabulary({c["name"] for c in NATURAL.values()})
+
+
+def test_typos_distances_dictionary_and_nearest():
+    by = {}
+    for c in SUITES["typos_human"]:
+        by.setdefault(c["variant"], []).append(c)
+    assert set(by) == {"short_word", "phonetic", "two_errors", "severe", "user_example", "ambiguous",
+                       "out_of_scope_typo"}
+    dist = {"short_word": 1, "phonetic": 1, "two_errors": 2, "severe": 3}
+    for v, d in dist.items():
+        for c in by[v]:
+            t = c["typo"]
+            assert ty.dl(t["typo"], t["word"]) == d == t["distance"], c["id"]
+            assert not ty.known(t["typo"]) and ty.unique_nearest(t["typo"], t["word"], VOCAB)
+            src = NATURAL[c["source_id"]]
+            assert c["text"].lower().replace(t["typo"], t["word"], 1) == src["text"].lower()
+    for c in by["short_word"]:
+        assert len(c["typo"]["word"]) <= 4
+    for c in by["phonetic"]:
+        w, t = c["typo"]["word"], c["typo"]["typo"]
+        i = next(i for i, (a, b) in enumerate(zip(w, t)) if a != b)
+        assert ty.PHON[w[i]] == t[i]                                 # ошибка «как слышится»
+
+
+def test_typos_expectations_by_severity():
+    for c in SUITES["typos_human"]:
+        v = c["variant"]
+        if v in ("short_word", "phonetic") or (v == "user_example" and "source_id" in c):    # 1 ошибка, «стур»
+            assert c["checks"][0]["type"] == "same_as" and c["expect"] == NATURAL[c["source_id"]]["expect"]
+        elif v == "two_errors":
+            assert (c["auto"], c["checks"]) == ("allowed", []) and c["gold_codes"]
+        else:                                                      # 3+ ошибки, неоднозначные, вне области
+            assert c["auto"] == "forbidden" and "matched" not in c["expected_status"]
+    amb = [c for c in SUITES["typos_human"] if c["variant"] == "ambiguous"]
+    assert amb
+    for c in amb:
+        w1, w2 = c["typo"]["word"].split(" | ")
+        assert ty.dl(c["text"], w1) == ty.dl(c["text"], w2) == 1 and "matched" not in c["expected_status"]
+
+
+def test_typos_user_examples_present():
+    texts = [c["text"] for c in SUITES["typos_human"]]
+    assert any("стур" in t for t in texts) and "одфертуа" in texts and "колоши резиновые" in texts
+
+
+def test_number_errors_need_clarification():
+    by = {}
+    for c in SUITES["number_errors"]:
+        by.setdefault(c["variant"], []).append(c)
+        src = NATURAL[c["source_id"]]
+        n = c["number"]
+        assert c["auto"] == "forbidden" and "matched" not in c["expected_status"]
+        assert "not_found" not in c["expected_status"]              # нужен вопрос, а не «не найдено»
+        assert c["gold_codes"] == src["gold_codes"]                 # после уточнения — код исходного кейса
+        assert c["checks"][0]["type"] == "no_feature"               # значение не принято молча
+        assert n["written"] in c["text"] and n["written"] != n["intended"]
+    assert set(by) == {"leading_zero", "letter_in_number", "double_separator", "bad_grouping"}
+    for c in by["leading_zero"]:
+        w = c["number"]["written"]
+        assert w[0] == "0" and w[1:].isdigit() and w[1:] == c["number"]["intended"]

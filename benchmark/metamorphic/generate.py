@@ -28,7 +28,7 @@ from pathlib import Path
 from benchmark.independent.generate import SUITES as IND_SUITES
 from benchmark.independent.generate import test_hash
 from benchmark.independent.reference import convert
-from benchmark.metamorphic import lazy
+from benchmark.metamorphic import lazy, typos
 
 HERE = Path(__file__).resolve().parent
 SUITES = HERE / "suites"
@@ -36,7 +36,7 @@ MANIFEST = HERE / "test_manifest.sha256"
 SALT = "mm1-a"
 TEST_SHARE = 30
 SUITE_NAMES = ("invariance", "injection", "procurement_noise", "multi_item", "monotonicity", "edge_inputs",
-               "glued_words", "lazy_user")
+               "glued_words", "lazy_user", "typos_human", "number_errors")
 NO_CODE_STATUS = ["conflict", "not_found", "clarification", "manual_choice"]
 
 # сколько кейсов на один приём (источники выбираются детерминированно по sha256 от id)
@@ -411,9 +411,12 @@ def build() -> dict[str, list[dict]]:
         "edge_inputs": build_edge(),
         "glued_words": lazy.build_glued(clean),
         "lazy_user": lazy.build_lazy(clean),
+        "typos_human": typos.build_typos(clean, natural, load("out_of_scope")),
+        "number_errors": typos.build_numbers(clean),
     }
     short = {"invariance": "inv", "injection": "inj", "procurement_noise": "noi", "multi_item": "mul",
-             "monotonicity": "mon", "edge_inputs": "edg", "glued_words": "glu", "lazy_user": "laz"}
+             "monotonicity": "mon", "edge_inputs": "edg", "glued_words": "glu", "lazy_user": "laz",
+             "typos_human": "typ", "number_errors": "num"}
     for name, cases in suites.items():
         for i, c in enumerate(cases, 1):
             c["id"] = f"mm-{short[name]}-{i:04d}"

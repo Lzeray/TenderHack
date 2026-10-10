@@ -41,7 +41,9 @@ python -m benchmark.compare reports/bench/core.json reports/bench/core_sem_b.jso
 - `metamorphic/` — метаморфные и состязательные наборы v1 (`invariance`, `injection`, `procurement_noise`,
   `multi_item`, `monotonicity`, `edge_inputs`): форма записи, инструкции в тексте, реквизиты закупки,
   несколько товаров в одном запросе, монотонность сужения, вырожденные запросы; небрежный и ленивый ввод
-  (`glued_words`, `lazy_user`, `lazy_numbers` — «больше 120», «меньше 500», «120-500», числа без единиц).
+  (`glued_words`, `lazy_user`, `lazy_numbers` — «больше 120», «меньше 500», «120-500», числа без единиц);
+  человеческие опечатки (`typos_human`: «стур», «атвертка», «одфертуа», «колоши») и ошибки в числах
+  (`number_errors`: «010», «0180 мм», «18о мм», «1 80 мм» — нужно уточнение).
   См. `metamorphic/README.md`.
 
 Синтетика — не независимая оценка живых запросов: формулировки близки к названиям КТРУ.

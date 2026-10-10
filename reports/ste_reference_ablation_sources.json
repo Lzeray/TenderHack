@@ -1,0 +1,2316 @@
+{
+  "retrieved_at": "2026-10-10T13:00:52.235545+00:00",
+  "sources": [
+    {
+      "url": "https://ac.mos.ru/standards/",
+      "status": 200,
+      "sha256": "ca9283952b4e4873c9762e0f30540f358cef7548cfe626999ebaf35480c2423d"
+    },
+    {
+      "url": "https://base.garant.ru/407033232/53f89421bbdaf741eb2d1ecc4ddb4c33/",
+      "status": 200,
+      "sha256": "55f24f228e3b84c253b2717186fbe018e47596ce9df2c776c1a1328136214f31"
+    },
+    {
+      "url": "https://eaist.mos.ru/api/kpgz/list",
+      "status": 403,
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "url": "https://zakupki.mos.ru/",
+      "status": "unavailable",
+      "error": "<urlopen error _ssl.c:1063: The handshake operation timed out>"
+    }
+  ],
+  "spgz": [
+    {
+      "query": "молоток",
+      "pages": [
+        {
+          "url": "https://kuplushki.ru/tools/api/spgz/search/?q=%D0%BC%D0%BE%D0%BB%D0%BE%D1%82%D0%BE%D0%BA&offset=0",
+          "status": 200,
+          "sha256": "98551368d0702404212e7e970440d055b4a015918478f35bb4302a4304527cd9",
+          "payload": {
+            "results": [
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360595,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360596,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360655,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360601,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360602,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360644,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360598,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360599,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360597,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360600,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток",
+                "kpgz_code": "01.11.02.02.03.15",
+                "kpgz_name": "МОЛОТКИ",
+                "okpd2_code": "25.73.30.141",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1693360643,
+                "score": 100
+              },
+              {
+                "spgz_name": "Молоток хирургический",
+                "kpgz_code": "01.02.10.06.27",
+                "kpgz_name": "МОЛОТКИ МЕДИЦИНСКИЕ",
+                "okpd2_code": "32.50.13.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1657049444,
+                "score": 50
+              },
+              {
+                "spgz_name": "Молоток для отбивания мяса",
+                "kpgz_code": "01.20.07.01.34",
+                "kpgz_name": "МОЛОТКИ ДЛЯ ОТБИВАНИЯ МЯСА",
+                "okpd2_code": "25.99.12.112",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1546294763,
+                "score": 42
+              },
+              {
+                "spgz_name": "Молоток для отбивания мяса",
+                "kpgz_code": "01.20.07.01.34",
+                "kpgz_name": "МОЛОТКИ ДЛЯ ОТБИВАНИЯ МЯСА",
+                "okpd2_code": "16.29.12.000",
+                "okei": "шт",
+                "restriction": [
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1546294681,
+                "score": 42
+              },
+              {
+                "spgz_name": "Молоток для отбивания мяса",
+                "kpgz_code": "01.20.07.01.34",
+                "kpgz_name": "МОЛОТКИ ДЛЯ ОТБИВАНИЯ МЯСА",
+                "okpd2_code": "25.99.12.130",
+                "okei": "шт",
+                "restriction": [
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1546294764,
+                "score": 42
+              },
+              {
+                "spgz_name": "Молоток для отбивания мяса",
+                "kpgz_code": "01.20.07.01.34",
+                "kpgz_name": "МОЛОТКИ ДЛЯ ОТБИВАНИЯ МЯСА",
+                "okpd2_code": "22.29.23.110",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1546294762,
+                "score": 42
+              },
+              {
+                "spgz_name": "Молоток отбойный бензиновый",
+                "kpgz_code": "01.11.02.01.19",
+                "kpgz_name": "МОЛОТКИ ОТБОЙНЫЕ",
+                "okpd2_code": "28.24.12.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban"
+                ],
+                "global_id": 1175540802,
+                "score": 41
+              },
+              {
+                "spgz_name": "Молоток отбойный электрический",
+                "kpgz_code": "01.11.02.01.19",
+                "kpgz_name": "МОЛОТКИ ОТБОЙНЫЕ",
+                "okpd2_code": "28.24.11.000",
+                "okei": "шт",
+                "restriction": [
+                  "ban"
+                ],
+                "global_id": 1175540800,
+                "score": 38
+              },
+              {
+                "spgz_name": "Молоток отбойный гидравлический",
+                "kpgz_code": "01.11.02.01.19",
+                "kpgz_name": "МОЛОТКИ ОТБОЙНЫЕ",
+                "okpd2_code": "28.24.12.120",
+                "okei": "шт",
+                "restriction": [
+                  "ban"
+                ],
+                "global_id": 1706011803,
+                "score": 37
+              },
+              {
+                "spgz_name": "Молоток отбойный пневматический",
+                "kpgz_code": "01.11.02.01.19",
+                "kpgz_name": "МОЛОТКИ ОТБОЙНЫЕ",
+                "okpd2_code": "28.24.12.110",
+                "okei": "шт",
+                "restriction": [
+                  "ban"
+                ],
+                "global_id": 1693388279,
+                "score": 37
+              },
+              {
+                "spgz_name": "Молоток аварийного разбития стекла",
+                "kpgz_code": "01.09.08.02.02",
+                "kpgz_name": "АКСЕССУАРЫ ДЛЯ БЕЗОПАСНОСТИ, КОМФОРТА И УХОДА ЗА АВТОТРАНСПОРТОМ И СПЕЦТЕХНИКОЙ",
+                "okpd2_code": "29.32.30.390",
+                "okei": "шт",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1254146897,
+                "score": 34
+              },
+              {
+                "spgz_name": "Молоток в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.02",
+                "kpgz_name": "УЧЕБНО-ЛАБОРАТОРНОЕ ОБОРУДОВАНИЕ, ЗАКУПАЕМОЕ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "25.73.60.112",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 178703055,
+                "score": 29
+              },
+              {
+                "spgz_name": "Молоток стоматологический, автоматический",
+                "kpgz_code": "01.02.10.06.27",
+                "kpgz_name": "МОЛОТКИ МЕДИЦИНСКИЕ",
+                "okpd2_code": "32.50.11.110",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "disability"
+                ],
+                "global_id": 1539539346,
+                "score": 29
+              },
+              {
+                "spgz_name": "Молоток неврологический перкуссионный, ручной",
+                "kpgz_code": "01.02.10.06.62",
+                "kpgz_name": "МОЛОТОК НЕВРОЛОГИЧЕСКИЙ ПЕРКУССИОННЫЙ, РУЧНОЙ",
+                "okpd2_code": "32.50.13.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1584142040,
+                "score": 27
+              },
+              {
+                "spgz_name": "Молоток неврологический перкуссионный, ручной",
+                "kpgz_code": "01.02.11.01.06.04.14",
+                "kpgz_name": "МОЛОТОК НЕВРОЛОГИЧЕСКИЙ",
+                "okpd2_code": "32.50.13.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1165462034,
+                "score": 27
+              },
+              {
+                "spgz_name": "Молоток неврологический в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.02",
+                "kpgz_name": "УЧЕБНО-ЛАБОРАТОРНОЕ ОБОРУДОВАНИЕ, ЗАКУПАЕМОЕ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "32.99.53.111",
+                "okei": "шт",
+                "restriction": [
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1175742828,
+                "score": 22
+              }
+            ],
+            "total_found": 26,
+            "has_more": false
+          }
+        }
+      ],
+      "complete": true
+    },
+    {
+      "query": "стул",
+      "pages": [
+        {
+          "url": "https://kuplushki.ru/tools/api/spgz/search/?q=%D1%81%D1%82%D1%83%D0%BB&offset=0",
+          "status": 200,
+          "sha256": "e8ab4804849644b62741f4e64616f104fa7d711be5db235c617a2b664c6855fe",
+          "payload": {
+            "results": [
+              {
+                "spgz_name": "Спинка стула",
+                "kpgz_code": "01.16.28.06",
+                "kpgz_name": "ИЗДЕЛИЯ КОМПЛЕКТУЮЩИЕ ДЛЯ МЕБЕЛИ",
+                "okpd2_code": "31.01.12.169",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1679372571,
+                "score": 50
+              },
+              {
+                "spgz_name": "Сиденье стула",
+                "kpgz_code": "01.16.28.06",
+                "kpgz_name": "ИЗДЕЛИЯ КОМПЛЕКТУЮЩИЕ ДЛЯ МЕБЕЛИ",
+                "okpd2_code": "31.01.12.169",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1679371401,
+                "score": 47
+              },
+              {
+                "spgz_name": "Зонд фистульный",
+                "kpgz_code": "01.02.10.06.10.01",
+                "kpgz_name": "ЗОНДЫ МЕДИЦИНСКИЕ",
+                "okpd2_code": "32.50.13.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1696201490,
+                "score": 42
+              },
+              {
+                "spgz_name": "Стул оркестровый",
+                "kpgz_code": "01.16.01.05",
+                "kpgz_name": "СТУЛЬЯ ОРКЕСТРОВЫЕ",
+                "okpd2_code": "31.01.11.159",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1679358340,
+                "score": 40
+              },
+              {
+                "spgz_name": "Стул пластиковый",
+                "kpgz_code": "01.16.01.03",
+                "kpgz_name": "СТУЛЬЯ ПЛАСТИКОВЫЕ",
+                "okpd2_code": "31.09.14.110",
+                "okei": "шт",
+                "restriction": [
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1684411923,
+                "score": 40
+              },
+              {
+                "spgz_name": "Стул ученический",
+                "kpgz_code": "01.06.01.03.01",
+                "kpgz_name": "СТУЛЬЯ УЧЕНИЧЕСКИЕ",
+                "okpd2_code": "31.01.11.152",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711718919,
+                "score": 40
+              },
+              {
+                "spgz_name": "Стул ученический",
+                "kpgz_code": "01.06.01.03.01",
+                "kpgz_name": "СТУЛЬЯ УЧЕНИЧЕСКИЕ",
+                "okpd2_code": "31.01.11.152",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711718921,
+                "score": 40
+              },
+              {
+                "spgz_name": "Стул ученический",
+                "kpgz_code": "01.06.01.03.01",
+                "kpgz_name": "СТУЛЬЯ УЧЕНИЧЕСКИЕ",
+                "okpd2_code": "31.01.12.161",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711718920,
+                "score": 40
+              },
+              {
+                "spgz_name": "Стул ученический",
+                "kpgz_code": "01.06.01.03.01",
+                "kpgz_name": "СТУЛЬЯ УЧЕНИЧЕСКИЕ",
+                "okpd2_code": "31.01.12.161",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711718918,
+                "score": 40
+              },
+              {
+                "spgz_name": "Стул операционный",
+                "kpgz_code": "01.02.11.05.06.09",
+                "kpgz_name": "СТУЛЬЯ МЕДИЦИНСКИЕ ПРОЧИЕ",
+                "okpd2_code": "32.50.30.110",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1697603137,
+                "score": 38
+              },
+              {
+                "spgz_name": "Весы-стул, электронные",
+                "kpgz_code": "01.02.11.01.06.03.01.01",
+                "kpgz_name": "ВЕСЫ-СТУЛ, ЭЛЕКТРОННЫЕ",
+                "okpd2_code": "26.60.12.122",
+                "okei": "шт",
+                "restriction": [
+                  "restrict"
+                ],
+                "global_id": 1699587647,
+                "score": 31
+              },
+              {
+                "spgz_name": "Стул общего назначения",
+                "kpgz_code": "01.02.11.05.06.09",
+                "kpgz_name": "СТУЛЬЯ МЕДИЦИНСКИЕ ПРОЧИЕ",
+                "okpd2_code": "32.50.30.110",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1693595903,
+                "score": 31
+              },
+              {
+                "spgz_name": "Аренда уличного стула, шт",
+                "kpgz_code": "03.31.04.01",
+                "kpgz_name": "ПРОКАТ МЕБЕЛИ",
+                "okpd2_code": "77.29.12.000",
+                "okei": "шт",
+                "restriction": [],
+                "global_id": 16063791,
+                "score": 28
+              },
+              {
+                "spgz_name": "Загуститель жидкого стула",
+                "kpgz_code": "01.02.10.36.36",
+                "kpgz_name": "ЗАГУСТИТЕЛЬ ЖИДКОГО СТУЛА",
+                "okpd2_code": "32.50.50.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1716125822,
+                "score": 28
+              },
+              {
+                "spgz_name": "Стул на деревянном каркасе",
+                "kpgz_code": "01.16.01.01",
+                "kpgz_name": "СТУЛЬЯ НА ДЕРЕВЯННОМ КАРКАСЕ",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1685242573,
+                "score": 27
+              },
+              {
+                "spgz_name": "Стул на деревянном каркасе",
+                "kpgz_code": "01.16.01.01",
+                "kpgz_name": "СТУЛЬЯ НА ДЕРЕВЯННОМ КАРКАСЕ",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1685242574,
+                "score": 27
+              },
+              {
+                "spgz_name": "Стул на деревянном каркасе",
+                "kpgz_code": "01.16.01.01",
+                "kpgz_name": "СТУЛЬЯ НА ДЕРЕВЯННОМ КАРКАСЕ",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1685242575,
+                "score": 27
+              },
+              {
+                "spgz_name": "Стул на деревянном каркасе",
+                "kpgz_code": "01.16.01.01",
+                "kpgz_name": "СТУЛЬЯ НА ДЕРЕВЯННОМ КАРКАСЕ",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1685242576,
+                "score": 27
+              },
+              {
+                "spgz_name": "Стул складной, тактический",
+                "kpgz_code": "01.04.01.35",
+                "kpgz_name": "ОБОРУДОВАНИЕ И ИНВЕНТАРЬ ДЛЯ РАЗМЕЩЕНИЯ ЛЮДЕЙ В ОБЪЕКТАХ ВРЕМЕННОГО НАЗНАЧЕНИЯ И В ПОЛЕВЫХ УСЛОВИЯХ",
+                "okpd2_code": "31.09.11.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1695162447,
+                "score": 27
+              },
+              {
+                "spgz_name": "Секция стульев многоместная",
+                "kpgz_code": "01.16.01.04",
+                "kpgz_name": "СЕКЦИИ СТУЛЬЕВ МНОГОМЕСТНЫЕ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1683630075,
+                "score": 26
+              },
+              {
+                "spgz_name": "Секция стульев многоместная",
+                "kpgz_code": "01.16.01.04",
+                "kpgz_name": "СЕКЦИИ СТУЛЬЕВ МНОГОМЕСТНЫЕ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1683629619,
+                "score": 26
+              },
+              {
+                "spgz_name": "Секция стульев многоместная",
+                "kpgz_code": "01.16.01.04",
+                "kpgz_name": "СЕКЦИИ СТУЛЬЕВ МНОГОМЕСТНЫЕ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1683629617,
+                "score": 26
+              },
+              {
+                "spgz_name": "Аренда стула банкетного, сут",
+                "kpgz_code": "03.31.04.01",
+                "kpgz_name": "ПРОКАТ МЕБЕЛИ",
+                "okpd2_code": "77.33.11.140",
+                "okei": "сут",
+                "restriction": [],
+                "global_id": 27699081,
+                "score": 25
+              },
+              {
+                "spgz_name": "Стул на металлическом каркасе",
+                "kpgz_code": "01.16.01.02",
+                "kpgz_name": "СТУЛЬЯ НА МЕТАЛЛИЧЕСКОМ КАРКАСЕ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1694111931,
+                "score": 24
+              },
+              {
+                "spgz_name": "Стул на металлическом каркасе",
+                "kpgz_code": "01.16.01.02",
+                "kpgz_name": "СТУЛЬЯ НА МЕТАЛЛИЧЕСКОМ КАРКАСЕ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1694104494,
+                "score": 24
+              },
+              {
+                "spgz_name": "Стул на металлическом каркасе",
+                "kpgz_code": "01.16.01.02",
+                "kpgz_name": "СТУЛЬЯ НА МЕТАЛЛИЧЕСКОМ КАРКАСЕ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1694111932,
+                "score": 24
+              },
+              {
+                "spgz_name": "Стул на металлическом каркасе",
+                "kpgz_code": "01.16.01.02",
+                "kpgz_name": "СТУЛЬЯ НА МЕТАЛЛИЧЕСКОМ КАРКАСЕ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1694111930,
+                "score": 24
+              },
+              {
+                "spgz_name": "Стул ученический лабораторный",
+                "kpgz_code": "01.06.01.03.02",
+                "kpgz_name": "СТУЛЬЯ УЧЕНИЧЕСКИЕ ЛАБОРАТОРНЫЕ",
+                "okpd2_code": "31.01.11.152",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1702392638,
+                "score": 24
+              },
+              {
+                "spgz_name": "Химическая чистка обивки стула",
+                "kpgz_code": "03.36.14",
+                "kpgz_name": "УСЛУГИ ПО ХИМИЧЕСКОЙ ЧИСТКЕ ИЗДЕЛИЙ",
+                "okpd2_code": "96.01.12.141",
+                "okei": "шт",
+                "restriction": [],
+                "global_id": 1711882544,
+                "score": 24
+              },
+              {
+                "spgz_name": "Стул для благоустройства территории",
+                "kpgz_code": "01.23.18",
+                "kpgz_name": "ЭЛЕМЕНТЫ ОБЪЕКТОВ БЛАГОУСТРОЙСТВА ТЕРРИТОРИЙ",
+                "okpd2_code": "31.01.11.159",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1713599995,
+                "score": 21
+              },
+              {
+                "spgz_name": "Стул детский для дошкольных учреждений",
+                "kpgz_code": "01.16.31.02.01",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ ДОШКОЛЬНЫХ УЧРЕЖДЕНИЙ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711744004,
+                "score": 19
+              },
+              {
+                "spgz_name": "Стул детский для дошкольных учреждений",
+                "kpgz_code": "01.16.31.02.01",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ ДОШКОЛЬНЫХ УЧРЕЖДЕНИЙ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711744005,
+                "score": 19
+              },
+              {
+                "spgz_name": "Стул детский для дошкольных учреждений",
+                "kpgz_code": "01.16.31.02.01",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ ДОШКОЛЬНЫХ УЧРЕЖДЕНИЙ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711744003,
+                "score": 19
+              },
+              {
+                "spgz_name": "Стул детский для дошкольных учреждений",
+                "kpgz_code": "01.16.31.02.01",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ ДОШКОЛЬНЫХ УЧРЕЖДЕНИЙ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711744008,
+                "score": 19
+              },
+              {
+                "spgz_name": "Стул детский для дошкольных учреждений",
+                "kpgz_code": "01.16.31.02.01",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ ДОШКОЛЬНЫХ УЧРЕЖДЕНИЙ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711744006,
+                "score": 19
+              },
+              {
+                "spgz_name": "Стул детский для дошкольных учреждений",
+                "kpgz_code": "01.16.31.02.01",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ ДОШКОЛЬНЫХ УЧРЕЖДЕНИЙ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1711744007,
+                "score": 19
+              },
+              {
+                "spgz_name": "Массажер электрический для кровати/стула",
+                "kpgz_code": "01.02.11.01.13.02.13.09",
+                "kpgz_name": "МАССАЖЕР ЭЛЕКТРИЧЕСКИЙ ДЛЯ КРОВАТИ/СТУЛА",
+                "okpd2_code": "32.50.50.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 46522127,
+                "score": 18
+              },
+              {
+                "spgz_name": "Аренда мягкого стула для посетителей, мес",
+                "kpgz_code": "03.31.04.01",
+                "kpgz_name": "ПРОКАТ МЕБЕЛИ",
+                "okpd2_code": "77.33.11.140",
+                "okei": "мес",
+                "restriction": [],
+                "global_id": 3290268,
+                "score": 18
+              },
+              {
+                "spgz_name": "Аренда мягкого стула для посетителей, сут",
+                "kpgz_code": "03.31.04.01",
+                "kpgz_name": "ПРОКАТ МЕБЕЛИ",
+                "okpd2_code": "77.33.11.140",
+                "okei": "сут",
+                "restriction": [],
+                "global_id": 9155561,
+                "score": 18
+              },
+              {
+                "spgz_name": "Стул (банкетка) для клавишных инструментов",
+                "kpgz_code": "01.16.01.06",
+                "kpgz_name": "СТУЛЬЯ ДЛЯ КЛАВИШНЫХ ИНСТРУМЕНТОВ",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1683639176,
+                "score": 17
+              },
+              {
+                "spgz_name": "Игла фистульная, одноразового использования",
+                "kpgz_code": "01.02.10.16.87.01.08",
+                "kpgz_name": "РАСХОДНЫЕ МАТЕРИАЛЫ ДЛЯ ЗАГОТОВКИ КОМПОНЕНТОВ ДОНОРСКОЙ КРОВИ",
+                "okpd2_code": "32.50.13.110",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "disability"
+                ],
+                "global_id": 1698049111,
+                "score": 17
+              },
+              {
+                "spgz_name": "Стул эвакуационный для маломобильных граждан",
+                "kpgz_code": "01.04.01.13.07",
+                "kpgz_name": "СРЕДСТВА СПАСЕНИЯ МАЛОМОБИЛЬНЫХ ГРАЖДАН",
+                "okpd2_code": "32.99.11.199",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1389376954,
+                "score": 17
+              },
+              {
+                "spgz_name": "Изготовление стула по индивидуальному проекту",
+                "kpgz_code": "02.17.11",
+                "kpgz_name": "ИЗГОТОВЛЕНИЕ МЕБЕЛИ",
+                "okpd2_code": "31.01.99.000",
+                "okei": "шт",
+                "restriction": [
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1710415338,
+                "score": 16
+              },
+              {
+                "spgz_name": "Стул эргономичный, для медицинского работника",
+                "kpgz_code": "01.02.11.05.06.09",
+                "kpgz_name": "СТУЛЬЯ МЕДИЦИНСКИЕ ПРОЧИЕ",
+                "okpd2_code": "32.50.30.110",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1697603135,
+                "score": 16
+              },
+              {
+                "spgz_name": "Стул детский в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587561,
+                "score": 16
+              },
+              {
+                "spgz_name": "Стул детский для кормления, пластиковый каркас",
+                "kpgz_code": "01.16.31.02.02",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ КОРМЛЕНИЯ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1702355804,
+                "score": 16
+              },
+              {
+                "spgz_name": "Стул с приспособлением для облегчения вставания",
+                "kpgz_code": "01.02.11.05.06.02",
+                "kpgz_name": "СТУЛ С ПРИСПОСОБЛЕНИЕМ ДЛЯ ОБЛЕГЧЕНИЯ ВСТАВАНИЯ",
+                "okpd2_code": "32.50.50.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1693595122,
+                "score": 16
+              },
+              {
+                "spgz_name": "Стул с приспособлением для облегчения вставания",
+                "kpgz_code": "01.02.11.05.06.02",
+                "kpgz_name": "СТУЛ С ПРИСПОСОБЛЕНИЕМ ДЛЯ ОБЛЕГЧЕНИЯ ВСТАВАНИЯ",
+                "okpd2_code": "32.50.50.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1693595121,
+                "score": 16
+              },
+              {
+                "spgz_name": "Стул с приспособлением для облегчения вставания",
+                "kpgz_code": "01.02.11.05.06.02",
+                "kpgz_name": "СТУЛ С ПРИСПОСОБЛЕНИЕМ ДЛЯ ОБЛЕГЧЕНИЯ ВСТАВАНИЯ",
+                "okpd2_code": "32.50.50.190",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1693595117,
+                "score": 16
+              },
+              {
+                "spgz_name": "Кукольный стул в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.05",
+                "kpgz_name": "ИГРУШКИ, ИГРОВОЕ ОБОРУДОВАНИЕ И ТОВАРЫ ДЛЯ ДЕТСКОГО ТВОРЧЕСТВА, ЗАКУПАЕМЫЕ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "32.40.39.199",
+                "okei": "шт",
+                "restriction": [
+                  "restrict"
+                ],
+                "global_id": 1698533887,
+                "score": 15
+              }
+            ],
+            "total_found": 70,
+            "has_more": true
+          }
+        },
+        {
+          "url": "https://kuplushki.ru/tools/api/spgz/search/?q=%D1%81%D1%82%D1%83%D0%BB&offset=50",
+          "status": 200,
+          "sha256": "39e4b8e61dc1f05508fbda058a13cc76b32edd3a821d37dd853933e102f69518",
+          "payload": {
+            "results": [
+              {
+                "spgz_name": "Стул эргономичный адаптационный, с ручной регулировкой",
+                "kpgz_code": "01.02.11.01.20.39",
+                "kpgz_name": "СТУЛ ЭРГОНОМИЧНЫЙ АДАПТАЦИОННЫЙ, С РУЧНОЙ РЕГУЛИРОВКОЙ",
+                "okpd2_code": "32.50.30.119",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1686861810,
+                "score": 14
+              },
+              {
+                "spgz_name": "Стул эргономичный адаптационный, с ручной регулировкой",
+                "kpgz_code": "01.02.11.01.20.39",
+                "kpgz_name": "СТУЛ ЭРГОНОМИЧНЫЙ АДАПТАЦИОННЫЙ, С РУЧНОЙ РЕГУЛИРОВКОЙ",
+                "okpd2_code": "32.50.30.119",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1686861814,
+                "score": 14
+              },
+              {
+                "spgz_name": "Стул эргономичный адаптационный, с ручной регулировкой",
+                "kpgz_code": "01.02.11.01.20.39",
+                "kpgz_name": "СТУЛ ЭРГОНОМИЧНЫЙ АДАПТАЦИОННЫЙ, С РУЧНОЙ РЕГУЛИРОВКОЙ",
+                "okpd2_code": "32.50.30.119",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1686861813,
+                "score": 14
+              },
+              {
+                "spgz_name": "Стул эргономичный адаптационный, с ручной регулировкой",
+                "kpgz_code": "01.02.11.01.20.39",
+                "kpgz_name": "СТУЛ ЭРГОНОМИЧНЫЙ АДАПТАЦИОННЫЙ, С РУЧНОЙ РЕГУЛИРОВКОЙ",
+                "okpd2_code": "32.50.30.119",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1686861819,
+                "score": 14
+              },
+              {
+                "spgz_name": "Стул эргономичный адаптационный, с ручной регулировкой",
+                "kpgz_code": "01.02.11.01.20.39",
+                "kpgz_name": "СТУЛ ЭРГОНОМИЧНЫЙ АДАПТАЦИОННЫЙ, С РУЧНОЙ РЕГУЛИРОВКОЙ",
+                "okpd2_code": "32.50.30.119",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1686861818,
+                "score": 14
+              },
+              {
+                "spgz_name": "Стул эргономичный адаптационный, с ручной регулировкой",
+                "kpgz_code": "01.02.11.01.20.39",
+                "kpgz_name": "СТУЛ ЭРГОНОМИЧНЫЙ АДАПТАЦИОННЫЙ, С РУЧНОЙ РЕГУЛИРОВКОЙ",
+                "okpd2_code": "32.50.30.119",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1686861815,
+                "score": 14
+              },
+              {
+                "spgz_name": "Стул складной с мягким сиденьем в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587667,
+                "score": 12
+              },
+              {
+                "spgz_name": "Стул врача для медицинского кабинета в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.09",
+                "kpgz_name": "МЕДИЦИНСКОЕ ОБОРУДОВАНИЕ ДЛЯ ОСНАЩЕНИЯ МЕДИЦИНСКОГО КАБИНЕТА, ЗАКУПАЕМОЕ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "32.50.30.110",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "disability"
+                ],
+                "global_id": 1701775798,
+                "score": 11
+              },
+              {
+                "spgz_name": "Стул детский для кормления, каркас из древесины (древесных материалов)",
+                "kpgz_code": "01.16.31.02.02",
+                "kpgz_name": "СТУЛЬЯ ДЕТСКИЕ ДЛЯ КОРМЛЕНИЯ",
+                "okpd2_code": "31.09.13.149",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1702355803,
+                "score": 11
+              },
+              {
+                "spgz_name": "Стул ученический регулируемый по высоте в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587670,
+                "score": 10
+              },
+              {
+                "spgz_name": "Стул лабораторный с регулируемой высотой в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.11.150",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587678,
+                "score": 10
+              },
+              {
+                "spgz_name": "Стул ученический нерегулируемый высотой 420 мм в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587562,
+                "score": 10
+              },
+              {
+                "spgz_name": "Стул ученический нерегулируемый высотой 460 мм в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587673,
+                "score": 10
+              },
+              {
+                "spgz_name": "Стул ученический регулируемый по высоте от 340 мм в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587555,
+                "score": 9
+              },
+              {
+                "spgz_name": "Стул ученический регулируемый по высоте от 420 мм в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587552,
+                "score": 9
+              },
+              {
+                "spgz_name": "Стол переносной раскладной с комплектом стульев в рамках проекта «Техносфера», компл",
+                "kpgz_code": "01.06.99.06",
+                "kpgz_name": "СПОРТИВНЫЙ ИНВЕНТАРЬ, ЗАКУПАЕМЫЙ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.09.11.190",
+                "okei": "компл",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1697802046,
+                "score": 9
+              },
+              {
+                "spgz_name": "Обслуживание техническое и текущий ремонт реабилитационного оборудования, стул-тренажер",
+                "kpgz_code": "03.07.04.99",
+                "kpgz_name": "ОБСЛУЖИВАНИЕ ТЕХНИЧЕСКОЕ И ТЕКУЩИЙ РЕМОНТ ПРОЧЕГО ИНВЕНТАРЯ",
+                "okpd2_code": "33.12.29.900",
+                "okei": "усл.ед",
+                "restriction": [],
+                "global_id": 1162327123,
+                "score": 9
+              },
+              {
+                "spgz_name": "Стул ученический с пюпитром регулируемый по высоте от 420 мм в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587663,
+                "score": 8
+              },
+              {
+                "spgz_name": "Стул поворотный регулируемый по высоте с сиденьем из цельнолитого пластика в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.01",
+                "kpgz_name": "МЕБЕЛЬ ДЛЯ ОБЕСПЕЧЕНИЯ УЧЕБНОГО ПРОЦЕССА, ЗАКУПАЕМАЯ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "31.01.12.160",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1701587553,
+                "score": 7
+              },
+              {
+                "spgz_name": "Скамья горизонтальная гимнастическая для выполнения испытаний \"Сгибание - разгибание рук в упоре о гимнастическую скамью, в упоре о стул\"",
+                "kpgz_code": "01.08.01.09.31",
+                "kpgz_name": "СКАМЬИ ГОРИЗОНТАЛЬНЫЕ ГИМНАСТИЧЕСКИЕ ДЛЯ ВЫПОЛНЕНИЯ ИСПЫТАНИЙ \"СГИБАНИЕ - РАЗГИБАНИЕ РУК В УПОРЕ О ГИМНАСТИЧЕСКУЮ СКАМЬЮ, В УПОРЕ О СТУЛ\"",
+                "okpd2_code": "32.30.14.119",
+                "okei": "шт",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 66404303,
+                "score": 6
+              }
+            ],
+            "total_found": 70,
+            "has_more": false
+          }
+        }
+      ],
+      "complete": true
+    },
+    {
+      "query": "перчатки",
+      "pages": [
+        {
+          "url": "https://kuplushki.ru/tools/api/spgz/search/?q=%D0%BF%D0%B5%D1%80%D1%87%D0%B0%D1%82%D0%BA%D0%B8&offset=0",
+          "status": 200,
+          "sha256": "248eaa2bbb6b9b63ad8504ee139d219a13e2c26a35d8c4ffa2c31b2d2f8d1514",
+          "payload": {
+            "results": [
+              {
+                "spgz_name": "Шипы на перчатки",
+                "kpgz_code": "01.08.01.29",
+                "kpgz_name": "ОБОРУДОВАНИЕ И ИНВЕНТАРЬ ДЛЯ БОБСЛЕЯ, СКЕЛЕТОНА",
+                "okpd2_code": "32.30.15.292",
+                "okei": "компл",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1706397594,
+                "score": 67
+              },
+              {
+                "spgz_name": "Перчатки водолазные",
+                "kpgz_code": "01.04.02.09",
+                "kpgz_name": "СНАРЯЖЕНИЕ ВОДОЛАЗНОЕ И КОМПЛЕКТУЮЩИЕ К НЕМУ",
+                "okpd2_code": "14.12.30.190",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1195232809,
+                "score": 59
+              },
+              {
+                "spgz_name": "Перчатки для гребли",
+                "kpgz_code": "01.08.02.10",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ВСЕХ ВИДОВ ГРЕБЛИ",
+                "okpd2_code": "32.30.13.190",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1619029233,
+                "score": 59
+              },
+              {
+                "spgz_name": "Перчатки кольчужные",
+                "kpgz_code": "01.19.10.17.06",
+                "kpgz_name": "ПЕРЧАТКИ КОЛЬЧУЖНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1125734692,
+                "score": 59
+              },
+              {
+                "spgz_name": "Перчатки полимерные",
+                "kpgz_code": "01.20.03.04.04.04",
+                "kpgz_name": "ПЕРЧАТКИ ПОЛИМЕРНЫЕ",
+                "okpd2_code": "22.29.10.120",
+                "okei": "пар",
+                "restriction": [
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1297217246,
+                "score": 59
+              },
+              {
+                "spgz_name": "Перчатки тактические",
+                "kpgz_code": "01.04.02.08",
+                "kpgz_name": "СНАРЯЖЕНИЕ СПЕЦИАЛЬНОЕ ДЛЯ СПАСАТЕЛЬНЫХ СЛУЖБ И СЛУЖБ ГРАЖДАНСКОЙ ОБОРОНЫ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1600787056,
+                "score": 57
+              },
+              {
+                "spgz_name": "Перчатки для бильярда",
+                "kpgz_code": "01.08.02.32",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ БИЛЬЯРДА",
+                "okpd2_code": "32.40.42.110",
+                "okei": "упак",
+                "restriction": [
+                  "restrict"
+                ],
+                "global_id": 916658969,
+                "score": 55
+              },
+              {
+                "spgz_name": "Перчатки для боулинга",
+                "kpgz_code": "01.08.02.38",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ БОУЛИНГА",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1622859183,
+                "score": 55
+              },
+              {
+                "spgz_name": "Перчатки для керлинга",
+                "kpgz_code": "01.08.02.24",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ КЕРЛИНГА",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1706196246,
+                "score": 55
+              },
+              {
+                "spgz_name": "Перчатки для велоспорта",
+                "kpgz_code": "01.08.02.12",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ВЕЛОСПОРТА",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1619029205,
+                "score": 52
+              },
+              {
+                "spgz_name": "Перчатки для мотоспорта",
+                "kpgz_code": "01.08.02.35",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ МОТОСПОРТА",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1622859188,
+                "score": 52
+              },
+              {
+                "spgz_name": "Перчатки (краги) хоккейные",
+                "kpgz_code": "01.08.02.06",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ХОККЕЯ НА ЛЬДУ",
+                "okpd2_code": "32.30.15.117",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis"
+                ],
+                "global_id": 1706215955,
+                "score": 47
+              },
+              {
+                "spgz_name": "Перчатки для конного спорта",
+                "kpgz_code": "01.08.02.23",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ КОННОГО СПОРТА",
+                "okpd2_code": "32.30.15.120",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1667364102,
+                "score": 46
+              },
+              {
+                "spgz_name": "Перчатки форменные, женские",
+                "kpgz_code": "01.19.01.01",
+                "kpgz_name": "ОДЕЖДА ДЛЯ ВЗРОСЛЫХ ФОРМЕННАЯ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1702331976,
+                "score": 46
+              },
+              {
+                "spgz_name": "Перчатки форменные, мужские",
+                "kpgz_code": "01.19.01.01",
+                "kpgz_name": "ОДЕЖДА ДЛЯ ВЗРОСЛЫХ ФОРМЕННАЯ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1702331977,
+                "score": 46
+              },
+              {
+                "spgz_name": "Перчатки футбольные утепленные",
+                "kpgz_code": "01.08.02.03",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ФУТБОЛА",
+                "okpd2_code": "32.30.15.113",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1619028856,
+                "score": 42
+              },
+              {
+                "spgz_name": "Перчатки футбольные для вратаря",
+                "kpgz_code": "01.08.02.03",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ФУТБОЛА",
+                "okpd2_code": "32.30.15.113",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1619028855,
+                "score": 41
+              },
+              {
+                "spgz_name": "Перчатки для водных видов спорта",
+                "kpgz_code": "01.08.02.11",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ВОДНЫХ ВИДОВ СПОРТА",
+                "okpd2_code": "32.30.13.190",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1694829689,
+                "score": 40
+              },
+              {
+                "spgz_name": "Перчатки для защиты от излучения",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "14.12.30.160",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657163917,
+                "score": 40
+              },
+              {
+                "spgz_name": "Перчатки для лыжного вида спорта",
+                "kpgz_code": "01.08.02.13.02",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ЛЫЖНЫХ ВИДОВ СПОРТА",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1706204530,
+                "score": 40
+              },
+              {
+                "spgz_name": "Перчатки для конькобежного спорта",
+                "kpgz_code": "01.08.02.14",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ КОНЬКОБЕЖНОГО СПОРТА",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1706200004,
+                "score": 39
+              },
+              {
+                "spgz_name": "Перчатки/Шингарты для единоборств",
+                "kpgz_code": "01.08.02.01",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ ЕДИНОБОРСТВ",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1619028489,
+                "score": 39
+              },
+              {
+                "spgz_name": "Перчатки для отбивания софтбол/бейсбол",
+                "kpgz_code": "01.08.02.21",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ СОФТБОЛА, БЕЙСБОЛА",
+                "okpd2_code": "32.30.15.299",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1622858617,
+                "score": 35
+              },
+              {
+                "spgz_name": "Перчатки игрока для хоккея на льду с мячом",
+                "kpgz_code": "01.08.01.16.01.03.03.02",
+                "kpgz_name": "ПЕРЧАТКИ ИГРОКА ДЛЯ ХОККЕЯ НА ЛЬДУ С МЯЧОМ",
+                "okpd2_code": "32.30.15.117",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis"
+                ],
+                "global_id": 1706151953,
+                "score": 32
+              },
+              {
+                "spgz_name": "Перчатки компрессионные/сдавливающие перчатки",
+                "kpgz_code": "01.02.10.44.64",
+                "kpgz_name": "ПЕРЧАТКИ КОМПРЕССИОННЫЕ/СДАВЛИВАЮЩИЕ ПЕРЧАТКИ",
+                "okpd2_code": "32.50.22.126",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "disability"
+                ],
+                "global_id": 1699195236,
+                "score": 30
+              },
+              {
+                "spgz_name": "Перчатки хирургические нитриловые, опудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.111",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657163594,
+                "score": 30
+              },
+              {
+                "spgz_name": "Перчатки хирургические нитриловые, неопудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.111",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657163456,
+                "score": 29
+              },
+              {
+                "spgz_name": "Перчатки для бобслея, скелетона и санного спорта",
+                "kpgz_code": "01.08.02.26",
+                "kpgz_name": "СПОРТИВНАЯ ЭКИПИРОВКА ДЛЯ БОБСЛЕЯ, СКЕЛЕТОНА И САННОГО СПОРТА",
+                "okpd2_code": "32.30.15.232",
+                "okei": "пар",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1706188006,
+                "score": 29
+              },
+              {
+                "spgz_name": "Перчатки, рукавицы (варежки) бытового назначения",
+                "kpgz_code": "01.19.13",
+                "kpgz_name": "ПЕРЧАТОЧНЫЕ ИЗДЕЛИЯ БЫТОВОГО НАЗНАЧЕНИЯ",
+                "okpd2_code": "14.19.13.000",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1614895581,
+                "score": 29
+              },
+              {
+                "spgz_name": "Перчатки швейные для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.03",
+                "kpgz_name": "ПЕРЧАТКИ ШВЕЙНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1694820852,
+                "score": 28
+              },
+              {
+                "spgz_name": "Перчатки швейные для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.03",
+                "kpgz_name": "ПЕРЧАТКИ ШВЕЙНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1695156512,
+                "score": 28
+              },
+              {
+                "spgz_name": "Перчатки швейные для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.03",
+                "kpgz_name": "ПЕРЧАТКИ ШВЕЙНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1695156514,
+                "score": 28
+              },
+              {
+                "spgz_name": "Перчатки швейные для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.03",
+                "kpgz_name": "ПЕРЧАТКИ ШВЕЙНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1695156515,
+                "score": 28
+              },
+              {
+                "spgz_name": "Перчатки хирургические из латекса гевеи, опудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.113",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657162157,
+                "score": 27
+              },
+              {
+                "spgz_name": "Перчатки хирургические полиизопреновые, неопудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.111",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657160298,
+                "score": 27
+              },
+              {
+                "spgz_name": "Резиновые перчатки в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.02",
+                "kpgz_name": "УЧЕБНО-ЛАБОРАТОРНОЕ ОБОРУДОВАНИЕ, ЗАКУПАЕМОЕ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "22.19.60.114",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 178702614,
+                "score": 27
+              },
+              {
+                "spgz_name": "Перчатки хирургические из полихлорпрена, неопудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.111",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657162386,
+                "score": 26
+              },
+              {
+                "spgz_name": "Изготовление сувенирной продукции «Варежки (перчатки)»",
+                "kpgz_code": "02.17.10.02",
+                "kpgz_name": "ИЗГОТОВЛЕНИЕ ТЕКСТИЛЬНОЙ СУВЕНИРНОЙ ПРОДУКЦИИ",
+                "okpd2_code": "13.99.99.100",
+                "okei": "шт",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1684324560,
+                "score": 26
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные виниловые, неопудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657162596,
+                "score": 26
+              },
+              {
+                "spgz_name": "Перчатки трикотажные для защиты от внешних воздействий",
+                "kpgz_code": "01.20.03.04.04.02.01",
+                "kpgz_name": "ПЕРЧАТКИ ХОЗЯЙСТВЕННЫЕ ТРИКОТАЖНЫЕ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1624520084,
+                "score": 26
+              },
+              {
+                "spgz_name": "Перчатки трикотажные для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.02",
+                "kpgz_name": "ПЕРЧАТКИ ТРИКОТАЖНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1624520090,
+                "score": 26
+              },
+              {
+                "spgz_name": "Перчатки трикотажные для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.02",
+                "kpgz_name": "ПЕРЧАТКИ ТРИКОТАЖНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1624454028,
+                "score": 26
+              },
+              {
+                "spgz_name": "Перчатки трикотажные для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.02",
+                "kpgz_name": "ПЕРЧАТКИ ТРИКОТАЖНЫЕ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1624454029,
+                "score": 26
+              },
+              {
+                "spgz_name": "Перчатки резиновые общего назначения (кроме медицинских)",
+                "kpgz_code": "01.20.03.04.04.01",
+                "kpgz_name": "ПЕРЧАТКИ РЕЗИНОВЫЕ ОБЩЕГО НАЗНАЧЕНИЯ (КРОМЕ МЕДИЦИНСКИХ)",
+                "okpd2_code": "22.19.60.114",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1702516498,
+                "score": 25
+              },
+              {
+                "spgz_name": "Перчатки резиновые общего назначения (кроме медицинских)",
+                "kpgz_code": "01.20.03.04.04.01",
+                "kpgz_name": "ПЕРЧАТКИ РЕЗИНОВЫЕ ОБЩЕГО НАЗНАЧЕНИЯ (КРОМЕ МЕДИЦИНСКИХ)",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1702516750,
+                "score": 25
+              },
+              {
+                "spgz_name": "Перчатки хирургические полимерно-композитные, неопудренные",
+                "kpgz_code": "01.02.10.13.40",
+                "kpgz_name": "ПЕРЧАТКИ ХИРУРГИЧЕСКИЕ ПОЛИМЕРНО-КОМПОЗИТНЫЕ, НЕОПУДРЕННЫЕ",
+                "okpd2_code": "22.19.60.111",
+                "okei": "шт",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1670569906,
+                "score": 24
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные из полихлоропрена, неопудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657162744,
+                "score": 23
+              },
+              {
+                "spgz_name": "Перчатки хирургические из блоксополимера стирола, неопудренные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.111",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657163273,
+                "score": 23
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "22.19.60.112",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1644491146,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.160",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498666,
+                "score": 21
+              }
+            ],
+            "total_found": 70,
+            "has_more": true
+          }
+        },
+        {
+          "url": "https://kuplushki.ru/tools/api/spgz/search/?q=%D0%BF%D0%B5%D1%80%D1%87%D0%B0%D1%82%D0%BA%D0%B8&offset=50",
+          "status": 200,
+          "sha256": "911a34fcf37237b0b66baf509191d78b4004d722222574231342a1096c0bb0c4",
+          "payload": {
+            "results": [
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498667,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687413770,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.160",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498669,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "22.19.60.112",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498668,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498671,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498670,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.150",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498673,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки из полимерных материалов для защиты от внешних воздействий",
+                "kpgz_code": "01.19.10.17.01",
+                "kpgz_name": "ПЕРЧАТКИ ИЗ ПОЛИМЕРНЫХ МАТЕРИАЛОВ ДЛЯ ЗАЩИТЫ ОТ ВНЕШНИХ ВОЗДЕЙСТВИЙ",
+                "okpd2_code": "14.12.30.160",
+                "okei": "пар",
+                "restriction": [
+                  "ban",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1687498672,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные нитриловые, неопудренные, стерильные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1686121231,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные нитриловые, неопудренные, нестерильные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1668224869,
+                "score": 21
+              },
+              {
+                "spgz_name": "Перчатки хирургические из латекса гевеи, неопудренные, антибактериальные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.113",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657164022,
+                "score": 20
+              },
+              {
+                "spgz_name": "Перчатки хирургические/процедурные синтетические для защиты от излучения",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.111",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657163721,
+                "score": 20
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные из латекса гевеи, опудренные, нестерильные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1716004253,
+                "score": 20
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные нитриловые, неопудренные, антибактериальные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657162162,
+                "score": 20
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные из латекса гевеи, неопудренные, нестерильные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657162392,
+                "score": 19
+              },
+              {
+                "spgz_name": "Перчатки хирургические из латекса гевеи, неопудренные, не антибактериальные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.113",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1716013514,
+                "score": 19
+              },
+              {
+                "spgz_name": "Перчатки пожарного ВСВ (пожарно-прикладной спорт) в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.06",
+                "kpgz_name": "СПОРТИВНЫЙ ИНВЕНТАРЬ, ЗАКУПАЕМЫЙ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "32.30.15.299",
+                "okei": "шт",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1697802318,
+                "score": 18
+              },
+              {
+                "spgz_name": "Перчатки пожарного с манжетой (пожарно-прикладной спорт) в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.06",
+                "kpgz_name": "СПОРТИВНЫЙ ИНВЕНТАРЬ, ЗАКУПАЕМЫЙ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "32.30.15.299",
+                "okei": "шт",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1697802165,
+                "score": 16
+              },
+              {
+                "spgz_name": "Перчатки смотровые/процедурные из латекса гевеи, неопудренные, стерильные, не антибактериальные",
+                "kpgz_code": "01.02.10.13.02",
+                "kpgz_name": "ПЕРЧАТКИ СМОТРОВЫЕ/ПРОЦЕДУРНЫЕ И ХИРУРГИЧЕСКИЕ",
+                "okpd2_code": "22.19.60.119",
+                "okei": "пар",
+                "restriction": [
+                  "restrict",
+                  "uis",
+                  "disability"
+                ],
+                "global_id": 1657162309,
+                "score": 16
+              },
+              {
+                "spgz_name": "Перчатки защитные для работы с веревкой (пожарно-прикладной спорт) в рамках проекта «Техносфера», шт",
+                "kpgz_code": "01.06.99.06",
+                "kpgz_name": "СПОРТИВНЫЙ ИНВЕНТАРЬ, ЗАКУПАЕМЫЙ В РАМКАХ ПРОЕКТА «ТЕХНОСФЕРА СОВРЕМЕННОЙ ШКОЛЫ»",
+                "okpd2_code": "32.30.15.299",
+                "okei": "шт",
+                "restriction": [
+                  "uis"
+                ],
+                "global_id": 1697802375,
+                "score": 15
+              }
+            ],
+            "total_found": 70,
+            "has_more": false
+          }
+        }
+      ],
+      "complete": true
+    }
+  ]
+}

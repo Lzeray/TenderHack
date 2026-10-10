@@ -1,9 +1,15 @@
 """Подробный разбор одного запроса ядром: признаки, этапы, кандидаты с проверками.
 python -m experiments.explain OUT.txt "текст" ["текст2" ...]"""
+import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+if os.environ.get("STEMMER"):  # STEMMER=snowball — бесловарный стеммер и его база
+    from experiments.stemmers import install
+    install(os.environ["STEMMER"])
+    os.environ["KTRU_DB"] = str(ROOT / "data" / f"exp_{os.environ['STEMMER']}.sqlite")
 from ktru_assist.api import get_engine  # noqa: E402
 from ktru_assist.models import SearchRequest  # noqa: E402
 

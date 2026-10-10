@@ -186,7 +186,7 @@ class TypeRegistry:
                 det.basis.append(f"{how} «{t.text}» → {', '.join(heads)}")
         main = sorted({h for _, h, after_prep in found if not after_prep})
         mods = sorted({h for _, h, after_prep in found if after_prep} - set(main))
-        if not main and mods:
-            main, mods = mods, []
+        # Слова после предлога («утюг с паром», «подставка для паяльника») описывают назначение или
+        # материал, а не тип: если основного типа нет, тип не распознан — честнее, чем подставить другой.
         det.heads, det.modifiers = main, mods
         return det

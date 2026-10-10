@@ -164,3 +164,9 @@ def test_single_name_needs_support_from_text(engine):
     assert r.question is not None and r.question.kind == "type"
     r2 = search(engine, "дрель электрическая от сети мощность 600 вт")
     assert r2.status == "matched" and r2.final_code == "28.24.11.000-92000001"
+
+
+def test_word_after_preposition_is_not_type(engine):
+    # «подставка для дрели»: дрель — назначение, а не тип товара
+    r = search(engine, "подставка для дрели ручной электрической")
+    assert r.status == "not_found" and r.final_code is None

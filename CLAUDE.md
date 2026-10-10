@@ -136,6 +136,10 @@ python -m eval.run_eval --cases eval/holdout.jsonl --out reports/holdout_results
   `llm/` — контекст из снимка, Ollama, проверка ответа. Контракты — `docs/CONTRACTS.md`.
 - `api.py`, `web/` — FastAPI и интерфейс на HTML/CSS/JS (`web/state.js` — правила применения ответов).
 - `eval/` — `run_eval.py` (MVP-метрики), `run_benchmark.py` (сравнение конфигураций), `synth.py`, `SCHEMA.md`.
+- `experiments/` — стресс-набор, аблации, бесловарные стеммеры, прогон по реальным СТЕ, сравнение отчётов
+  по кейсам (`docs/EXPERIMENTS.md`). Отчёты пиши в `reports/exp/`; вывод не направляй в файл, который сам читается
+  маской (так однажды заполнился диск).
+- `morph.py` — бесловарный стеммер для `KTRU_MORPH=snowball`; литералы слов в коде приводи через `text.lemma_set`.
 
 `data/aliases.json` — только проверенные алиасы типа (значение — главное слово или список трактовок).
 `data/value_aliases.json` — алиасы значений с контекстом свойства. Цели обоих должны существовать в каталоге:

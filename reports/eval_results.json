@@ -2,35 +2,35 @@
  "summary": {
   "cases": 28,
   "status_ok": 28,
-  "matched": 16,
-  "correct_final": 16,
+  "matched": 17,
+  "correct_final": 17,
   "false_unique": 0,
   "cases_with_expected_code": 22,
   "expected_in_compatible": 22,
-  "expected_rank1": 21,
+  "expected_rank1": 22,
   "must_explain_ok": "2/2",
-  "simulated_resolved": "6/6",
+  "simulated_resolved": "5/5",
   "repeatable": 28,
   "engine_latency_ms": {
-   "n": 560,
-   "p50": 14.57,
-   "p95": 41.04,
-   "max": 220.84,
-   "mean": 19.38
+   "n": 84,
+   "p50": 3.69,
+   "p95": 10.38,
+   "max": 25.51,
+   "mean": 4.78
   },
   "api_latency_ms": {
    "n": 140,
-   "p50": 25.36,
-   "p95": 48.04,
-   "max": 140.01
+   "p50": 2.53,
+   "p95": 8.94,
+   "max": 33.16
   },
-  "engine_init_s": 1.44,
+  "engine_init_s": 0.49,
   "backend": "local-bm25",
   "catalog_snapshot": "nsiKTRUNew_all_actual_20261003020003",
   "machine": {
-   "platform": "Windows-11-10.0.26200-SP0",
-   "python": "3.12.8",
-   "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel"
+   "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+   "python": "3.12.3",
+   "processor": "x86_64"
   }
  },
  "cases": [
@@ -165,19 +165,17 @@
     "matched",
     "clarification_needed"
    ],
-   "status": "clarification_needed",
-   "final_code": null,
+   "status": "matched",
+   "final_code": "28.24.11.000-00000031",
    "status_ok": true,
-   "correct_final": false,
+   "correct_final": true,
    "false_unique": false,
    "expected_in_compatible": true,
-   "expected_rank": 2,
-   "compatible_finals": 2,
+   "expected_rank": 1,
+   "compatible_finals": 1,
    "must_explain_ok": null,
    "repeatable": true,
-   "question": "Какое значение «Тип питания»?",
-   "resolved_after_questions": 1,
-   "simulation": "28.24.11.000-00000031"
+   "question": null
   },
   {
    "id": "T08",

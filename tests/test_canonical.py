@@ -26,14 +26,15 @@ def test_same_result_as_text_and_key_value_form(engine):
 
 
 def test_answer_survives_appended_text(engine):
-    r = run(engine, "пассатижи слесарные")
+    # «пассатижи» — две позиции, вопрос о виде; ответ живёт и после дописанного текста
+    r = run(engine, "пассатижи")
     q = r.question
     opt = q.options[0]
-    r = run(engine, "пассатижи слесарные", r.canonical, answers=opt.answers or [opt.answer])
+    r = run(engine, "пассатижи", r.canonical, answers=opt.answers or [opt.answer])
     kept = [i for i in r.canonical.items if i.source == "answer"]
     assert kept and kept[0].evidence is None
     # дописанный текст не сбрасывает ответ на вопрос
-    r2 = run(engine, "пассатижи слесарные, цвет: красный", r.canonical)
+    r2 = run(engine, "пассатижи, цвет: красный", r.canonical)
     assert any(i.source == "answer" for i in r2.canonical.items)
     assert set(r2.compatible_codes) <= set(r.compatible_codes)
 

@@ -39,3 +39,12 @@ export function featureValue(feature) {
   if (feature.op === "in") return (feature.values || []).join(" / ");
   return ({ ne: "не ", ge: "≥ ", gt: "> ", le: "≤ ", lt: "< " }[feature.op] || "") + (feature.value ?? "");
 }
+// Фраза для строки поиска: «тип каркаса: Металлический», «мощность: не менее 600 Вт».
+export function phraseFor(name, constraint) {
+  const unit = constraint.unit ? ` ${constraint.unit}` : "";
+  const value = String(constraint.value ?? "").replace(".", ",");
+  const label = name || "";   // точное название характеристики КТРУ: разбор читает его без догадок
+  if (constraint.op === "between") return `${label}: от ${value} до ${String(constraint.value_to).replace(".", ",")}${unit}`;
+  const ops = { ge: "не менее ", gt: "более ", le: "не более ", lt: "менее ", ne: "не " };
+  return `${label}: ${ops[constraint.op] || ""}${value}${unit}`;
+}

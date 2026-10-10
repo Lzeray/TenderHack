@@ -128,22 +128,5 @@ details.history ol { font-size: 12.5px; padding-left: 18px; }
 .providers { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
 .latency { margin-top: 6px; }
 .reset { padding: 4px 8px; border-radius: 6px; margin-top: 8px; }
-.search-activity { font-size: 12.5px; color: var(--muted); }
-.correction { margin-top: 10px; }
-.results-list { margin-top: 12px; }
-.cand__name { font-weight: 600; }
-.cand details summary { cursor: pointer; font-size: 12.5px; color: var(--blue); margin-top: 8px; }
-.product-description { margin-top: 8px; line-height: 1.7; }
-#resultsPager { margin-top: 12px; }
-[hidden] { display: none !important; }
-
-.note { margin: 6px 0; padding: 8px 10px; border-radius: 6px; border-left: 3px solid var(--amber); background: rgba(0,0,0,.02); }
-.note--bad { border-left-color: var(--red); }
-.note__actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-.emp { font-size: 12px; margin-top: 2px; }
-.emp--ok { color: var(--green); }
-.emp--warn { color: var(--amber); }
-.emp--info { color: var(--muted, #667); }
-.val { white-space: nowrap; }
-.unit { margin-left: 4px; }
-.unit--inferred { border-bottom: 1px dashed var(--muted, #888); cursor: help; }
+.final--partial { border-left-color: var(--blue); }
+.unified { color: var(--blue); }

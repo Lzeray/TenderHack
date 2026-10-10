@@ -71,6 +71,18 @@ class LiveSearch:
                     f.status, f.property_name, f.property_code = "bound", g.name, g.codes[0]
                     f.options = []
                     f.note += "; величина относится к самому предмету по названию характеристики КТРУ"
+            # вариант разложенного неоднозначного значения («мужские» → по свойству каждой позиции) не переносится
+            taken = {x.property_name for x in features if x is not f and x.status == "bound"}
+            if f.status == "bound" and f.unit is None and f.property_name and f.value and "." not in f.id \
+                    and not any(g.name == f.property_name for g in groups.values()):
+                # свойства нет у позиций выбранного наименования: то же значение под другим названием
+                # («угловой»: «Тип конструкции стола» → «Конфигурация стола: Угловой»)
+                same = canon.groups_with_value(f.value, groups)
+                if len(same) == 1 and same[0].name not in taken:
+                    g = same[0]
+                    f.property_name, f.property_code = g.name, g.codes[0]
+                    f.value = canon.match_value(f.value, g.quality) or f.value
+                    f.note += f"; у выбранных позиций значение относится к «{g.name}»"
             out.append(f)
         return out
 
@@ -99,7 +111,11 @@ class LiveSearch:
                 # Retain all catalogue names not ruled out by explicit name terms.
                 if rule_response.scope and rule_response.scope.confirmed_scope:
                     name = rule_response.scope.confirmed_scope
-                    narrowed = [p for p in positions if p.name == name or p.code == name]
+                    # названное наименование и его более частные разновидности («Халат» → «Халат детский», …):
+                    # между ними выбирает вопрос о наименовании
+                    base = next((set(p.name_lemmas) for p in positions if p.name == name), None)
+                    narrowed = [p for p in positions if p.name == name or p.code == name
+                                or (base and base <= set(p.name_lemmas))]
                     if narrowed:
                         positions = narrowed
                 verified = rule_response.completeness.type_confirmed

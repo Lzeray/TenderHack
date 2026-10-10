@@ -46,6 +46,12 @@ python -m benchmark.compare reports/bench/core.json reports/bench/core_sem_b.jso
   (`number_errors`: «010», «0180 мм», «18о мм», «1 80 мм» — нужно уточнение).
   См. `metamorphic/README.md`.
 
+Дополнительно — **живые запросы** из карточек товаров портала (`python -m benchmark.build_portal_suite`, 450 кейсов:
+название СТЕ и 2 характеристики карточки). Кодов КТРУ в выгрузке нет, поэтому набор неразмеченный
+(`"unlabeled": true`): по нему сравниваются доля автокодов, статусы (`status_counts`), ошибки и задержка, но не точность.
+Это данные организаторов — набор собирается локально в `benchmark/local_suites/` и в git не попадает:
+`python -m benchmark.run --adapter ktru:core --suites benchmark/local_suites/portal_live.jsonl --out ...`.
+
 Синтетика — не независимая оценка живых запросов: формулировки близки к названиям КТРУ.
 Разбиение `split` синтетики — по наименованию позиции (варианты одного примера в одном split).
 

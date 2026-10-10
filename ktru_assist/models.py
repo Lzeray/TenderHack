@@ -111,6 +111,10 @@ class Feature(BaseModel):
     raw_span: Optional[tuple[int, int]] = Field(None, description="координаты в исходном тексте (code points)")
     supported_by: list[str] = Field(default_factory=list, description="источники, согласные с трактовкой")
     proposal_key: Optional[str] = Field(None, description="ключ предложения модели (для подтверждения/отказа)")
+    char_source: Optional[Literal["ktru", "portal", "new"]] = Field(
+        None, description="источник характеристики: КТРУ, характеристика портала или новая")
+    ktru_value: Optional[str] = Field(None, description="значение в единице характеристики КТРУ")
+    ktru_unit: Optional[str] = None
     strict_ref: bool = False
     characteristic_ref: Optional[str] = None
     values: list[str] = Field(default_factory=list, max_length=30)

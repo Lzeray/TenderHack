@@ -24,6 +24,7 @@ from __future__ import annotations
 import itertools
 import re
 import json
+import re
 from dataclasses import dataclass, field
 from decimal import Decimal
 from functools import lru_cache
@@ -45,6 +46,11 @@ LE_WORDS = {("не", "более"), ("не", "больше"), ("не", "выше
             ("<=",), ("≤",), ("<",), ("максимум",)}
 STRICT = {("более",), ("больше",), ("свыше",), (">",), ("менее",), ("меньше",), ("<",)}
 BOUNDARY = {",", ";", ":", "(", ")"}
+# служебные слова запроса: двоеточие после них не делает пару «свойство: значение»
+SERVICE_WORDS = {"закупка", "поставка", "приобретение", "подобрать", "подберите", "ктру", "код", "товар",
+                 "товара", "требоваться", "требуется",
+                 "нужный", "нужно", "нужен", "заявка", "описание", "наименование", "позиция", "найти", "запрос",
+                 "купить", "подбор", "для"}
 def _as_number(s: str) -> Decimal | None:
     try:
         return Decimal(s.replace(",", "."))
@@ -158,7 +164,7 @@ def _terms_present(terms: list[str], tokens: list[Token], idxs: list[int]) -> li
     occ = []
     for t in terms:
         hits = [i for i in idxs if tokens[i].kind in ("word", "code")
-                and fuzzy_equal(PROPERTY_SYNONYMS.get(tokens[i].lemma, tokens[i].lemma), t)]
+                and _term_eq(tokens[i].lemma, t)]
         if not hits:
             return None
         occ.append(sorted(hits))
@@ -174,6 +180,11 @@ def _terms_present(terms: list[str], tokens: list[Token], idxs: list[int]) -> li
 
 # Синонимы слов в названиях свойств (проверенные вручную по каталогу).
 PROPERTY_SYNONYMS = {lemma_of_literal("вес"): lemma_of_literal("масса")}
+
+
+def _term_eq(lem: str, term: str) -> bool:
+    """Слово запроса совпадает со словом названия свойства — само или через синоним («вес» ~ «масса»)."""
+    return fuzzy_equal(lem, term) or fuzzy_equal(PROPERTY_SYNONYMS.get(lem, lem), term)
 
 
 @dataclass(frozen=True)
@@ -282,10 +293,49 @@ def _core_present(g: "PropGroup", tokens: list[Token], idxs: list[int]) -> int |
     if not core:
         return None
     for i in idxs:
-        lem = PROPERTY_SYNONYMS.get(tokens[i].lemma, tokens[i].lemma)
-        if tokens[i].kind == "word" and fuzzy_equal(lem, core):
+        if tokens[i].kind == "word" and _term_eq(tokens[i].lemma, core):
             return i
     return None
+
+
+POST_NEGATIONS = {"отсутствовать", "отсутствие", "нет"}
+_LEAD_NUMBER = re.compile(r"\s*(\d+(?:[.,]\d+)?)\b")
+
+
+def _number_before(tokens: list[Token], first: int, value: str = "") -> tuple[int | None, list[int]]:
+    """Ближайшее свободное число перед словом first: через «(», «—» и коды, входящие в само значение
+    («2 (III климатический пояс)»: между «2» и словами — «(» и «iii»). Возвращает (индекс числа, индексы
+    пропущенных кодов значения)."""
+    value_codes = {w.lower() for w in re.findall(r"[a-zA-Z0-9-]+", value)}
+    codes: list[int] = []
+    for j in range(first - 1, max(-1, first - 5), -1):
+        t = tokens[j]
+        if t.kind == "number":
+            return (j if t.used_by is None else None), codes
+        if t.kind == "code" and t.text.lower() in value_codes:
+            codes.append(j)
+            continue
+        if t.lemma not in ("(", "-", "—"):
+            return None, codes
+    return None, codes
+
+
+def _negation_inside_or_after(tokens: list[Token], hit: list[int]) -> list[int]:
+    """Отрицание внутри («кожа не натуральная») или сразу после («утеплитель отсутствует») слов свойства.
+
+    Возвращает индексы слов отрицания (пусто — отрицания нет). После слов ищем только «отсутствует / нет»
+    в пределах двух слов и без пересечения границы фрагмента.
+    """
+    lo, hi = min(hit), max(hit)
+    inside = [j for j in range(lo + 1, hi) if j not in hit and tokens[j].lemma in NEGATIONS]
+    if inside:
+        return inside
+    for j in (hi + 1, hi + 2):
+        if j >= len(tokens) or tokens[j].lemma in BOUNDARY or tokens[j].kind == "number":
+            break
+        if tokens[j].lemma in POST_NEGATIONS:
+            return [j]
+    return []
 
 
 def _negated(tokens: list[Token], first: int) -> bool:
@@ -505,15 +555,35 @@ class Extractor:
             right = [i for i in seg if i > colon]
             if not left or not right:
                 continue
-            left_lemmas = [tokens[i].lemma for i in left if tokens[i].lemma not in STOPWORDS]
             raw_value = nq.text[tokens[right[0]].start:tokens[right[-1]].end]
             # точное название свойства КТРУ («Тип: на раме», «Тип ткани/трикотажного полотна: смесовая») — сначала;
             # скрытая строка запроса пишет именно так (docs/PARSE_INPUT_PLAN.md, P4)
             exact = self._exact_name(nq.text[tokens[left[0]].start:tokens[left[-1]].end], raw_value)
-            groups = exact or [g for g in self._match_name(left_lemmas)
-                               if all(l in GENERIC_NAME_WORDS or any(fuzzy_equal(l, n) for n in content_lemmas(g.name))
-                                      for l in left_lemmas)]
+            groups = exact
             if not groups:
+                # название свойства — конец левой части: «джинсы детские половой признак: …» → «половой признак»
+                for size in range(len(left), 0, -1):
+                    suffix = left[-size:]
+                    suffix_lemmas = [tokens[i].lemma for i in suffix if tokens[i].lemma not in STOPWORDS]
+                    if not suffix_lemmas:
+                        continue
+                    groups = [g for g in self._match_name(suffix_lemmas)
+                              if all(l in GENERIC_NAME_WORDS or any(fuzzy_equal(l, n) for n in content_lemmas(g.name))
+                                     for l in suffix_lemmas)]
+                    if groups:
+                        left = suffix
+                        break
+            if not groups:
+                all_words = [i for i in left if tokens[i].lemma not in STOPWORDS]
+                # «Закупка: …», «Подберите КТРУ: …» — не пара «свойство: значение»: текст справа остаётся
+                # остальным правилам (числа, значения), а не поглощается
+                service = all(tokens[i].lemma in SERVICE_WORDS or tokens[i].text.lower() in SERVICE_WORDS
+                              for i in all_words)
+                if not all_words or service:
+                    continue
+                # длинная левая часть («куртка мужская утепленная материал верха») — название свойства в её конце
+                if len(all_words) > 3:
+                    left = [i for i in left if i >= all_words[-3]]
                 named = nq.text[tokens[left[0]].start:tokens[left[-1]].end]
                 feats.append(self._feature(None, tokens, left + [colon] + right, nq, status="unknown_property",
                                            value=raw_value, named_property=named,
@@ -727,7 +797,8 @@ class Extractor:
             if not explicit:
                 back = [k for k in win if k < min(used) and min(used) - k <= 2]
                 named_unknown = next((tokens[k] for k in sorted(back, reverse=True) if tokens[k].kind == "word"
-                                      and PROPERTY_SYNONYMS.get(tokens[k].lemma, tokens[k].lemma) in self.known_terms),
+                                      and (tokens[k].lemma in self.known_terms
+                                           or PROPERTY_SYNONYMS.get(tokens[k].lemma) in self.known_terms)),
                                      None)
             if named_unknown is not None:
                 # «глубина сидения 90 см»: название — от слова-оси слева («глубина»), а не одно ближайшее слово
@@ -823,11 +894,12 @@ class Extractor:
         for g, hit in kept:
             if any(tokens[i].used_by for i in hit):
                 continue
-            neg = _negated(tokens, min(hit))
+            post = _negation_inside_or_after(tokens, hit)
+            neg = _negated(tokens, min(hit)) or bool(post)
             val = g.quality.get("нет" if neg else "да")
             if val is None:
                 continue
-            idxs = list(hit)
+            idxs = list(hit) + post
             if neg:
                 idxs += [j for j in (min(hit) - 1, min(hit) - 2) if j >= 0 and tokens[j].lemma in NEGATIONS]
             feats.append(self._feature(g, tokens, idxs, nq, value=val, negated=neg,
@@ -849,7 +921,7 @@ class Extractor:
                 if not lem:
                     continue
                 others = {x for k, l2 in g.value_lemmas.items() if k != nval for x in l2}
-                occ = {x: [t.i for t in tokens if t.kind == "word" and t.used_by is None and fuzzy_equal(t.lemma, x)]
+                occ = {x: [t.i for t in tokens if t.kind in ("word", "code") and t.used_by is None and fuzzy_equal(t.lemma, x)]
                        for x in lem}
                 full = all(occ[x] for x in lem)
                 if not full:
@@ -874,6 +946,14 @@ class Extractor:
                 # длинные значения с перечислением («от нефти, нефтепродуктов, масел, жиров») шире окна в 3 слова
                 if max(idxs) - min(idxs) > max(3, 2 * len(lem) - 1):
                     continue
+                # значение, начинающееся с числа («3 (Водонепроницаемая)», «2 (III климатический пояс)»):
+                # число перед словами значения должно совпасть, иначе это другое значение
+                lead = _LEAD_NUMBER.match(g.quality[nval])
+                if lead:
+                    before, codes = _number_before(tokens, idxs[0], g.quality[nval])
+                    if before is None or Decimal(tokens[before].lemma) != Decimal(lead.group(1).replace(",", ".")):
+                        continue
+                    idxs = sorted([before] + codes + idxs)
                 cands.append((g, g.quality[nval], idxs, full))
         # слова полностью найденных значений («трикотажное полотно») не указывают на часть товара
         full_tok = frozenset(i for _, _, ix, f in cands if f for i in ix)

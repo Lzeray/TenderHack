@@ -1,0 +1,89 @@
+diff --git a/ktru_assist/config.py b/ktru_assist/config.py
+index 4516380..11085d9 100644
+--- a/ktru_assist/config.py
++++ b/ktru_assist/config.py
+@@ -17,7 +17,7 @@ VERSIONS = {
+     "validator": "1.1",       # семантика требования (intent=requirement)
+     "ranking": "1.0",
+     "clarifier": "1.1",       # сначала тип при неоднозначном алиасе
+-    "engine": "2.2",          # 2.1 dimension_mismatch; 2.2 слова наименования, единицы КТРУ, источник характеристики
++    "engine": "2.3",          # 2.2 слова наименования, единицы КТРУ, источник; 2.3 несопоставленные числа
+     "type_registry": "1.0",
+     "resolver": "1.0",
+     "plausibility": "1.0",
+diff --git a/ktru_assist/engine.py b/ktru_assist/engine.py
+index c437737..8c22f5c 100644
+--- a/ktru_assist/engine.py
++++ b/ktru_assist/engine.py
+@@ -336,6 +336,25 @@ class Engine:
+             gate.append("подозрительные значения не подтверждены")
+         if merge.disagreements:
+             gate.append("расхождение разбора правилами и модели")
++        # число из описания, не сопоставленное ни с одной характеристикой, не игнорируется молча:
++        # «рост 618 см», «диаметр 16 Вт», «0,2 шт» — пока не ясно, к чему оно, код автоматически не выдаётся
++        explained = {f.id for f in features if f.status in ("bound", "overridden")}
++        num_block: list[tuple[str, str]] = []
++        for tok in nq.tokens:
++            if tok.kind != "number" or tok.used_by == "type" or tok.used_by in explained:
++                continue
++            nxt = nq.tokens[tok.i + 1] if tok.i + 1 < len(nq.tokens) else None
++            shown = tok.text + (f" {nxt.text}" if nxt is not None and nxt.kind == "unit" else "")
++            key = f"num:{shown}"
++            if key in req.confirmed:
++                continue
++            num_block.append((key, f"Число «{shown}» не сопоставлено ни с одной характеристикой позиций — "
++                                   "код не выдаётся автоматически. Укажите, к какой характеристике оно относится, "
++                                   "или подтвердите, что оно не важно для подбора."))
++        for _, msg in num_block:
++            issues.append(Issue(level="warning", code="number_unexplained", message=msg))
++        if num_block:
++            gate.append("есть несопоставленные числа")
+         code_res: CodeResolution
+         ev0 = evals[finals_pos[0].code] if finals else None
+         if not finals:
+@@ -380,7 +399,7 @@ class Engine:
+             else:
+                 if proven and gate:
+                     question = self._confirm_question(tentative, type_choice if type_tentative else None,
+-                                                      plaus_block, merge.disagreements, len(finals))
++                                                      plaus_block, merge.disagreements, len(finals), num_block)
+                 elif det.ambiguous_aliases and not type_confirmed and len({p.name for p in finals_pos}) > 1:
+                     # тип от разговорного слова с несколькими трактовками — подтверждается первым
+                     question = choose_question(finals_pos, constrained, False, type_first=True)
+@@ -575,7 +594,9 @@ class Engine:
+         return out
+ 
+     @staticmethod
+-    def _confirm_question(tentative: list[Feature], type_choice, plaus, disagreements, n: int) -> Question:
++    def _confirm_question(tentative: list[Feature], type_choice, plaus, disagreements, n: int,
++                          numbers: list[tuple[str, str]] | None = None) -> Question:
++        numbers = numbers or []
+         answers = [Constraint(property=f.property_code or f.property_name or "", op=f.op, value=f.value,
+                               value_to=f.value_to, min_inclusive=f.min_inclusive, max_inclusive=f.max_inclusive,
+                               unit=f.unit) for f in tentative]
+@@ -586,8 +607,9 @@ class Engine:
+             items.append(f"тип товара → {type_choice.value} (предложено моделью)")
+         items += [p.message for p in plaus]
+         items += [d.message for d in disagreements]
++        items += [m for _, m in numbers]
+         opts = [QuestionOption(label="Да, всё верно", remaining=n, answer=answers[0] if answers else None,
+-                               answers=answers, confirm=[p.key for p in plaus])]
++                               answers=answers, confirm=[p.key for p in plaus] + [k for k, _ in numbers])]
+         for f in tentative:
+             if f.proposal_key:
+                 opts.append(QuestionOption(label=f"Нет: «{f.evidence or f.value}» ≠ {describe(f)}", remaining=n,
+diff --git a/tests/test_plan_core.py b/tests/test_plan_core.py
+index 8702c0e..ce4587f 100644
+--- a/tests/test_plan_core.py
++++ b/tests/test_plan_core.py
+@@ -320,3 +320,10 @@ def test_numbered_value_needs_its_number(engine, tmp_path):
+     from ktru_assist.nlp.extract import _LEAD_NUMBER
+     assert _LEAD_NUMBER.match("2 (III климатический пояс)").group(1) == "2"
+     assert _LEAD_NUMBER.match("Металл") is None
++def test_unexplained_number_blocks_auto_code(engine):
++    # число без свойства не игнорируется молча: код только после подтверждения
++    r = search(engine, "пассатижи слесарные 190 мм, 12345 штук в упаковке")
++    assert r.final_code is None and any(i.code == "number_unexplained" for i in r.issues)
++    assert r.question.kind == "confirm"
++    r2 = search(engine, "пассатижи слесарные 190 мм, 12345 штук в упаковке", confirmed=r.question.options[0].confirm)
++    assert r2.status == "matched"

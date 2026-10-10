@@ -132,6 +132,32 @@ export function useSearch() {
       answers_query_hash: response.query_hash, rejected: [...p.rejected, ...(option.reject || [])],
       confirmed: [...p.confirmed, ...(option.confirm || [])] }));
   }, [mutate]);
+  // Выбранный параметр записывается в строку поиска: «…, Тип каркаса: Металлический» — разбор читает точное название
+  // свойства КТРУ. Фрагмент из описания (fragment) заменяется на месте, удаление вырезает его. Прежнее решение
+  // о том же свойстве (ответ, выбор варианта) снимается из скрытой строки: теперь значение задаёт текст.
+  const putInText = useCallback(({ name, fragment = null, phrase = "" }) => {
+    const current = query.current;
+    const at = fragment ? current.toLowerCase().indexOf(fragment.toLowerCase()) : -1;
+    if (!phrase && at < 0) {   // фрагмента в тексте нет (значение из наименования или решение) — решение «удалить»
+      mutate(p => ({ ...p, overrides: [...p.overrides.filter(c => c.property !== name), { property: name, remove: true }] }));
+      return;
+    }
+    let next;
+    if (at >= 0) {
+      next = current.slice(0, at) + phrase + current.slice(at + fragment.length);
+      if (!phrase) next = next.replace(/\s*[,;]\s*(?=[,;])/g, "").replace(/\s+([,;])/g, "$1").replace(/^[\s,;]+|[\s,;]+$/g, "").replace(/\s{2,}/g, " ");
+    } else {
+      next = `${current.trim().replace(/[\s,;]+$/, "")}, ${phrase}`;
+    }
+    const key = (name || "").toLowerCase().replaceAll("ё", "е");
+    canonical.current = { ...canonical.current, items: (canonical.current.items || []).filter(i =>
+      i.source === "text" || (i.key || "").toLowerCase().replaceAll("ё", "е") !== key) };
+    clearTimers();
+    query.current = next;
+    setText(next);
+    register();
+    run("draft", "confirm"); run("submitted", "confirm");
+  }, [clearTimers, mutate, register, run]);
   const correct = useCallback((original, value) => mutate(p => ({ ...p, corrections: { ...p.corrections, [original]: value } })), [mutate]);
 
   const loadMore = useCallback(async () => {
@@ -153,5 +179,5 @@ export function useSearch() {
 
   useEffect(() => () => { mounted.current = false; clearTimers(); }, [clearTimers]);
   return { text, result, products, history, busy, error, pageError, loadingMore,
-    stale: !!result && result.revision !== revision, changeText, submit, override, answer, correct, loadMore };
+    stale: !!result && result.revision !== revision, changeText, submit, override, answer, correct, putInText, loadMore };
 }

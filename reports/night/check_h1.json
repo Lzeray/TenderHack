@@ -1,0 +1,87 @@
+{
+ "tag": "h1",
+ "pytest": "129 passed in 1.32s",
+ "pytest_ok": true,
+ "eval_false_unique": 0,
+ "independent_dev": {
+  "wrong_auto": 10,
+  "wrong_natural": 0,
+  "wrong_contr": 10,
+  "wrong_oos": 0,
+  "no_code_respected": 0.9674,
+  "reached0": 0.4132,
+  "reached2": 0.825,
+  "required_hit": 0.6589,
+  "auto_coverage": 0.4132,
+  "latency_p50": 8.14
+ },
+ "v1": {
+  "behaviour": {
+   "pass_rate": 1.0,
+   "auto_incorrect": 0,
+   "auto_correct": 5
+  },
+  "manual_dev": {
+   "pass_rate": 1.0,
+   "auto_incorrect": 0,
+   "auto_correct": 17
+  },
+  "manual_holdout": {
+   "pass_rate": 1.0,
+   "auto_incorrect": 0,
+   "auto_correct": 13
+  },
+  "synthetic": {
+   "pass_rate": 1.0,
+   "auto_incorrect": 0,
+   "auto_correct": 159
+  }
+ },
+ "verdict": "ОТКЛОНИТЬ",
+ "fails": [
+  "reached@2 0.8316 → 0.825",
+  "required_hit 0.6822 → 0.6589"
+ ],
+ "delta": {
+  "wrong_auto": [
+   21,
+   10
+  ],
+  "wrong_natural": [
+   3,
+   0
+  ],
+  "wrong_contr": [
+   17,
+   10
+  ],
+  "wrong_oos": [
+   1,
+   0
+  ],
+  "no_code_respected": [
+   0.9414,
+   0.9674
+  ],
+  "reached0": [
+   0.4276,
+   0.4132
+  ],
+  "reached2": [
+   0.8316,
+   0.825
+  ],
+  "required_hit": [
+   0.6822,
+   0.6589
+  ],
+  "auto_coverage": [
+   0.4316,
+   0.4132
+  ],
+  "latency_p50": [
+   8.26,
+   8.14
+  ]
+ }
+}

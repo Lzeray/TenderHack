@@ -11,12 +11,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fixture_ktru import write_fixture_dir  # noqa: E402
 from ktru_assist.catalog.importer import run_import  # noqa: E402
 from ktru_assist.catalog.repository import Catalog  # noqa: E402
-from ktru_assist.config import Settings  # noqa: E402
+from ktru_assist.config import Settings, unpack_gz  # noqa: E402
 from ktru_assist.engine import Engine  # noqa: E402
 from ktru_assist.search.local_backend import LocalBM25Backend  # noqa: E402
 
 AS_OF = dt.date(2026, 10, 9)
-REAL_DB = ROOT / "data" / "ktru.sqlite"
+REAL_DB = unpack_gz(ROOT / "data" / "ktru.sqlite")
 
 
 @pytest.fixture(scope="session")

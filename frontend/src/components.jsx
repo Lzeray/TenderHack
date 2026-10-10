@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { featureValue, parseConstraint } from "./state.js";
+import React, { useEffect, useId, useRef, useState } from "react";
+import { featureValue, parseConstraint, phraseFor } from "./state.js";
 
 export function Icon({ name, size = 20, ...props }) {
   const paths = {
@@ -196,129 +196,139 @@ export function Additional({ data, compact = false }) {
   </div>;
 }
 
-function RequiredInput({ row, search }) {
-  const [value, setValue] = useState(row.value || "");
-  const [unit, setUnit] = useState(row.unit || row.units?.[0] || "");
-  useEffect(() => { setValue(row.value || ""); setUnit(row.unit || row.units?.[0] || ""); }, [row.value, row.unit, row.property_code]);
-  const listId = `req-values-${row.property_code}`;
-  const save = () => {
-    const text = value.trim();
-    if (!text || text === (row.value || "")) return;
-    // по названию: у позиций КТРУ одна характеристика бывает под разными кодами
-    search.override(parseConstraint(row.name, text, row.numeric ? unit : null));
+// Ввод значения: результат записывается в строку поиска (и дублируется ручным условием).
+function applyValue(search, { name, fragment, constraint }) {
+  search.putInText({ name, fragment, phrase: phraseFor(name, constraint) });
+}
+function removeValue(search, { name, fragment }) {
+  search.putInText({ name, fragment, phrase: "" });
+}
+
+function ValueInput({ name, values = [], numeric = false, units = [], initial = "", initialUnit = "", fragment = null, removable = false, search }) {
+  const [value, setValue] = useState(initial);
+  const [unit, setUnit] = useState(initialUnit || units[0] || "");
+  useEffect(() => { setValue(initial); setUnit(initialUnit || units[0] || ""); }, [initial, initialUnit, name]);
+  const commit = text => {
+    const v = (text ?? value).trim();
+    if (!v || v === initial) return;
+    applyValue(search, { name, fragment, constraint: parseConstraint(name, v, numeric ? unit : null) });
   };
-  const options = row.values || [];
-  return <div className="required-input">
-    {options.length > 0 && options.length <= 12 && !row.numeric
-      ? <select aria-label={row.name} value={value} disabled={search.stale} onChange={event => {
-          setValue(event.target.value);
-          if (event.target.value) search.override(parseConstraint(row.name, event.target.value, null));
-        }}><option value="">Выберите значение</option>{options.map(v => <option key={v} value={v}>{v}</option>)}{value && !options.includes(value) && <option value={value}>{value}</option>}</select>
-      : <><input aria-label={row.name} placeholder={row.numeric ? "Число" : "Значение"} list={listId} value={value} disabled={search.stale}
-          onChange={event => setValue(event.target.value)} onBlur={save} onKeyDown={event => {
-            if (event.key === "Enter") event.target.blur();
-            if (event.key === "Escape") setValue(row.value || "");
-          }} /><datalist id={listId}>{options.slice(0, 50).map(v => <option key={v} value={v} />)}</datalist>
-        {row.numeric && (row.units?.length > 1
-          ? <select aria-label="Единица измерения" value={unit} onChange={event => setUnit(event.target.value)}>{row.units.map(u => <option key={u}>{u}</option>)}</select>
-          : <span className="required-unit">{unit}</span>)}</>}
-    {row.status !== "missing" && <button className="icon-button" title="Очистить" aria-label={`Очистить ${row.name}`} disabled={search.stale}
-      onClick={() => search.override({ property: row.name, remove: true })}><Icon name="close" size={15} /></button>}
+  const listId = useId();
+  const select = values.length > 0 && values.length <= 12 && !numeric;
+  return <div className="value-input">
+    {select
+      ? <select aria-label={name} value={value} disabled={search.stale} onChange={event => { setValue(event.target.value); if (event.target.value) commit(event.target.value); }}>
+          <option value="">Выберите значение</option>{values.map(v => <option key={v} value={v}>{v}</option>)}
+          {value && !values.includes(value) && <option value={value}>{value}</option>}
+        </select>
+      : <><input aria-label={name} placeholder={numeric ? "Число" : "Значение"} list={listId} value={value} disabled={search.stale}
+          onChange={event => setValue(event.target.value)} onBlur={() => commit()}
+          onKeyDown={event => { if (event.key === "Enter") event.target.blur(); if (event.key === "Escape") setValue(initial); }} />
+        <datalist id={listId}>{values.slice(0, 50).map(v => <option key={v} value={v} />)}</datalist>
+        {numeric && (units.length > 1
+          ? <select className="unit-select" aria-label="Единица измерения" value={unit} onChange={event => setUnit(event.target.value)}>{units.map(u => <option key={u}>{u}</option>)}</select>
+          : unit && <span className="value-unit">{unit}</span>)}</>}
+    {removable && <button className="icon-button" title="Убрать" aria-label={`Убрать ${name}`} disabled={search.stale}
+      onClick={() => removeValue(search, { name, fragment })}><Icon name="close" size={14} /></button>}
   </div>;
+}
+
+function CharItem({ name, tag, tagClass, hint, evidence, children }) {
+  return <li className="char-item">
+    <div className="char-head"><b>{name}</b>{tag && <span className={`mini-tag ${tagClass}`}>{tag}</span>}</div>
+    {children}
+    {(evidence || hint) && <small className="char-note">{evidence ? `Из описания: «${evidence}»` : ""}{evidence && hint ? " · " : ""}{hint || ""}</small>}
+  </li>;
 }
 
 const SOURCE_TAGS = { ste: ["Доп. · есть в СТЕ", "green"], session: ["Доп. · из сессии", "blue"], new: ["Доп. · новая", "blue"], rejected: ["Не характеристика", "amber"] };
+const STATUS_TAGS = { filled: ["Обязательная", "green"], invalid: ["Не подходит", "amber"], unchecked: ["Не проверена", "amber"] };
 
-function FeatureValueInput({ feature, search }) {
-  const [value, setValue] = useState(featureValue(feature));
-  useEffect(() => setValue(featureValue(feature)), [feature.value, feature.value_to, feature.op]);
-  const key = feature.property_name || feature.characteristic_ref || feature.property_code;
-  const save = () => { if (value.trim() && value !== featureValue(feature)) search.override(parseConstraint(key, value, feature.unit)); };
-  return <div className="required-input">
-    <input aria-label={feature.property_name} value={value} disabled={search.stale} onChange={event => setValue(event.target.value)} onBlur={save}
-      onKeyDown={event => { if (event.key === "Enter") event.target.blur(); if (event.key === "Escape") setValue(featureValue(feature)); }} />
-    {feature.unit && <span className="required-unit">{feature.unit}</span>}
-    <button className="icon-button" title="Убрать" aria-label={`Убрать ${feature.property_name}`} disabled={search.stale}
-      onClick={() => search.override({ property: key, remove: true })}><Icon name="close" size={15} /></button>
-  </div>;
+function SidePanel({ icon, title, count, empty, children, className = "" }) {
+  return <section className={`side-panel panel ${className}`}>
+    <div className="side-panel-head"><Icon name={icon} size={18} /><h2>{title}</h2><span className="chars-count">{count}</span></div>
+    <div className="side-panel-body">{count ? <ul className="char-list">{children}</ul> : <p className="chars-empty">{empty}</p>}</div>
+  </section>;
 }
 
-function CharRow({ name, tag, tagClass, hint, evidence, children }) {
-  return <div className="char-row">
-    <div className="char-name"><b>{name}</b>{tag && <span className={`mini-tag ${tagClass}`}>{tag}</span>}
-      {evidence && <small>Из описания: «{evidence}»</small>}{hint && <small className="char-hint">{hint}</small>}</div>
-    <div className="char-value">{children}</div>
-  </div>;
+// фрагмент описания, где задано свойство: правка заменяет его на месте, а не дописывает второй раз
+function fragmentFor(name, features, feature) {
+  if (feature?.evidence) return feature.evidence;
+  return features.find(x => x.property_name === name && x.source === "text" && x.evidence)?.evidence || null;
 }
 
-export function CharacteristicsPanel({ search }) {
+export function SelectedChars({ search }) {
   const data = search.result;
-  const [showAll, setShowAll] = useState(false);
-  useEffect(() => setShowAll(false), [data?.query?.original]);
-  if (!data || data.status === "not_found") return null;
-  const rows = data.required_characteristics || [];
+  if (!data) return null;
+  const rows = (data.required_characteristics || []).filter(r => r.status !== "missing");
   const features = data.features || [];
   const byId = Object.fromEntries(features.map(f => [f.id, f]));
-  const filledRequired = rows.filter(r => r.status !== "missing");
-  const requiredIds = new Set(filledRequired.map(r => r.feature_id));
+  const requiredIds = new Set(rows.map(r => r.feature_id));
   const optional = data.optional_characteristics || [];
   const optionalIds = new Set(optional.map(f => f.id));
-  // распознанные признаки, не попавшие ни в обязательные, ни в необязательные (например, при противоречии)
-  const otherBound = features.filter(f => ["bound", "proposed"].includes(f.status) && f.property_name && !requiredIds.has(f.id) && !optionalIds.has(f.id));
+  const other = features.filter(f => ["bound", "proposed"].includes(f.status) && f.property_name && !requiredIds.has(f.id) && !optionalIds.has(f.id));
   const ambiguous = features.filter(f => f.status === "ambiguous");
   const extra = data.additional || [];
-  const missing = rows.filter(r => r.status === "missing");
-  const commonMissing = missing.filter(r => r.common);
-  const partialMissing = missing.filter(r => !r.common);
-  const partialShown = showAll ? partialMissing : partialMissing.filter(r => r.narrows).slice(0, commonMissing.length ? 4 : 8);
-  const entered = filledRequired.length + optional.length + otherBound.length + ambiguous.length + extra.length;
-  const statusTag = { filled: ["Обязательная · проверена", "green"], invalid: ["Обязательная · не подходит", "amber"], unchecked: ["Обязательная · не проверена", "amber"] };
-  return <section className={`chars-panel panel ${search.stale ? "chars-stale" : ""}`} aria-label="Характеристики товара">
-    <div className="chars-column">
-      <div className="panel-heading"><Icon name="check" /><h2>Введённые характеристики <span className="chars-count">{entered}</span></h2></div>
-      <p className="panel-caption">Приведены к виду КТРУ. Значение можно исправить.</p>
-      {entered === 0 && <p className="chars-empty">Пока не распознано ни одной характеристики. Добавьте их в описание или заполните справа.</p>}
-      {filledRequired.map(r => <CharRow key={`r-${r.property_code}`} name={r.name} tag={statusTag[r.status][0]} tagClass={statusTag[r.status][1]}
-        evidence={byId[r.feature_id]?.evidence} hint={r.status !== "filled" ? r.reason : null}><RequiredInput row={r} search={search} /></CharRow>)}
-      {[...optional, ...otherBound].map(f => <CharRow key={`o-${f.id}`} name={f.property_name} tag={optionalIds.has(f.id) ? "Необязательная" : "КТРУ"} tagClass="blue"
-        evidence={f.evidence}><FeatureValueInput feature={f} search={search} /></CharRow>)}
-      {ambiguous.map(f => <CharRow key={`a-${f.id}`} name={`«${f.evidence || f.value}»`} tag="Уточните свойство" tagClass="amber" hint={f.note}>
-        <select className="char-select" defaultValue="" disabled={search.stale} onChange={event => {
-          const option = f.options[Number(event.target.value)];
-          search.override({ property: option.property_code, value: option.value ?? f.value, value_to: f.value_to, op: f.op, unit: f.unit });
-        }}><option value="" disabled>К какому свойству относится?</option>{f.options.map((o, i) => <option key={i} value={i}>{o.property_name}{o.value ? ` = ${o.value}` : ""}</option>)}</select>
-      </CharRow>)}
-      {extra.map((a, i) => <CharRow key={`e-${i}`} name={a.name} tag={SOURCE_TAGS[a.source][0]} tagClass={SOURCE_TAGS[a.source][1]} hint={a.reason}>
-        <b className="char-static">{a.value} {a.unit || ""}</b>
-      </CharRow>)}
-    </div>
-    <div className="chars-column">
-      <div className="panel-heading"><Icon name="filter" /><h2>Осталось ввести <span className="chars-count">{missing.length}</span></h2></div>
-      <p className="panel-caption">{missing.length ? "Обязательные характеристики КТРУ оставшихся позиций. Сначала общие для всех." : rows.length ? "Все обязательные характеристики КТРУ указаны." : "Обязательные характеристики появятся, когда будет понятен товар."}</p>
-      {commonMissing.map(r => <CharRow key={`m-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : "Общая"} tagClass="blue"
-        hint={r.positions < r.total ? `обязательна у ${r.positions} из ${r.total}` : null}><RequiredInput row={r} search={search} /></CharRow>)}
-      {partialShown.length > 0 && <h3 className="chars-subtitle">Есть только у части позиций</h3>}
-      {partialShown.map(r => <CharRow key={`p-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue"
-        hint={`обязательна у ${r.positions} из ${r.total} позиций`}><RequiredInput row={r} search={search} /></CharRow>)}
-      {partialMissing.length > partialShown.length && <button className="text-button" onClick={() => setShowAll(true)}>Показать все ({partialMissing.length})</button>}
-    </div>
-  </section>;
+  const total = rows.length + optional.length + other.length + ambiguous.length + extra.length;
+  return <SidePanel icon="check" title="Выбранные характеристики" count={total} className="side-selected"
+    empty="Пока ничего не распознано. Опишите товар подробнее или заполните характеристики ниже.">
+    {rows.map(r => { const f = byId[r.feature_id]; return <CharItem key={`r-${r.property_code}`} name={r.name} tag={STATUS_TAGS[r.status][0]} tagClass={STATUS_TAGS[r.status][1]}
+      evidence={f?.evidence} hint={r.status !== "filled" ? r.reason : null}>
+      <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} initial={r.value || ""} initialUnit={r.unit || ""} fragment={fragmentFor(r.name, features, f)} removable />
+    </CharItem>; })}
+    {[...optional, ...other].map(f => <CharItem key={`o-${f.id}`} name={f.property_name} tag={optionalIds.has(f.id) ? "Необязательная" : "КТРУ"} tagClass="blue" evidence={f.evidence}>
+      <ValueInput search={search} name={f.property_name} initial={featureValue(f)} initialUnit={f.unit || ""} numeric={!!f.unit} units={f.unit ? [f.unit] : []} fragment={fragmentFor(f.property_name, features, f)} removable />
+    </CharItem>)}
+    {ambiguous.map(f => <CharItem key={`a-${f.id}`} name={`«${f.evidence || f.value}»`} tag="Уточните свойство" tagClass="amber">
+      <select className="value-select" defaultValue="" disabled={search.stale} onChange={event => {
+        const option = f.options[Number(event.target.value)];
+        search.override({ property: option.property_code, value: option.value ?? f.value, value_to: f.value_to, op: f.op, unit: f.unit });
+      }}><option value="" disabled>К какому свойству относится?</option>{f.options.map((o, i) => <option key={i} value={i}>{o.property_name}{o.value ? ` = ${o.value}` : ""}</option>)}</select>
+    </CharItem>)}
+    {extra.map((a, i) => <CharItem key={`e-${i}`} name={a.name} tag={SOURCE_TAGS[a.source][0]} tagClass={SOURCE_TAGS[a.source][1]} hint={a.reason}>
+      <b className="char-static">{a.value} {a.unit || ""}</b>
+    </CharItem>)}
+  </SidePanel>;
+}
+
+export function MissingChars({ search }) {
+  const data = search.result;
+  if (!data) return null;
+  const missing = (data.required_characteristics || []).filter(r => r.status === "missing");
+  const common = missing.filter(r => r.common);
+  const partial = missing.filter(r => !r.common);
+  const empty = (data.required_characteristics || []).length ? "Все обязательные характеристики КТРУ указаны." : "Появятся, когда станет понятен товар.";
+  return <SidePanel icon="filter" title="Осталось ввести" count={missing.length} className="side-missing" empty={empty}>
+    {common.length > 0 && partial.length > 0 && <li className="char-group">Общие для всех позиций</li>}
+    {common.map(r => <CharItem key={`m-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue">
+      <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} />
+    </CharItem>)}
+    {partial.length > 0 && <li className="char-group">Есть только у части позиций</li>}
+    {partial.map(r => <CharItem key={`p-${r.property_code}`} name={r.name} tag={r.narrows ? "Сузит выбор" : null} tagClass="blue" hint={`обязательна у ${r.positions} из ${r.total}`}>
+      <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} />
+    </CharItem>)}
+  </SidePanel>;
 }
 
 export function Question({ search }) {
   const question = search.result?.question;
   const [number, setNumber] = useState("");
-  if (!question || search.result.status === "matched" || search.result.status === "conflict") return null;
+  // после ответа уточнение сразу скрывается: до нового ответа сервера показывать нечего
+  if (!question || search.stale || search.busy.fast || search.result.status === "matched" || search.result.status === "conflict") return null;
+  const choose = option => {
+    const answers = option.answers?.length ? option.answers : option.answer ? [option.answer] : [];
+    const property = answers.length === 1 && question.kind === "property" && question.property_name && answers[0].property !== "__type__";
+    if (property && !option.reject?.length && !option.confirm?.length) applyValue(search, { name: question.property_name, constraint: { ...answers[0], property: question.property_name } });
+    else search.answer(option);
+  };
   return <section className="question-panel panel" id="question">
-    <div className="question-symbol"><Icon name="sparkle" size={22} /></div><div className="question-content">
-      <span className="eyebrow">Поможем сузить поиск</span><h3>{question.text}</h3>
-      {question.reason && <p className="question-reason">{question.reason}</p>}
-      <fieldset disabled={search.stale}><div className="question-choices">{question.options.map((option, i) => <button className="choice" key={i} onClick={() => search.answer(option)}>{option.label}<Icon name="arrow" size={14} /></button>)}</div>
-        {question.allows_number && <form className="numeric-answer" onSubmit={event => { event.preventDefault(); if (!number.trim()) return;
-          search.override(parseConstraint(question.property_code, number, question.unit)); setNumber("");
-        }}><input aria-label="Ответ на уточняющий вопрос" placeholder="Укажите значение" value={number} onChange={event => setNumber(event.target.value)} required /><span>{question.unit}</span><button className="button button-soft">Применить</button></form>}
-      </fieldset>
-    </div>
+    <div className="question-head"><Icon name="sparkle" size={18} /><span className="eyebrow">Уточнение</span></div>
+    <h3>{question.text}</h3>
+    {question.reason && <p className="question-reason">{question.reason}</p>}
+    <div className="question-choices">{question.options.map((option, i) => <button className="choice" key={i} onClick={() => choose(option)}>{option.label}<Icon name="arrow" size={13} /></button>)}</div>
+    {question.allows_number && <form className="numeric-answer" onSubmit={event => { event.preventDefault(); if (!number.trim()) return;
+      applyValue(search, { name: question.property_name, constraint: parseConstraint(question.property_name, number, question.unit) }); setNumber("");
+    }}><input aria-label="Ответ на уточняющий вопрос" placeholder="Укажите значение" value={number} onChange={event => setNumber(event.target.value)} required /><span>{question.unit}</span><button className="button button-soft">Ок</button></form>}
   </section>;
 }
 

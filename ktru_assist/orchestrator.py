@@ -217,7 +217,8 @@ class Orchestrator:
                 if not hasattr(self, "live"):
                     self.live = LiveSearch(self)
         expected = hashlib.sha256(req.text.encode()).hexdigest()[:16]
-        if req.answers and req.answers_query_hash != expected:
+        # как в ядре: без хеша ответы не сверяются (скрытая строка сама держит их по фрагментам текста)
+        if req.answers and req.answers_query_hash and req.answers_query_hash != expected:
             req = req.model_copy(update={"answers": []})
         t0 = time.perf_counter()
         key = "live:" + self._a_key(req) + json.dumps(self.versions(), sort_keys=True)
@@ -244,7 +245,7 @@ class Orchestrator:
         providers = []
         bkey = None
         expected_hash = hashlib.sha256(req.text.encode()).hexdigest()[:16]
-        if req.answers and req.answers_query_hash != expected_hash:
+        if req.answers and req.answers_query_hash and req.answers_query_hash != expected_hash:
             req = req.model_copy(update={"answers": []})
         scope = self.engine.catalog_scope
         type_choice = next((c for c in [*req.overrides, *req.answers] if c.property == TYPE_PROP and not c.remove), None)

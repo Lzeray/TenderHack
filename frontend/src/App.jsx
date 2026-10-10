@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearch } from "./useSearch.js";
-import { Additional, CharacteristicsPanel, Feedback, Icon, ProductArt, ProductCard, ProductDialog, Question, SearchBox } from "./components.jsx";
+import { Additional, Feedback, Icon, MissingChars, ProductArt, ProductCard, ProductDialog, Question, SearchBox, SelectedChars } from "./components.jsx";
 
 const examples = ["Молоток слесарный 500 г", "Стул на металлическом каркасе", "Куртка утеплённая"];
 const categories = [
@@ -68,14 +68,16 @@ export default function App() {
         <p className="hero-description">Характеристики приводим к виду КТРУ, сужаем список позиций и подсказываем, что ещё указать.</p>
         <SearchBox search={search} />
         {!search.text.trim() && <div className="example-row"><span>Например:</span>{examples.map(example => <button key={example} onClick={() => search.changeText(example)}>{example}<Icon name="arrow" size={13} /></button>)}</div>}
-        {search.text.trim() && <CharacteristicsPanel search={search} />}
       </section>
-      {help && <section className="help-panel panel"><button className="icon-button" aria-label="Закрыть подсказку" onClick={() => setHelp(false)}><Icon name="close" /></button><h2>Поиск, который объясняет свой результат</h2><p>Поиск идёт только по справочнику КТРУ. Характеристики, которые есть в КТРУ, сужают список позиций; те, которых в КТРУ нет, сохраняются как дополнительные (с проверкой по выгрузкам СТЕ) и на код не влияют.</p><p>Внизу — обязательные характеристики оставшихся позиций: сначала общие для всех. Заполненные можно исправить. Код показываем, когда остаётся одна позиция и её обязательные характеристики указаны.</p></section>}
+      {help && <section className="help-panel panel"><button className="icon-button" aria-label="Закрыть подсказку" onClick={() => setHelp(false)}><Icon name="close" /></button><h2>Поиск, который объясняет свой результат</h2><p>Поиск идёт только по справочнику КТРУ. Характеристики, которые есть в КТРУ, сужают список позиций; те, которых в КТРУ нет, сохраняются как дополнительные (с проверкой по выгрузкам СТЕ) и на код не влияют.</p><p>Слева — выбранные характеристики и те, что осталось ввести (сначала общие для всех позиций); выбранное значение дописывается в строку поиска. Справа — подходящие позиции КТРУ. Когда остаётся одна позиция, показываем её код.</p></section>}
       <Feedback search={search} />
       {!search.text.trim() ? <Welcome onChoose={search.changeText} /> : <>
-        <div className="catalog-layout"><div className="catalog-sidebar"><CodeSummary search={search} />
+        <div className="catalog-layout"><aside className="catalog-sidebar side" aria-label="Подбор и характеристики">
+          <CodeSummary search={search} />
           <Question search={search} />
-        </div><section className="catalog-main" aria-label="Результаты подбора" data-query={current ? data.query.original : ""}>
+          <SelectedChars search={search} />
+          <MissingChars search={search} />
+        </aside><section className="catalog-main" aria-label="Результаты подбора" data-query={current ? data.query.original : ""}>
           <div className="results-header"><div><span className="eyebrow">Справочник КТРУ</span><h2>{matched ? "Подобранная позиция" : "Подходящие позиции КТРУ"}</h2></div><span className="view-label"><Icon name="grid" size={17} />{searching ? "…" : count(items.length)}</span></div>
           <div id="result-panel">
             <p className="results-note">{matched ? "Позиция определена однозначно. Дополнительные характеристики сохранены." : "Совместимые конечные позиции. Список сужается по мере ввода характеристик."}</p>

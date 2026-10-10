@@ -121,7 +121,10 @@ def api_search(req: SearchRequest) -> SearchResponse:
     if req.canonical is not None:
         # скрытая строка «тип; ключ: значение» (docs/PARSE_INPUT_PLAN.md, P4)
         from .canonical import process
-        return process(req, get_engine(), get_orchestrator().run)
+        o = get_orchestrator()
+        # разбор видимого текста — правилами: в гибридном режиме основной движок сам текст не разбирает
+        core = getattr(getattr(o, "live", None), "rules", None) or get_engine()
+        return process(req, core, o.run)
     return get_orchestrator().run(req)
 
 

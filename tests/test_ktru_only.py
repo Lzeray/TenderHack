@@ -121,3 +121,20 @@ def test_override_by_name_survives_type_choice(engine):
     f = next(f for f in r.features if f.property_name == "Тип питания" and f.source == "override")
     assert f.status == "bound" and f.value == "От сети"
     assert r.compatible_codes == ["28.24.11.000-92000001"]
+
+
+def test_ambiguous_value_goes_to_undescribed_part():
+    # «лдсп» подходит к каркасу и столешнице; каркас уже описан — значение относится к столешнице
+    from ktru_assist.engine import Engine
+    groups = {"a": SimpleNamespace(name="Тип каркаса", component="frame"),
+              "b": SimpleNamespace(name="Вид материала каркаса", component="frame"),
+              "c": SimpleNamespace(name="Вид материала столешницы", component="tabletop")}
+    bound = Feature(id="1", source="text", status="bound", property_name="Тип каркаса", value="Деревянный")
+    amb = Feature(id="2", source="text", status="ambiguous", value="ЛДСП", options=[
+        {"property_name": "Вид материала каркаса", "property_code": "b1", "value": "ЛДСП"},
+        {"property_name": "Вид материала столешницы", "property_code": "c1", "value": "ЛДСП"}])
+    out = Engine._resolve_by_described_part([bound, amb], groups)
+    assert out[1].status == "bound" and out[1].property_name == "Вид материала столешницы"
+    # без описанной части — вопрос остаётся
+    amb2 = amb.model_copy(update={"status": "ambiguous", "property_name": None})
+    assert Engine._resolve_by_described_part([amb2], groups)[0].status == "ambiguous"

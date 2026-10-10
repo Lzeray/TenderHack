@@ -20,7 +20,7 @@
 | `generate.py` | Генератор наборов `suites/*.jsonl` и манифеста заморозки |
 | `metrics.py` | Метрики v2, бутстреп-интервалы и тривиальные базовые линии |
 | `run.py` | Прогон адаптеров и отчёт JSON + Markdown |
-| `make_labeling.py` | Шаблон ручной разметки по карточкам портала. В `main` его нет: нужен `ktru_assist.portal`, файл есть в ветке `Lenaz` |
+| `make_labeling.py` | Шаблон ручной разметки по карточкам портала |
 | `suites/natural.jsonl`, `suites/contradictions.jsonl`, `suites/out_of_scope.jsonl` | Наборы |
 | `test_manifest.sha256`, `FROZEN.md` | Заморозка test-части |
 | `../../tests/test_independent_metrics.py` | Тесты метрик и эталона на фейковых адаптерах |

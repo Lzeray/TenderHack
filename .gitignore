@@ -3,6 +3,7 @@
 Примеры выгрузок/
 data/*.sqlite
 data/*.tmp
+data/*.unpack
 reports/dev_*.txt
 reports/sql.txt
 reports/explore.txt
@@ -16,6 +17,11 @@ data/models/
 data/cache/
 data/logs/
 reports/runs/
+data/portal_characteristics.json
+benchmark/local_suites/
+reports/night/dev_*.json
+reports/night/v1_*
+reports/night/eval_*.json
 data/exp_*
 reports/exp/
 data/bench_fixture/

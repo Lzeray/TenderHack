@@ -90,7 +90,8 @@ def test_type_word_matches_by_head(engine):
     f = Feature(id="f", source="text", status="bound", property_code="1", property_name="Вид товара",
                 value="Стол", from_type_name=True)
     assert check_feature(pos("Стол для переговоров"), f)[0] == "valid"
-    assert check_feature(pos("Секция стола"), f)[0] == "invalid"
+    assert check_feature(pos("Секция стола"), f)[0] == "valid"        # слово типа есть в значении (Q1)
+    assert check_feature(pos("Тумба"), f)[0] == "invalid"
     # явно названное значение сравнивается целиком
     assert check_feature(pos("Стол для переговоров"), f.model_copy(update={"from_type_name": False}))[0] == "invalid"
 

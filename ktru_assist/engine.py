@@ -37,6 +37,7 @@ from .units import BY_KEY
 from .validate import check_feature, evaluate, find_prop
 
 MAX_CANDIDATES_OUT = 100
+MAX_QUESTIONS = 2          # уточняющих вопросов не больше двух, дальше — список «Осталось ввести» (QUESTIONS_PLAN Q2)
 REQUIRED_EMPTY = "обязательное свойство не заполнено"
 PREFERENCE_WORDS = {"желательно", "предпочтительно", "желательный", "предпочтительный"}
 REQUIREMENT_WORDS = {"нужный", "нужно", "нужен", "требоваться", "требуется", "должный", "должен", "необходимый"}
@@ -473,8 +474,10 @@ class Engine:
                                         f"несовместимых значений: {vals}. У товара одно значение этого свойства "
                                         "— укажите верное"))
             blocking_feats.append(None)
+        # «Вид товара» из слова типа («стол») не задаёт характеристику: по ней ещё можно спросить «стол или секция
+        # стола» (docs/QUESTIONS_PLAN.md, Q1)
         constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
-                       if f.status == "bound" and f.property_name}
+                       if f.status == "bound" and f.property_name and not f.from_type_name}
         if self.native:
             # признаки разбора правилами не несут ссылку на характеристику: заданные свойства — по позициям
             for f in features:
@@ -545,6 +548,12 @@ class Engine:
         else:
             single = len(finals) == 1
             ev = ev0
+            # главное слово задало тип, ответы на вопросы сузили его до одного наименования — тип подтверждён
+            # пользователем (docs/QUESTIONS_PLAN.md, Q2); «кресло-качалка» при единственном наименовании области
+            # (weak_single_name) по-прежнему требует подтверждения
+            if (not type_confirmed and single and not weak_single_name and not det.ambiguous_aliases
+                    and any(a.property != TYPE_PROP for a in answers) and not self.native):
+                type_confirmed = True
             proven = single and type_confirmed and res_b.complete and not blocking_feats
             if proven and not gate:
                 code_res = CodeResolution(status="resolved", code=finals_pos[0].code, remaining=1,
@@ -595,7 +604,8 @@ class Engine:
                     question = choose_question(
                         finals_pos, constrained, type_fixed, req_unknown,
                         type_first=bool(det.ambiguous_aliases) or weak_single_name or (self.native and not type_confirmed),
-                        strict_refs=self.native)
+                        strict_refs=self.native, weights=None if self.native else self._answer_weights(heads),
+                        budget=MAX_QUESTIONS - len({a.property for a in answers}))
                 if dims_question is not None and (question is None or question.kind != "type"):
                     question = dims_question
                 if question is not None and question.kind == "manual_choice":
@@ -614,6 +624,9 @@ class Engine:
                         parts.append("нужно подтверждение: " + "; ".join(gate))
                     if single and ev_blocking:
                         parts.append("не проверено: " + "; ".join(ev_blocking[:3]))
+                    if question is None and not single and len({a.property for a in answers}) >= MAX_QUESTIONS:
+                        parts.append(f"задано {MAX_QUESTIONS} уточняющих вопроса — дозаполните характеристики из "
+                                     "списка «Осталось ввести»")
                     message = ". ".join(parts)
         if contradictions:
             # переизбыток данных: несовместимые значения одного свойства — сначала выбрать верное
@@ -665,6 +678,27 @@ class Engine:
             additional=additional, **base)
 
     # ------------------------------------------------------------------
+    def _answer_weights(self, heads: list[str]):
+        """Доля значения среди товаров этого типа в выгрузках СТЕ (0…1) — слабая поправка к вероятностям ответов
+        в выборе вопроса (docs/QUESTIONS_PLAN.md, Q2). Нет выгрузок или свойства — None."""
+        stats = self.ste_stats
+        if stats is None or not getattr(stats, "available", False) or not heads:
+            return None
+        cache: dict = {}
+
+        def share(prop_name: str, label: str):
+            key = (prop_name, label)
+            if key not in cache:
+                ps = stats.find(heads, prop_name, "text", None)
+                if ps is None:
+                    cache[key] = None
+                else:
+                    freq = stats.text_lemmas(ps.prop_id)
+                    total = sum(freq.values())
+                    cache[key] = (freq.get(tuple(content_lemmas(label)), 0) / total) if total else None
+            return cache[key]
+        return share
+
     @staticmethod
     def _key_tokens(tokens) -> set[int]:
         """Слова названия свойства в записи «ключ: значение» после первой части («шапка; Размер (обхват головы): 61»):

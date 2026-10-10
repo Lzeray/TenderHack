@@ -1,6 +1,8 @@
 """Доступ к импортированному каталогу (SQLite только на чтение) и доменные объекты."""
 from __future__ import annotations
 
+import re
+
 import json
 import sqlite3
 from dataclasses import dataclass, field
@@ -182,6 +184,32 @@ class Position:
         return " ".join(tokenize(self.name))
 
 
+ITEM_STOP = frozenset({"для", "под", "к", "ко", "с", "со", "на", "из", "от", "по", "в", "во", "без", "при", "над",
+                       "о", "об", "у", "за", "до"})
+
+
+def item_words(name: str, heads: set[str]) -> set[str]:
+    """Слова типа в наименовании, которые называют сам товар, а не его назначение: слово не стоит после предлога
+    в своей группе (назад — до запятой, «/», скобки или начала). «Шаблон для заточки спиральных сверл» — не
+    «сверло», «Ножи и лезвия режущие» — и «лезвие»."""
+    from ..text import lemma
+    parts = re.findall(r"[а-яёa-z]+(?:-[а-яёa-z]+)*|[,/()]", name.lower())
+    out = set()
+    for i, w in enumerate(parts):
+        lem = lemma(w) if w not in ",/()" else w
+        if lem not in heads:
+            continue
+        j, ok = i - 1, True
+        while j >= 0 and parts[j] not in ",/()":
+            if parts[j] in ITEM_STOP:
+                ok = False
+                break
+            j -= 1
+        if ok:
+            out.add(lem)
+    return out
+
+
 class Catalog:
     """SQLite в режиме только чтения; соединение на поток не разделяется (check_same_thread=False
     допустим, так как запись невозможна)."""
@@ -268,9 +296,14 @@ class Catalog:
         rows = self.con.execute(
             "SELECT code, name, name_lemmas, head, category, active, is_template, okpd2_name "
             "FROM positions WHERE category IS NOT NULL ORDER BY code").fetchall()
+        heads = {r["head"] for r in rows if r["head"]}
         return [{
             "code": r["code"], "name": r["name"], "name_lemmas": (r["name_lemmas"] or "").split(),
-            "head": r["head"], "head_parts": sorted({r["head"], *(r["head"] or "").split("-")} - {""}),
+            "head": r["head"],
+            # тип позиции — главное слово и другие слова типа в наименовании не после предлога: «Секция стульев
+            # многоместная» — и «стул», «Пара кожаных перчаток» — и «перчатка»; «Шкаф для одежды» — не «одежда»
+            # (docs/QUESTIONS_PLAN.md, Q1)
+            "head_parts": sorted({r["head"], *(r["head"] or "").split("-"), *item_words(r["name"], heads)} - {""}),
             "category": r["category"], "active": bool(r["active"]), "is_template": bool(r["is_template"]),
             "okpd2_lemmas": content_lemmas(r["okpd2_name"] or ""),
         } for r in rows]

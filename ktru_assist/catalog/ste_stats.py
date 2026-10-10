@@ -39,7 +39,7 @@ from ..units import lookup
 from .repository import Catalog
 from .ste_importer import HEADERS, MISSING, SEED_NAMES, VALUE_START, annotate, key, xlsx_rows
 
-VERSION = "1.0"
+VERSION = "1.1"   # 1.1 axis_order, pair_le (совместные закономерности по моделям)
 FILE_CATEGORY = {"Инструменты": "tools", "Мебель": "furniture", "Одежда": "clothes"}
 POSITIVE = {"length", "area", "mass", "volume", "power", "voltage", "current", "charge", "torque", "frequency",
             "rotation", "time", "flow"}
@@ -66,6 +66,10 @@ CREATE TABLE zones(prop_id INTEGER, zone_no INTEGER, lo TEXT, hi TEXT, n_models 
 CREATE TABLE value_freq(prop_id INTEGER, value TEXT, n_models INTEGER, PRIMARY KEY(prop_id, value));
 CREATE TABLE text_freq(prop_id INTEGER, value_norm TEXT, display TEXT, n_models INTEGER,
                        PRIMARY KEY(prop_id, value_norm));
+CREATE TABLE axis_order(type_key TEXT, axes TEXT, order_desc TEXT, n_models INTEGER,
+                        PRIMARY KEY(type_key, axes, order_desc));
+CREATE TABLE pair_le(type_key TEXT, a_key TEXT, b_key TEXT, dimension TEXT, n_models INTEGER, holds TEXT,
+                     PRIMARY KEY(type_key, a_key, b_key));
 """
 
 
@@ -339,11 +343,13 @@ def build(src: Path, db: Path, out: Path, report: Path | None = None, holdout: t
             None, None, None, len(freq)))
         con.executemany("INSERT INTO text_freq VALUES(?,?,?,?)", [
             (pid, v, display[(tkey, pk, v)].most_common(1)[0][0], n) for v, n in sorted(freq.items())])
+    _joint_tables(con, num, models_of_type)
     con.commit()
     # хэш содержимого: логический дамп в фиксированном порядке
     h = hashlib.sha256()
     for table, order in (("types", "type_key"), ("props", "prop_id"), ("zones", "prop_id, zone_no"),
-                         ("value_freq", "prop_id, value"), ("text_freq", "prop_id, value_norm")):
+                         ("value_freq", "prop_id, value"), ("text_freq", "prop_id, value_norm"),
+                         ("axis_order", "type_key, axes, order_desc"), ("pair_le", "type_key, a_key, b_key")):
         for r in con.execute(f"SELECT * FROM {table} ORDER BY {order}"):
             h.update(json.dumps(r, ensure_ascii=False).encode())
     meta = cat.meta
@@ -364,6 +370,58 @@ def build(src: Path, db: Path, out: Path, report: Path | None = None, holdout: t
         report.parent.mkdir(parents=True, exist_ok=True)
         report.write_text(json.dumps(rep, ensure_ascii=False, indent=1), encoding="utf-8")
     return manifest
+
+
+AXIS_KEYS = ("длина", "ширина", "глубина", "высота", "диаметр")
+PAIR_MIN_MODELS = 30           # пара свойств встречается вместе хотя бы у стольких моделей
+PAIR_MIN_HOLDS = Decimal("0.99")  # «A ≤ B» выполняется не меньше чем у 99 % из них
+
+
+def _joint_tables(con, num, models_of_type) -> None:
+    """Совместные закономерности по моделям (docs/UNITS_PLAN.md, U3–U4):
+    axis_order — порядок общих осей по величине у моделей, где указаны хотя бы две оси;
+    pair_le — пары числовых свойств одной размерности, где «A ≤ B» выполняется у ≥ 99 % моделей (≥ 30 моделей)."""
+    def majority(counter):
+        (v, n), *rest = counter.most_common(2) + [(None, 0)]
+        return v if n > rest[0][1] else None
+
+    by_type: dict[str, dict] = collections.defaultdict(lambda: collections.defaultdict(dict))
+    support: dict[tuple, int] = {}
+    for (tkey, pk, dim), per_model in num.items():
+        vals = {m: majority(c) for m, c in per_model.items()}
+        vals = {m: v for m, v in vals.items() if v is not None}
+        support[(tkey, pk, dim)] = len(vals)
+        if len(vals) < PAIR_MIN_MODELS or dim in ("count", None):
+            continue
+        for m, v in vals.items():
+            by_type[tkey][m][(pk, dim)] = v
+    orders = collections.Counter()
+    pairs_n = collections.Counter()
+    pairs_le = collections.Counter()
+    for tkey in sorted(by_type):
+        for m, pv in by_type[tkey].items():
+            axes = [(pk, v) for (pk, dim), v in pv.items() if dim == "length" and pk in AXIS_KEYS]
+            if len(axes) >= 2:
+                order = tuple(k for k, _ in sorted(axes, key=lambda x: (-x[1], x[0])))
+                orders[(tkey, ",".join(sorted(k for k, _ in axes)), ",".join(order))] += 1
+            items = sorted(pv.items())
+            for i, ((a, da), va) in enumerate(items):
+                for (b, db), vb in items[i + 1:]:
+                    if da != db:
+                        continue
+                    pairs_n[(tkey, a, b, da)] += 1
+                    pairs_le[(tkey, a, b, da)] += va <= vb
+    con.executemany("INSERT INTO axis_order VALUES(?,?,?,?)", [(t, a, o, n) for (t, a, o), n in sorted(orders.items())])
+    rows = []
+    for (t, a, b, d), n in sorted(pairs_n.items()):
+        if n < PAIR_MIN_MODELS:
+            continue
+        le = Decimal(pairs_le[(t, a, b, d)]) / n
+        if le >= PAIR_MIN_HOLDS:
+            rows.append((t, a, b, d, n, dec_str(le)))
+        elif 1 - le >= PAIR_MIN_HOLDS:          # «B ≤ A»
+            rows.append((t, b, a, d, n, dec_str(1 - le)))
+    con.executemany("INSERT OR IGNORE INTO pair_le VALUES(?,?,?,?,?,?)", rows)
 
 
 def _category_of(registry: TypeRegistry, tkey: str) -> str:

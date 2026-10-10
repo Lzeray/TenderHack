@@ -32,7 +32,7 @@ from ..catalog.repository import Position, Prop
 from ..components import canonical_key, component_of_lemma, property_component
 from ..config import ROOT
 from ..models import Feature
-from ..dims import axis_of, context_of
+from ..dims import AXES, axis_of, context_of
 from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_of_literal, lemma_set, norm, tokenize
 from ..units import BY_KEY, fmt
 from .normalize import NormalizedQuery, Token
@@ -614,7 +614,21 @@ class Extractor:
                         h = _core_present(g, tokens, w)
                         hit = [h] if h is not None else None
                     else:
-                        hit = _terms_present(g.terms, tokens, w)
+                        # все слова названия — с одной стороны от числа: «высота шкафа 60 см глубина шкафа 180» —
+                        # «шкафа» слева и «глубина» справа не складываются в «Глубину шкафа» для 60
+                        back_side = [k for k in w if k < min(used)]
+                        fwd_side = [k for k in w if k > anchor]
+                        hit = _terms_present(g.terms, tokens, back_side) or _terms_present(g.terms, tokens, fwd_side)
+                        if hit is None and len(g.terms) > 3:
+                            # длинное название («Длина режущей части полотна (без учета предельного отклонения)») —
+                            # весь отрезок до числа от предыдущей запятой или точки с запятой
+                            seg = []
+                            k = min(used) - 1
+                            while k >= 0 and tokens[k].text not in (",", ";"):
+                                if tokens[k].used_by is None:
+                                    seg.append(k)
+                                k -= 1
+                            hit = _terms_present(g.terms, tokens, sorted(seg))
                     if hit is not None:
                         out.append((1 if use_core else len(g.terms), g, hit))
                 return out
@@ -658,8 +672,15 @@ class Extractor:
                                       and PROPERTY_SYNONYMS.get(tokens[k].lemma, tokens[k].lemma) in self.known_terms),
                                      None)
             if named_unknown is not None:
-                feats.append(self._feature(None, tokens, used + [named_unknown.i], nq, status="unknown_property",
-                                           named_property=named_unknown.text,
+                # «глубина сидения 90 см»: название — от слова-оси слева («глубина»), а не одно ближайшее слово
+                k0 = named_unknown.i
+                for k in (k0 - 1, k0 - 2):
+                    if k >= 0 and tokens[k].kind == "word" and tokens[k].lemma in AXES and tokens[k].used_by is None                             and tokens[k0].lemma not in AXES:
+                        k0 = k
+                        break
+                named_text = nq.text[tokens[k0].start:named_unknown.end]
+                feats.append(self._feature(None, tokens, used + list(range(k0, named_unknown.i + 1)), nq,
+                                           status="unknown_property", named_property=named_text,
                                            note=f"у позиций этого типа нет свойства «{named_unknown.text}» "
                                                 "подходящей размерности", **kw))
             elif explicit:

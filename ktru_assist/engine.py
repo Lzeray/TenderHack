@@ -328,6 +328,8 @@ class Engine:
         # уровень 3: сомнительные значения — только предложения, на отбор не влияют
         level3 = [] if self.native else suspicious.check(features, positions, req.text, set(req.confirmed),
                                                              heads=heads, stats=self.ste_stats)
+        if not self.native:
+            level3 += suspicious.relations(features, heads, self.ste_stats, set(req.confirmed))
         for sg in level3:
             issues.append(Issue(level="warning", code=f"suspect_{sg.rule}", message=sg.message))
         level2 = [] if self.native else [e for f in features

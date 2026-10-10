@@ -121,3 +121,24 @@ def test_unit_inferred_by_distributions(real_engine):
     for text, unit in cases.items():
         f = next(f for f in real_engine.search(SearchRequest(text=text)).features if f.unit_inferred)
         assert f.unit == unit, text
+
+
+def test_relation_warning_between_named_values(real_engine):
+    r = real_engine.search(SearchRequest(text="шкаф для одежды высота шкафа 60 см глубина шкафа 180 см"))
+    feats = {f.property_name: f.value for f in r.features if f.status == "bound" and f.unit}
+    assert feats == {"Высота шкафа": "60", "Глубина шкафа": "180"}          # название — с одной стороны числа
+    assert any(s.rule == "relation" for s in r.suggestions)
+    r = real_engine.search(SearchRequest(text="шкаф для одежды высота шкафа 180 см глубина шкафа 60 см"))
+    assert not any(s.rule == "relation" for s in r.suggestions)
+
+
+def test_unknown_rival_blocks_auto_choice(real_engine):
+    # у «Массы бойка» нет данных в выгрузках — выбрать между ней и «Массой молотка» нельзя: вопрос
+    r = real_engine.search(SearchRequest(text="молоток слесарный 500 г"))
+    assert r.question is not None and "500 г" in r.question.text
+
+
+def test_long_property_name_in_segment(real_engine):
+    t = "пила ручная, вид пилы: обушковая, длина режущей части полотна (без учета предельного отклонения) 56,2 см"
+    f = next(f for f in real_engine.search(SearchRequest(text=t)).features if f.unit == "см")
+    assert f.status == "bound" and f.property_name.startswith("Длина режущей части полотна")

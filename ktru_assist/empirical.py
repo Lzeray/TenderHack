@@ -130,6 +130,25 @@ class SteStats:
         правила не требовало пересборки артефакта."""
         return tuple(zones_from_freq(sorted(self.values(prop_id))))
 
+    @lru_cache(maxsize=1024)
+    def axis_orders(self, type_key: str, axes: str) -> dict[str, int]:
+        """Порядок осей по величине у моделей типа (axes — оси через запятую по алфавиту). Пусто, если таблицы
+        нет (артефакт старой схемы) или данных нет."""
+        try:
+            return {o: n for o, n in self.con.execute(
+                "SELECT order_desc, n_models FROM axis_order WHERE type_key=? AND axes=?", (type_key, axes))}
+        except sqlite3.Error:
+            return {}
+
+    @lru_cache(maxsize=256)
+    def pair_rules(self, type_key: str) -> tuple[tuple[str, str, str, int, Decimal], ...]:
+        """Пары «A ≤ B» (≥ 99 % моделей). Пусто для артефакта старой схемы."""
+        try:
+            return tuple((a, b, d, n, Decimal(h)) for a, b, d, n, h in self.con.execute(
+                "SELECT a_key, b_key, dimension, n_models, holds FROM pair_le WHERE type_key=?", (type_key,)))
+        except sqlite3.Error:
+            return ()
+
     @lru_cache(maxsize=256)
     def by_lemmas(self, type_key: str) -> dict[tuple, PropStats]:
         """Свойства типа по лемматизированному названию (для свойств, названных в тексте своими словами)."""

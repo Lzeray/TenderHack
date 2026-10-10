@@ -303,7 +303,7 @@ class EmpiricalCheck(BaseModel):
 class Suggestion(BaseModel):
     """Предложение уровня 3 (сомнительное значение). Не влияет на подбор: принятие — новый ввод."""
     id: str = Field(description="устойчивый ключ; отклонённые передаются в SearchRequest.confirmed")
-    rule: Literal["scale", "unit_missing", "placeholder", "outlier"]
+    rule: Literal["scale", "unit_missing", "placeholder", "outlier", "relation"]
     feature_id: str
     property_name: str
     original: str

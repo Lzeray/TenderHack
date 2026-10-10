@@ -86,6 +86,32 @@ def _label_axes(letters: list[str], axes: dict) -> list[str] | None:
 CONVENTION_BOOST = 3.0     # общепринятый порядок записи габаритов (Д×Ш×В, Ш×Г×В): высота последней
 
 
+ORDER_MIN_MODELS = 30
+
+
+def _order_prior(stats, heads, layout) -> float:
+    """Доля моделей выгрузок с тем же порядком осей по величине («у шкафа высота > ширина > глубина»),
+    со сглаживанием Лапласа; 1, если данных мало или нет."""
+    if stats is None or not getattr(stats, "available", False) or len(layout) < 2:
+        return 1.0
+    from math import factorial
+    from .units import lookup
+    vals = []
+    for ax, _, v, u in layout:
+        uu = lookup(u) if u else None
+        if uu is None:
+            return 1.0
+        vals.append((ax, Decimal(v.replace(",", ".")) * uu.factor))
+    axes = ",".join(sorted(a for a, _ in vals))
+    order = ",".join(a for a, _ in sorted(vals, key=lambda x: (-x[1], x[0])))
+    for tk in stats.type_keys(heads):
+        counts = stats.axis_orders(tk, axes)
+        total = sum(counts.values())
+        if total >= ORDER_MIN_MODELS:
+            return (counts.get(order, 0) + 1) / (total + factorial(len(vals)))
+    return 1.0
+
+
 def _conventional(order) -> bool:
     L, W, D, H = (lemma_of_literal(w) for w in ("длина", "ширина", "глубина", "высота"))
     if len(order) == 3:
@@ -95,11 +121,14 @@ def _conventional(order) -> bool:
 
 def _prop_stats(stats, heads, name: str, axis: str, dimension: str):
     """Статистика свойства по названию; иначе по общей оси или слову-оси того же типа («Длина рукоятки» → «Длина»)."""
-    ps = stats.find(heads, name, "number", dimension) or stats.find(heads, axis.capitalize(), "number", dimension)
-    if ps is None:
-        first = (content_lemmas(name) or [""])[0]
-        if first in AXES:
-            ps = stats.find(heads, first.capitalize(), "number", dimension)
+    ps = stats.find(heads, name, "number", dimension)
+    if ps is None and axis_of(name, context_of((), heads)):
+        # общий размер под другим названием («Высота шкафа» → «высота»); размеры частей («Высота купола»,
+        # «Высота ножек») по распределению общего размера не оцениваются
+        ps = stats.find(heads, axis.capitalize(), "number", dimension)
+        if ps is None:
+            first = (content_lemmas(name) or [""])[0]
+            ps = stats.find(heads, first.capitalize(), "number", dimension) if first in AXES else None
     return ps if ps is not None and ps.n_models >= 30 else None
 
 
@@ -210,6 +239,7 @@ def resolve(features, positions, heads, stats=None):
                 if ok:
                     if not labelled and _conventional(order):
                         like *= CONVENTION_BOOST
+                    like *= _order_prior(stats, heads, layout)
                     scored.append((known, like, layout))
         # правдоподобие раскладки — произведение долей моделей «рядом» с числом по каждой оси (выгрузки СТЕ);
         # сравниваются раскладки с одинаковым числом оценённых осей

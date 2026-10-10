@@ -232,4 +232,43 @@ def check(features: list[Feature], positions: list[Position], raw_text: str,
     return out
 
 
-__all__ = ["check", "VERSION", "BY_KEY"]
+def relations(features: list[Feature], heads: list[str], stats, dismissed=frozenset()) -> list[Suggestion]:
+    """Связи между названными характеристиками (docs/UNITS_PLAN.md, U4): если у ≥ 99 % моделей выгрузок
+    «A ≤ B» (высота сиденья ≤ высоты, масса нетто ≤ брутто), а в описании A > B — предупреждение
+    «возможно, перепутаны значения». Без исправления и без влияния на подбор."""
+    from .catalog.ste_stats import prop_key
+    if stats is None or not getattr(stats, "available", False):
+        return []
+    pts = {}
+    for f in features:
+        u = lookup(f.unit) if f.unit else None
+        v = _num(f.value)
+        # свойства КТРУ и названные в тексте, но отсутствующие в КТРУ («глубина сидения» у стула) — связи из выгрузок
+        name = f.property_name if f.status == "bound" else f.named_property if f.status == "unknown_property" else None
+        if name and f.op == "eq" and f.value_to is None and u is not None and v is not None:
+            pts[prop_key(name)] = (f.model_copy(update={"property_name": name}), v * u.factor, u.dimension)
+    if len(pts) < 2:
+        return []
+    out = []
+    for tk in stats.type_keys(heads):
+        for a, b, dim, n, holds in stats.pair_rules(tk):
+            if a in pts and b in pts and pts[a][2] == dim == pts[b][2] and pts[a][1] > pts[b][1]:
+                fa, fb = pts[a][0], pts[b][0]
+                sid = f"relation:{a}:{b}"
+                if sid in dismissed or any(s.id == sid for s in out):
+                    continue
+                pct = fmt(((1 - holds) * 100).quantize(Decimal("0.1"))) if holds < 1 else "0"
+                out.append(Suggestion(
+                    id=sid, rule="relation", feature_id=fa.id, property_name=fa.property_name or "",
+                    original=f"{fa.property_name} {_label(fa.value, None, fa.unit)} > {fb.property_name} "
+                             f"{_label(fb.value, None, fb.unit)}",
+                    message=(f"«{fa.property_name}» ({_label(fa.value, None, fa.unit)}) больше, чем "
+                             f"«{fb.property_name}» ({_label(fb.value, None, fb.unit)}). У таких товаров в выгрузках "
+                             f"так бывает у {pct} % из {n} моделей — возможно, значения перепутаны."),
+                    evidence={"source": "ste", "n_models": n, "holds": str(holds)}))
+        if out:
+            break
+    return out
+
+
+__all__ = ["check", "relations", "VERSION", "BY_KEY"]

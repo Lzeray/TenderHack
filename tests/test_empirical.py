@@ -91,3 +91,31 @@ def test_presence_of_property_outside_ktru(stats_path):
     # реквизит карточки (страна) «чужим» не называется
     g = Feature(id="c", source="text", status="unknown_property", value="Китай", named_property="страна происхождения")
     assert presence(g, ["стул"], s) is None
+
+
+def test_pair_relation_warning(stats_path):
+    con = sqlite3.connect(stats_path)
+    con.execute("INSERT INTO pair_le VALUES('стул','высота сиденья','высота','length',120,'0.995')")
+    con.commit()
+    con.close()
+    from ktru_assist.suspicious import relations
+    s = SteStats(stats_path, "SNAP")
+    seat = Feature(id="a", source="text", status="bound", property_name="Высота сиденья", value="90", unit="см")
+    total = Feature(id="b", source="text", status="bound", property_name="Высота", value="80", unit="см")
+    w = relations([seat, total], ["стул"], s)
+    assert len(w) == 1 and w[0].rule == "relation" and "перепутаны" in w[0].message
+    ok = Feature(id="b", source="text", status="bound", property_name="Высота", value="1", unit="м")
+    assert relations([seat, ok], ["стул"], s) == []                  # 90 см < 1 м — нарушения нет
+
+
+def test_axis_order_prior(stats_path):
+    con = sqlite3.connect(stats_path)
+    con.executemany("INSERT INTO axis_order VALUES('стул','высота,ширина',?,?)",
+                    [("высота,ширина", 95), ("ширина,высота", 5)])
+    con.commit()
+    con.close()
+    from ktru_assist.dims import _order_prior
+    s = SteStats(stats_path, "SNAP")
+    tall = [("высота", "Высота", "90", "см"), ("ширина", "Ширина", "45", "см")]
+    wide = [("высота", "Высота", "45", "см"), ("ширина", "Ширина", "90", "см")]
+    assert _order_prior(s, ["стул"], tall) > 10 * _order_prior(s, ["стул"], wide)

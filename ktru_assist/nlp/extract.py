@@ -185,7 +185,8 @@ def value_aliases_version() -> str:
 
 
 def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
-                    forward_only: bool = False, include_self: bool = False) -> tuple[str, int] | None:
+                    forward_only: bool = False, include_self: bool = False,
+                    exclude: frozenset[int] = frozenset()) -> tuple[str, int] | None:
     """Часть товара, названная вплотную к значению (± dist слов, без пересечения границ и чисел).
 
     forward_only — для названий свойств: часть стоит после них в родительном падеже («высота каркаса»).
@@ -209,7 +210,7 @@ def _component_near(tokens: list[Token], idxs: list[int], dist: int = 2,
         if any(tokens[k].lemma in BOUNDARY or tokens[k].kind == "number" for k in between):
             continue
         t = tokens[j]
-        if t.kind != "word" or t.lemma in BOUNDARY or t.used_by is not None:
+        if t.kind != "word" or t.lemma in BOUNDARY or t.used_by is not None or j in exclude:
             continue
         c = component_of_lemma(t.lemma)
         if c:
@@ -640,6 +641,8 @@ class Extractor:
                 if max(idxs) - min(idxs) > max(3, 2 * len(lem) - 1):
                     continue
                 cands.append((g, g.quality[nval], idxs, full))
+        # слова полностью найденных значений («трикотажное полотно») не указывают на часть товара
+        full_tok = frozenset(i for _, _, ix, f in cands if f for i in ix)
         # Более полное значение того же свойства поглощает вложенное: «секция шкафа» ⊃ «шкаф».
         for g, val, idxs, full in cands:
             s = set(idxs)
@@ -653,7 +656,8 @@ class Extractor:
             prop_keys = sorted({g.key for g, _, _ in opts})
             neg = _negated(tokens, first)
             comp_idx: list[int] = []
-            near = _component_near(tokens, sorted({i for _, _, ix in opts for i in ix}))
+            own = {i for _, _, ix in opts for i in ix}
+            near = _component_near(tokens, sorted(own), exclude=full_tok - own)
             if near is not None:
                 comp, j = near
                 same = [o for o in opts if o[0].component == comp]

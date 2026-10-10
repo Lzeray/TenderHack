@@ -163,7 +163,7 @@ def test_proportion_ci_rule_of_three_and_bootstrap():
 
 def test_summary_ci_blocks():
     _, s = summary(FakeAdapter(ANSWERS, DIALOGS))
-    assert set(s["ci95"]) == {"code_reached@2", "auto_precision", "no_code_respected"}
+    assert set(s["ci95"]) == {"code_reached@2", "auto_precision", "no_code_respected", "hit@1", "hit@3"}
     assert s["ci95"]["auto_precision"]["n"] == 4
     # 0 ошибочных автокодов из 10 → нижняя граница точности 1 − 3/10
     cases = [case(f"k{i}", "code_required", ["A"]) for i in range(10)]

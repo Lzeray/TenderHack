@@ -17,7 +17,7 @@
    "search_backend": "local-bm25"
   }
  },
- "date": "2026-10-10 09:46",
+ "date": "2026-10-10 10:08",
  "machine": {
   "platform": "Linux-6.18.44-fc-v114-x86_64-with-glibc2.39",
   "python": "3.13.16"
@@ -53,17 +53,64 @@
       "not_supported": 0
      }
     },
-    "dialog_resolved": 0.778,
-    "dialog_cases": 18,
+    "dialog_resolved": 0.852,
+    "dialog_cases": 27,
     "dialog_not_supported": 0,
-    "dialog_steps_mean": 1.86,
+    "dialog_steps_mean": 1.78,
     "latency_ms": {
-     "p50": 1.87,
-     "p95": 2.87,
-     "max": 3.85,
-     "mean": 1.98
+     "p50": 1.93,
+     "p95": 3.17,
+     "max": 4.29,
+     "mean": 2.05
     },
-    "determinism": 1.0
+    "determinism": 1.0,
+    "over_asking": 0.621,
+    "ranking": {
+     "ranked_cases": 45,
+     "hit@1": 0.4,
+     "hit@3": 0.778,
+     "hit@5": 0.778,
+     "mrr": 0.563,
+     "ndcg@3": 0.559,
+     "type_hit@1": 1.0,
+     "gold_rank_median": 1,
+     "gold_not_listed": 0.222,
+     "list_size_median": 1,
+     "list_precision_mean": 0.544,
+     "dialog_traced": 45,
+     "mrr_by_step": [
+      0.563,
+      0.763,
+      0.778,
+      0.778,
+      0.778,
+      0.778,
+      0.778
+     ],
+     "hit1_by_step": [
+      0.4,
+      0.756,
+      0.778,
+      0.778,
+      0.778,
+      0.778,
+      0.778
+     ],
+     "rank_by_step": [
+      1.69,
+      1.06,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "top1_reached": 0.778,
+     "questions_to_top1_mean": 0.51,
+     "bits_per_question": 0.634,
+     "useless_question_rate": 0.553,
+     "dead_end_rate": 0.067
+    }
    },
    "cases": [
     {
@@ -82,7 +129,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0002",
@@ -103,10 +177,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "28.24.11.000-95000021"
+      "final_code": "28.24.11.000-95000021",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -126,7 +231,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0004",
@@ -145,7 +277,34 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": false,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0005",
@@ -164,10 +323,38 @@
      "forbidden_code_hit": false,
      "compatible_recall": false,
      "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
      "dialog": {
       "resolved": false,
       "steps": 0,
-      "final_code": null
+      "final_code": null,
+      "reason": "no_option"
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": true
      }
     },
     {
@@ -187,7 +374,42 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "28.24.11.000-95000023",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       0.0
+      ],
+      "useless": 1,
+      "questions": 1,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0007",
@@ -208,6 +430,42 @@
      "compatible_recall": true,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -229,10 +487,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 0.5,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "28.24.11.000-95000022"
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -251,7 +540,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0010",
@@ -267,7 +583,8 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0011",
@@ -283,7 +600,8 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0012",
@@ -304,6 +622,42 @@
      "compatible_recall": true,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6934,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.6667,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -325,10 +679,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "28.24.11.000-95000022"
+      "final_code": "28.24.11.000-95000022",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -349,6 +734,33 @@
      "compatible_recall": false,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
      }
     },
     {
@@ -367,7 +779,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0016",
@@ -388,10 +827,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "31.01.10.000-95000003"
+      "final_code": "31.01.10.000-95000003",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -411,7 +881,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0018",
@@ -430,7 +927,34 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": false,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0019",
@@ -449,10 +973,38 @@
      "forbidden_code_hit": false,
      "compatible_recall": false,
      "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
      "dialog": {
       "resolved": false,
       "steps": 0,
-      "final_code": null
+      "final_code": null,
+      "reason": "no_option"
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": true
      }
     },
     {
@@ -472,7 +1024,42 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "31.01.10.000-95000003",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       0.0
+      ],
+      "useless": 1,
+      "questions": 1,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0021",
@@ -493,6 +1080,42 @@
      "compatible_recall": true,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -514,10 +1137,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 0.5,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "31.01.10.000-95000002"
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -534,7 +1188,8 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0024",
@@ -550,7 +1205,8 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0025",
@@ -566,7 +1222,8 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0026",
@@ -587,6 +1244,42 @@
      "compatible_recall": true,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6934,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.6667,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -608,10 +1301,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "31.01.10.000-95000002"
+      "final_code": "31.01.10.000-95000002",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -632,6 +1356,33 @@
      "compatible_recall": false,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
      }
     },
     {
@@ -650,7 +1401,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0030",
@@ -671,10 +1449,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "14.12.30.190-95000032"
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -694,7 +1503,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0032",
@@ -713,7 +1549,34 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": false,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0033",
@@ -732,10 +1595,38 @@
      "forbidden_code_hit": false,
      "compatible_recall": false,
      "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
      "dialog": {
       "resolved": false,
       "steps": 0,
-      "final_code": null
+      "final_code": null,
+      "reason": "no_option"
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": true
      }
     },
     {
@@ -755,7 +1646,42 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.6131,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 1,
+      "final_code": "14.12.30.190-95000033",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       0.0
+      ],
+      "useless": 1,
+      "questions": 1,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0035",
@@ -776,6 +1702,42 @@
      "compatible_recall": true,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -797,10 +1759,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 2,
+      "list_precision": 0.5,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "14.12.30.190-95000032"
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.0,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -817,7 +1810,8 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0038",
@@ -833,7 +1827,8 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0039",
@@ -849,7 +1844,8 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0040",
@@ -865,7 +1861,8 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0041",
@@ -886,6 +1883,42 @@
      "compatible_recall": true,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6934,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.6667,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "dialog": {
+      "resolved": true,
+      "steps": 2,
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -907,10 +1940,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 2,
+      "rr": 0.5,
+      "ndcg@3": 0.6309,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "14.12.30.190-95000032"
+      "final_code": "14.12.30.190-95000032",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       2,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -931,6 +1995,33 @@
      "compatible_recall": false,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
      }
     },
     {
@@ -949,7 +2040,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0045",
@@ -970,10 +2088,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "25.73.30.110-95000013"
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -992,7 +2141,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0047",
@@ -1012,7 +2188,34 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": true,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 0.4693,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0048",
@@ -1031,10 +2234,40 @@
      "forbidden_code_hit": false,
      "compatible_recall": true,
      "checks": {},
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 1,
-      "final_code": "25.73.30.110-95000013"
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585
+      ],
+      "useless": 0,
+      "questions": 1,
+      "dead_end": false
      }
     },
     {
@@ -1054,10 +2287,40 @@
      "forbidden_code_hit": false,
      "compatible_recall": true,
      "checks": {},
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 1,
-      "final_code": "25.73.30.110-95000013"
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585
+      ],
+      "useless": 0,
+      "questions": 1,
+      "dead_end": false
      }
     },
     {
@@ -1078,6 +2341,33 @@
      "compatible_recall": true,
      "checks": {
       "0:same_as": "fail"
+     },
+     "ranking": {
+      "rank": 1,
+      "rr": 1.0,
+      "ndcg@3": 1.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 1.0,
+      "hit@1": true,
+      "hit@3": true,
+      "hit@5": true
+     },
+     "trace": {
+      "ranks": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 0,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
      }
     },
     {
@@ -1099,10 +2389,45 @@
      "checks": {
       "0:same_as": "pass"
      },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": false,
       "steps": 6,
-      "final_code": null
+      "final_code": null,
+      "reason": "max_steps"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       3,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 2,
+      "bits": [
+       0.0,
+       1.585,
+       0.0,
+       0.0,
+       0.0,
+       0.0
+      ],
+      "useless": 5,
+      "questions": 6,
+      "dead_end": false
      }
     },
     {
@@ -1119,7 +2444,8 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0053",
@@ -1137,7 +2463,34 @@
      "auto_incorrect": true,
      "forbidden_code_hit": true,
      "compatible_recall": false,
-     "checks": {}
+     "checks": {},
+     "ranking": {
+      "rank": null,
+      "rr": 0.0,
+      "ndcg@3": 0.0,
+      "type_hit@1": true,
+      "list_size": 1,
+      "list_precision": 0.0,
+      "hit@1": false,
+      "hit@3": false,
+      "hit@5": false
+     },
+     "trace": {
+      "ranks": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "questions_to_top1": null,
+      "bits": [],
+      "useless": 0,
+      "questions": 0,
+      "dead_end": false
+     }
     },
     {
      "id": "mm-lnf-0054",
@@ -1153,7 +2506,8 @@
      "auto_incorrect": false,
      "forbidden_code_hit": false,
      "compatible_recall": null,
-     "checks": {}
+     "checks": {},
+     "ranking": null
     },
     {
      "id": "mm-lnf-0055",
@@ -1174,10 +2528,41 @@
      "checks": {
       "0:same_as": "fail"
      },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "25.73.30.110-95000013"
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     },
     {
@@ -1199,10 +2584,41 @@
      "checks": {
       "0:same_as": "pass"
      },
+     "ranking": {
+      "rank": 3,
+      "rr": 0.3333,
+      "ndcg@3": 0.5,
+      "type_hit@1": true,
+      "list_size": 3,
+      "list_precision": 0.3333,
+      "hit@1": false,
+      "hit@3": true,
+      "hit@5": true
+     },
      "dialog": {
       "resolved": true,
       "steps": 2,
-      "final_code": "25.73.30.110-95000013"
+      "final_code": "25.73.30.110-95000013",
+      "reason": "matched"
+     },
+     "trace": {
+      "ranks": [
+       3,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "questions_to_top1": 1,
+      "bits": [
+       1.585,
+       0.0
+      ],
+      "useless": 1,
+      "questions": 2,
+      "dead_end": false
      }
     }
    ]

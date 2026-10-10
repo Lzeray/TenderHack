@@ -1,6 +1,6 @@
 {
  "meta": {
-  "generated_at": "2026-10-10T09:46:26",
+  "generated_at": "2026-10-10T10:08:25",
   "split": "all",
   "ks": [
    1,
@@ -73,8 +73,8 @@
       "premature_auto": 0.4375,
       "dialog_wrong_final": 7,
       "questions_mean": 1.206,
-      "latency_ms_p50": 1.82,
-      "latency_ms_p95": 2.93,
+      "latency_ms_p50": 1.78,
+      "latency_ms_p95": 2.83,
       "ci95": {
        "code_reached@2": {
         "value": 0.7556,
@@ -96,9 +96,62 @@
         "hi": 0.7273,
         "n": 11,
         "method": "bootstrap"
+       },
+       "hit@1": {
+        "value": 0.4,
+        "lo": 0.2667,
+        "hi": 0.5333,
+        "n": 45,
+        "method": "bootstrap"
+       },
+       "hit@3": {
+        "value": 0.7778,
+        "lo": 0.6444,
+        "hi": 0.8889,
+        "n": 45,
+        "method": "bootstrap"
        }
       },
-      "wrong_auto_rate_upper95": 0.75
+      "wrong_auto_rate_upper95": 0.75,
+      "ranking": {
+       "ranked_cases": 45,
+       "hit@1": 0.4,
+       "hit@3": 0.778,
+       "hit@5": 0.778,
+       "mrr": 0.563,
+       "ndcg@3": 0.559,
+       "type_hit@1": 1.0,
+       "gold_rank_median": 1,
+       "gold_not_listed": 0.222,
+       "list_size_median": 1,
+       "list_precision_mean": 0.544,
+       "dialog_traced": 45,
+       "mrr_by_step": [
+        0.563,
+        0.763,
+        0.778,
+        0.778
+       ],
+       "hit1_by_step": [
+        0.4,
+        0.756,
+        0.778,
+        0.778
+       ],
+       "rank_by_step": [
+        1.69,
+        1.06,
+        1,
+        1
+       ],
+       "top1_reached": 0.778,
+       "questions_to_top1_mean": 0.51,
+       "bits_per_question": 0.677,
+       "useless_question_rate": 0.523,
+       "dead_end_rate": 0.067
+      },
+      "over_asking": 0.6207,
+      "wrong_auto_gold_listed": 0
      },
      "by_split": {
       "dev": {
@@ -127,8 +180,8 @@
        "premature_auto": 0.4545,
        "dialog_wrong_final": 5,
        "questions_mean": 1.154,
-       "latency_ms_p50": 1.94,
-       "latency_ms_p95": 2.93,
+       "latency_ms_p50": 1.92,
+       "latency_ms_p95": 2.84,
        "ci95": {
         "code_reached@2": {
          "value": 0.7647,
@@ -150,9 +203,62 @@
          "hi": 0.8571,
          "n": 7,
          "method": "bootstrap"
+        },
+        "hit@1": {
+         "value": 0.4118,
+         "lo": 0.2647,
+         "hi": 0.5882,
+         "n": 34,
+         "method": "bootstrap"
+        },
+        "hit@3": {
+         "value": 0.7941,
+         "lo": 0.6471,
+         "hi": 0.9118,
+         "n": 34,
+         "method": "bootstrap"
         }
        },
-       "wrong_auto_rate_upper95": 0.7222
+       "wrong_auto_rate_upper95": 0.7222,
+       "ranking": {
+        "ranked_cases": 34,
+        "hit@1": 0.412,
+        "hit@3": 0.794,
+        "hit@5": 0.794,
+        "mrr": 0.569,
+        "ndcg@3": 0.569,
+        "type_hit@1": 1.0,
+        "gold_rank_median": 1,
+        "gold_not_listed": 0.206,
+        "list_size_median": 1.0,
+        "list_precision_mean": 0.549,
+        "dialog_traced": 34,
+        "mrr_by_step": [
+         0.569,
+         0.775,
+         0.794,
+         0.794
+        ],
+        "hit1_by_step": [
+         0.412,
+         0.765,
+         0.794,
+         0.794
+        ],
+        "rank_by_step": [
+         1.74,
+         1.07,
+         1,
+         1
+        ],
+        "top1_reached": 0.794,
+        "questions_to_top1_mean": 0.52,
+        "bits_per_question": 0.698,
+        "useless_question_rate": 0.515,
+        "dead_end_rate": 0.059
+       },
+       "over_asking": 0.6087,
+       "wrong_auto_gold_listed": 0
       },
       "test": {
        "cases": 15,
@@ -180,8 +286,8 @@
        "premature_auto": 0.4,
        "dialog_wrong_final": 2,
        "questions_mean": 1.375,
-       "latency_ms_p50": 1.73,
-       "latency_ms_p95": 2.24,
+       "latency_ms_p50": 1.59,
+       "latency_ms_p95": 2.02,
        "ci95": {
         "code_reached@2": {
          "value": 0.7273,
@@ -203,9 +309,62 @@
          "hi": 1.0,
          "n": 4,
          "method": "bootstrap"
+        },
+        "hit@1": {
+         "value": 0.3636,
+         "lo": 0.0909,
+         "hi": 0.6364,
+         "n": 11,
+         "method": "bootstrap"
+        },
+        "hit@3": {
+         "value": 0.7273,
+         "lo": 0.4545,
+         "hi": 1.0,
+         "n": 11,
+         "method": "bootstrap"
         }
        },
-       "wrong_auto_rate_upper95": 1.0
+       "wrong_auto_rate_upper95": 1.0,
+       "ranking": {
+        "ranked_cases": 11,
+        "hit@1": 0.364,
+        "hit@3": 0.727,
+        "hit@5": 0.727,
+        "mrr": 0.545,
+        "ndcg@3": 0.528,
+        "type_hit@1": 1.0,
+        "gold_rank_median": 1.5,
+        "gold_not_listed": 0.273,
+        "list_size_median": 1,
+        "list_precision_mean": 0.53,
+        "dialog_traced": 11,
+        "mrr_by_step": [
+         0.545,
+         0.727,
+         0.727,
+         0.727
+        ],
+        "hit1_by_step": [
+         0.364,
+         0.727,
+         0.727,
+         0.727
+        ],
+        "rank_by_step": [
+         1.5,
+         1,
+         1,
+         1
+        ],
+        "top1_reached": 0.727,
+        "questions_to_top1_mean": 0.5,
+        "bits_per_question": 0.614,
+        "useless_question_rate": 0.545,
+        "dead_end_rate": 0.091
+       },
+       "over_asking": 0.6667,
+       "wrong_auto_gold_listed": 0
       }
      },
      "cases": [
@@ -219,12 +378,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 4.17,
+       "latency_ms": 3.81,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400 Вт"
       },
       {
@@ -237,16 +420,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.71,
+       "latency_ms": 1.77,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "28.24.11.000-95000021",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400"
       },
       {
@@ -259,12 +470,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 1.69,
+       "latency_ms": 1.62,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 Вт"
       },
       {
@@ -277,16 +512,41 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 2.12,
+       "latency_ms": 2.0,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": "28.24.11.000-95000023",
-        "wrong_final": true
+        "wrong_final": true,
+        "reason": "matched"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 800 Вт"
       },
       {
@@ -299,16 +559,41 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.42,
+       "latency_ms": 2.25,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": null,
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "no_option"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": true
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500, но меньше 800 Вт"
       },
       {
@@ -321,16 +606,43 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.93,
+       "latency_ms": 2.69,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 1,
         "final_code": "28.24.11.000-95000023",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 1,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         0.0
+        ],
+        "useless": 1,
+        "questions": 1,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность не меньше 500 и не больше 800 Вт"
       },
       {
@@ -343,16 +655,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.56,
+       "latency_ms": 1.53,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "28.24.11.000-95000022",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 500-800 Вт"
       },
       {
@@ -365,16 +705,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.82,
+       "latency_ms": 1.58,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "28.24.11.000-95000022",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 0.5,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность >500 <800 Вт"
       },
       {
@@ -387,12 +755,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 1.46,
+       "latency_ms": 1.58,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800 Вт"
       },
       {
@@ -405,10 +797,12 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 1.93,
+       "latency_ms": 1.78,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 300 Вт"
       },
       {
@@ -421,10 +815,12 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.09,
+       "latency_ms": 2.1,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800, но меньше 500 Вт"
       },
       {
@@ -437,16 +833,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.5,
+       "latency_ms": 1.43,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "28.24.11.000-95000022",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6934,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.6667,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500"
       },
       {
@@ -459,16 +883,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.27,
+       "latency_ms": 1.97,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "28.24.11.000-95000022",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 меньше 800"
       },
       {
@@ -481,16 +933,41 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 1.89,
+       "latency_ms": 1.99,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": "28.24.11.000-95000023",
-        "wrong_final": true
+        "wrong_final": true,
+        "reason": "matched"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "шуруповерт бенчмарка, тип питания от сети, больше 500, но меньше 800 Вт"
       },
       {
@@ -503,12 +980,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 2.61,
+       "latency_ms": 2.64,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600 мм"
       },
       {
@@ -521,16 +1022,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.08,
+       "latency_ms": 2.13,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "31.01.10.000-95000003",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600"
       },
       {
@@ -543,12 +1072,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 1.87,
+       "latency_ms": 2.12,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 мм"
       },
       {
@@ -561,16 +1114,41 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 2.33,
+       "latency_ms": 2.4,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": "31.01.10.000-95000003",
-        "wrong_final": true
+        "wrong_final": true,
+        "reason": "matched"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 1400 мм"
       },
       {
@@ -583,16 +1161,41 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.77,
+       "latency_ms": 2.84,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": null,
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "no_option"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": true
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000, но меньше 1400 мм"
       },
       {
@@ -605,16 +1208,43 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.85,
+       "latency_ms": 2.95,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 1,
         "final_code": "31.01.10.000-95000003",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 1,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         0.0
+        ],
+        "useless": 1,
+        "questions": 1,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы не меньше 1000 и не больше 1400 мм"
       },
       {
@@ -627,16 +1257,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.19,
+       "latency_ms": 2.02,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "31.01.10.000-95000002",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1000-1400 мм"
       },
       {
@@ -649,16 +1307,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.35,
+       "latency_ms": 2.29,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "31.01.10.000-95000002",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 0.5,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы >1000 <1400 мм"
       },
       {
@@ -671,10 +1357,12 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 2.03,
+       "latency_ms": 1.92,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1800 мм"
       },
       {
@@ -687,10 +1375,12 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 2.46,
+       "latency_ms": 2.5,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 600 мм"
       },
       {
@@ -703,10 +1393,12 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 3.09,
+       "latency_ms": 2.83,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1400, но меньше 1000 мм"
       },
       {
@@ -719,16 +1411,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.2,
+       "latency_ms": 2.12,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "31.01.10.000-95000002",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6934,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.6667,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000"
       },
       {
@@ -741,16 +1461,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.48,
+       "latency_ms": 2.57,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "31.01.10.000-95000002",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 меньше 1400"
       },
       {
@@ -763,16 +1511,41 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 2.17,
+       "latency_ms": 2.19,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": "31.01.10.000-95000003",
-        "wrong_final": true
+        "wrong_final": true,
+        "reason": "matched"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "стол письменный бенчмарка, тип каркаса металлический, больше 1000, но меньше 1400 мм"
       },
       {
@@ -785,12 +1558,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 2.04,
+       "latency_ms": 2.2,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост 173 см"
       },
       {
@@ -803,16 +1600,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 6.39,
+       "latency_ms": 1.36,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "14.12.30.190-95000032",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост 173"
       },
       {
@@ -825,12 +1650,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 1.45,
+       "latency_ms": 1.43,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170 см"
       },
       {
@@ -843,16 +1692,41 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 1.52,
+       "latency_ms": 1.6,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": "14.12.30.190-95000033",
-        "wrong_final": true
+        "wrong_final": true,
+        "reason": "matched"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост меньше 182 см"
       },
       {
@@ -872,9 +1746,34 @@
         "resolved": false,
         "steps": 0,
         "final_code": null,
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "no_option"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": true
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170, но меньше 182 см"
       },
       {
@@ -887,16 +1786,43 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.8,
+       "latency_ms": 1.85,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 1,
         "final_code": "14.12.30.190-95000033",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 1,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.6131,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         0.0
+        ],
+        "useless": 1,
+        "questions": 1,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост не меньше 170 и не больше 182 см"
       },
       {
@@ -909,16 +1835,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 2.24,
+       "latency_ms": 1.53,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "14.12.30.190-95000032",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост 170-182 см"
       },
       {
@@ -931,16 +1885,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.47,
+       "latency_ms": 1.46,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "14.12.30.190-95000032",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 2,
+        "list_precision": 0.5,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.0,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост >170 <182 см"
       },
       {
@@ -953,10 +1935,12 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 1.5,
+       "latency_ms": 1.49,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 188 см"
       },
       {
@@ -969,10 +1953,12 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 1.65,
+       "latency_ms": 1.55,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост меньше 158 см"
       },
       {
@@ -985,10 +1971,12 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.81,
+       "latency_ms": 2.02,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 182, но меньше 170 см"
       },
       {
@@ -1001,10 +1989,12 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.77,
+       "latency_ms": 1.78,
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 164, но меньше 170 см"
       },
       {
@@ -1017,16 +2007,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.45,
+       "latency_ms": 1.38,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "14.12.30.190-95000032",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6934,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.6667,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170"
       },
       {
@@ -1039,16 +2057,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.73,
+       "latency_ms": 1.59,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "14.12.30.190-95000032",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 2,
+        "rr": 0.5,
+        "ndcg@3": 0.6309,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         2,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170 меньше 182"
       },
       {
@@ -1061,16 +2107,41 @@
        "matched": true,
        "wrong_auto": true,
        "hit0": false,
-       "latency_ms": 1.63,
+       "latency_ms": 1.61,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": false,
         "steps": 0,
         "final_code": "14.12.30.190-95000033",
-        "wrong_final": true
+        "wrong_final": true,
+        "reason": "matched"
        },
        "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "халат медицинский бенчмарка, пол женский, больше 170, но меньше 182 см"
       },
       {
@@ -1083,12 +2154,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 1.75,
+       "latency_ms": 1.7,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525 мм"
       },
       {
@@ -1101,16 +2196,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.75,
+       "latency_ms": 1.43,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "25.73.30.110-95000013",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525"
       },
       {
@@ -1123,12 +2246,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 1.49,
+       "latency_ms": 1.51,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 мм"
       },
       {
@@ -1141,12 +2288,36 @@
        "matched": true,
        "wrong_auto": false,
        "hit0": true,
-       "latency_ms": 1.46,
+       "latency_ms": 1.44,
        "error": null,
        "dialog": {
         "skipped": "hit0"
        },
        "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 0.4693,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 600 мм"
       },
       {
@@ -1159,20 +2330,272 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.94,
+       "latency_ms": 1.66,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 1,
         "final_code": "25.73.30.110-95000013",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 1,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585
+        ],
+        "useless": 0,
+        "questions": 1,
+        "dead_end": false
+       },
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450, но меньше 600 мм"
       },
       {
        "id": "mm-lnf-0049",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.71,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": true,
+        "steps": 1,
+        "final_code": "25.73.30.110-95000013",
+        "wrong_final": false,
+        "reason": "matched"
+       },
+       "reached_at": 1,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585
+        ],
+        "useless": 0,
+        "questions": 1,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0050",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000013",
+       "matched": true,
+       "wrong_auto": false,
+       "hit0": true,
+       "latency_ms": 1.24,
+       "error": null,
+       "dialog": {
+        "skipped": "hit0"
+       },
+       "reached_at": 0,
+       "ranking": {
+        "rank": 1,
+        "rr": 1.0,
+        "ndcg@3": 1.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 1.0,
+        "hit@1": true,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         1,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 0,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм"
+      },
+      {
+       "id": "mm-lnf-0051",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.29,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 3,
+        "final_code": null,
+        "wrong_final": false,
+        "reason": "max_steps"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         3,
+         1,
+         1
+        ],
+        "questions_to_top1": 2,
+        "bits": [
+         0.0,
+         1.585,
+         0.0
+        ],
+        "useless": 2,
+        "questions": 3,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм"
+      },
+      {
+       "id": "mm-lnf-0052",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000013",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.4,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм"
+      },
+      {
+       "id": "mm-lnf-0053",
+       "split": "dev",
+       "expect": "code_required",
+       "gold_size": 1,
+       "status": "matched",
+       "final_code": "25.73.30.110-95000012",
+       "matched": true,
+       "wrong_auto": true,
+       "hit0": false,
+       "latency_ms": 1.52,
+       "error": null,
+       "dialog": {
+        "supported": true,
+        "resolved": false,
+        "steps": 0,
+        "final_code": "25.73.30.110-95000012",
+        "wrong_final": true,
+        "reason": "matched"
+       },
+       "reached_at": null,
+       "ranking": {
+        "rank": null,
+        "rr": 0.0,
+        "ndcg@3": 0.0,
+        "type_hit@1": true,
+        "list_size": 1,
+        "list_precision": 0.0,
+        "hit@1": false,
+        "hit@3": false,
+        "hit@5": false
+       },
+       "trace": {
+        "ranks": [
+         null,
+         null,
+         null,
+         null
+        ],
+        "questions_to_top1": null,
+        "bits": [],
+        "useless": 0,
+        "questions": 0,
+        "dead_end": false
+       },
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм"
+      },
+      {
+       "id": "mm-lnf-0054",
+       "split": "dev",
+       "expect": "no_code",
+       "gold_size": 0,
+       "status": "clarification",
+       "final_code": null,
+       "matched": false,
+       "wrong_auto": false,
+       "hit0": false,
+       "latency_ms": 1.68,
+       "error": null,
+       "dialog": null,
+       "reached_at": null,
+       "ranking": null,
+       "trace": null,
+       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм"
+      },
+      {
+       "id": "mm-lnf-0055",
        "split": "dev",
        "expect": "code_required",
        "gold_size": 1,
@@ -1186,127 +2609,39 @@
        "dialog": {
         "supported": true,
         "resolved": true,
-        "steps": 1,
-        "final_code": "25.73.30.110-95000013",
-        "wrong_final": false
-       },
-       "reached_at": 1,
-       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм"
-      },
-      {
-       "id": "mm-lnf-0050",
-       "split": "dev",
-       "expect": "code_required",
-       "gold_size": 1,
-       "status": "matched",
-       "final_code": "25.73.30.110-95000013",
-       "matched": true,
-       "wrong_auto": false,
-       "hit0": true,
-       "latency_ms": 1.21,
-       "error": null,
-       "dialog": {
-        "skipped": "hit0"
-       },
-       "reached_at": 0,
-       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм"
-      },
-      {
-       "id": "mm-lnf-0051",
-       "split": "dev",
-       "expect": "code_required",
-       "gold_size": 1,
-       "status": "clarification",
-       "final_code": null,
-       "matched": false,
-       "wrong_auto": false,
-       "hit0": false,
-       "latency_ms": 1.37,
-       "error": null,
-       "dialog": {
-        "supported": true,
-        "resolved": false,
-        "steps": 3,
-        "final_code": null,
-        "wrong_final": false
-       },
-       "reached_at": null,
-       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм"
-      },
-      {
-       "id": "mm-lnf-0052",
-       "split": "dev",
-       "expect": "no_code",
-       "gold_size": 0,
-       "status": "matched",
-       "final_code": "25.73.30.110-95000013",
-       "matched": true,
-       "wrong_auto": true,
-       "hit0": false,
-       "latency_ms": 1.37,
-       "error": null,
-       "dialog": null,
-       "reached_at": null,
-       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм"
-      },
-      {
-       "id": "mm-lnf-0053",
-       "split": "dev",
-       "expect": "code_required",
-       "gold_size": 1,
-       "status": "matched",
-       "final_code": "25.73.30.110-95000012",
-       "matched": true,
-       "wrong_auto": true,
-       "hit0": false,
-       "latency_ms": 1.65,
-       "error": null,
-       "dialog": {
-        "supported": true,
-        "resolved": false,
-        "steps": 0,
-        "final_code": "25.73.30.110-95000012",
-        "wrong_final": true
-       },
-       "reached_at": null,
-       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм"
-      },
-      {
-       "id": "mm-lnf-0054",
-       "split": "dev",
-       "expect": "no_code",
-       "gold_size": 0,
-       "status": "clarification",
-       "final_code": null,
-       "matched": false,
-       "wrong_auto": false,
-       "hit0": false,
-       "latency_ms": 1.72,
-       "error": null,
-       "dialog": null,
-       "reached_at": null,
-       "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм"
-      },
-      {
-       "id": "mm-lnf-0055",
-       "split": "dev",
-       "expect": "code_required",
-       "gold_size": 1,
-       "status": "clarification",
-       "final_code": null,
-       "matched": false,
-       "wrong_auto": false,
-       "hit0": false,
-       "latency_ms": 1.62,
-       "error": null,
-       "dialog": {
-        "supported": true,
-        "resolved": true,
         "steps": 2,
         "final_code": "25.73.30.110-95000013",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450"
       },
       {
@@ -1319,16 +2654,44 @@
        "matched": false,
        "wrong_auto": false,
        "hit0": false,
-       "latency_ms": 1.74,
+       "latency_ms": 1.79,
        "error": null,
        "dialog": {
         "supported": true,
         "resolved": true,
         "steps": 2,
         "final_code": "25.73.30.110-95000013",
-        "wrong_final": false
+        "wrong_final": false,
+        "reason": "matched"
        },
        "reached_at": 2,
+       "ranking": {
+        "rank": 3,
+        "rr": 0.3333,
+        "ndcg@3": 0.5,
+        "type_hit@1": true,
+        "list_size": 3,
+        "list_precision": 0.3333,
+        "hit@1": false,
+        "hit@3": true,
+        "hit@5": true
+       },
+       "trace": {
+        "ranks": [
+         3,
+         1,
+         1,
+         1
+        ],
+        "questions_to_top1": 1,
+        "bits": [
+         1.585,
+         0.0
+        ],
+        "useless": 1,
+        "questions": 2,
+        "dead_end": false
+       },
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 меньше 600"
       }
      ]
@@ -1383,9 +2746,17 @@
         "hi": 1.0,
         "n": 11,
         "method": "rule_of_three"
-       }
+       },
+       "hit@1": null,
+       "hit@3": null
       },
-      "wrong_auto_rate_upper95": null
+      "wrong_auto_rate_upper95": null,
+      "ranking": {
+       "ranked_cases": 0,
+       "dialog_traced": 0
+      },
+      "over_asking": 1.0,
+      "wrong_auto_gold_listed": 0
      },
      "by_split": {
       "dev": {
@@ -1429,9 +2800,17 @@
          "hi": 1.0,
          "n": 7,
          "method": "rule_of_three"
-        }
+        },
+        "hit@1": null,
+        "hit@3": null
        },
-       "wrong_auto_rate_upper95": null
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
       },
       "test": {
        "cases": 15,
@@ -1474,9 +2853,17 @@
          "hi": 1.0,
          "n": 4,
          "method": "rule_of_three"
-        }
+        },
+        "hit@1": null,
+        "hit@3": null
        },
-       "wrong_auto_rate_upper95": null
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
       }
      },
      "cases": [
@@ -1496,6 +2883,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400 Вт"
       },
       {
@@ -1514,6 +2903,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400"
       },
       {
@@ -1532,6 +2923,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 Вт"
       },
       {
@@ -1550,6 +2943,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 800 Вт"
       },
       {
@@ -1568,6 +2963,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500, но меньше 800 Вт"
       },
       {
@@ -1586,6 +2983,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность не меньше 500 и не больше 800 Вт"
       },
       {
@@ -1604,6 +3003,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 500-800 Вт"
       },
       {
@@ -1622,6 +3023,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность >500 <800 Вт"
       },
       {
@@ -1640,6 +3043,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800 Вт"
       },
       {
@@ -1656,6 +3061,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 300 Вт"
       },
       {
@@ -1672,6 +3079,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800, но меньше 500 Вт"
       },
       {
@@ -1690,6 +3099,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500"
       },
       {
@@ -1708,6 +3119,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 меньше 800"
       },
       {
@@ -1726,6 +3139,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, больше 500, но меньше 800 Вт"
       },
       {
@@ -1744,6 +3159,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600 мм"
       },
       {
@@ -1762,6 +3179,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600"
       },
       {
@@ -1780,6 +3199,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 мм"
       },
       {
@@ -1798,6 +3219,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 1400 мм"
       },
       {
@@ -1816,6 +3239,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000, но меньше 1400 мм"
       },
       {
@@ -1834,6 +3259,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы не меньше 1000 и не больше 1400 мм"
       },
       {
@@ -1852,6 +3279,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1000-1400 мм"
       },
       {
@@ -1870,6 +3299,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы >1000 <1400 мм"
       },
       {
@@ -1886,6 +3317,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1800 мм"
       },
       {
@@ -1902,6 +3335,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 600 мм"
       },
       {
@@ -1918,6 +3353,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1400, но меньше 1000 мм"
       },
       {
@@ -1936,6 +3373,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000"
       },
       {
@@ -1954,6 +3393,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 меньше 1400"
       },
       {
@@ -1972,6 +3413,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, больше 1000, но меньше 1400 мм"
       },
       {
@@ -1990,6 +3433,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост 173 см"
       },
       {
@@ -2008,6 +3453,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост 173"
       },
       {
@@ -2026,6 +3473,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170 см"
       },
       {
@@ -2044,6 +3493,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост меньше 182 см"
       },
       {
@@ -2062,6 +3513,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170, но меньше 182 см"
       },
       {
@@ -2080,6 +3533,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост не меньше 170 и не больше 182 см"
       },
       {
@@ -2098,6 +3553,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост 170-182 см"
       },
       {
@@ -2116,6 +3573,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост >170 <182 см"
       },
       {
@@ -2132,6 +3591,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 188 см"
       },
       {
@@ -2148,6 +3609,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост меньше 158 см"
       },
       {
@@ -2164,6 +3627,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 182, но меньше 170 см"
       },
       {
@@ -2180,6 +3645,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 164, но меньше 170 см"
       },
       {
@@ -2198,6 +3665,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170"
       },
       {
@@ -2216,6 +3685,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170 меньше 182"
       },
       {
@@ -2234,6 +3705,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, больше 170, но меньше 182 см"
       },
       {
@@ -2252,6 +3725,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525 мм"
       },
       {
@@ -2270,6 +3745,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525"
       },
       {
@@ -2288,6 +3765,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 мм"
       },
       {
@@ -2306,6 +3785,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 600 мм"
       },
       {
@@ -2324,6 +3805,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450, но меньше 600 мм"
       },
       {
@@ -2342,6 +3825,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм"
       },
       {
@@ -2360,6 +3845,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм"
       },
       {
@@ -2378,6 +3865,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм"
       },
       {
@@ -2394,6 +3883,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм"
       },
       {
@@ -2412,6 +3903,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм"
       },
       {
@@ -2428,6 +3921,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм"
       },
       {
@@ -2446,6 +3941,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450"
       },
       {
@@ -2464,6 +3961,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 меньше 600"
       }
      ]
@@ -2518,9 +4017,17 @@
         "hi": 1.0,
         "n": 11,
         "method": "rule_of_three"
-       }
+       },
+       "hit@1": null,
+       "hit@3": null
       },
-      "wrong_auto_rate_upper95": null
+      "wrong_auto_rate_upper95": null,
+      "ranking": {
+       "ranked_cases": 0,
+       "dialog_traced": 0
+      },
+      "over_asking": 1.0,
+      "wrong_auto_gold_listed": 0
      },
      "by_split": {
       "dev": {
@@ -2564,9 +4071,17 @@
          "hi": 1.0,
          "n": 7,
          "method": "rule_of_three"
-        }
+        },
+        "hit@1": null,
+        "hit@3": null
        },
-       "wrong_auto_rate_upper95": null
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
       },
       "test": {
        "cases": 15,
@@ -2609,9 +4124,17 @@
          "hi": 1.0,
          "n": 4,
          "method": "rule_of_three"
-        }
+        },
+        "hit@1": null,
+        "hit@3": null
        },
-       "wrong_auto_rate_upper95": null
+       "wrong_auto_rate_upper95": null,
+       "ranking": {
+        "ranked_cases": 0,
+        "dialog_traced": 0
+       },
+       "over_asking": 1.0,
+       "wrong_auto_gold_listed": 0
       }
      },
      "cases": [
@@ -2631,6 +4154,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400 Вт"
       },
       {
@@ -2649,6 +4174,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 400"
       },
       {
@@ -2667,6 +4194,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 Вт"
       },
       {
@@ -2685,6 +4214,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 800 Вт"
       },
       {
@@ -2703,6 +4234,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500, но меньше 800 Вт"
       },
       {
@@ -2721,6 +4254,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность не меньше 500 и не больше 800 Вт"
       },
       {
@@ -2739,6 +4274,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность 500-800 Вт"
       },
       {
@@ -2757,6 +4294,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность >500 <800 Вт"
       },
       {
@@ -2775,6 +4314,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800 Вт"
       },
       {
@@ -2791,6 +4332,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность меньше 300 Вт"
       },
       {
@@ -2807,6 +4350,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 800, но меньше 500 Вт"
       },
       {
@@ -2825,6 +4370,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500"
       },
       {
@@ -2843,6 +4390,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, мощность больше 500 меньше 800"
       },
       {
@@ -2861,6 +4410,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "шуруповерт бенчмарка, тип питания от сети, больше 500, но меньше 800 Вт"
       },
       {
@@ -2879,6 +4430,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600 мм"
       },
       {
@@ -2897,6 +4450,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1600"
       },
       {
@@ -2915,6 +4470,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 мм"
       },
       {
@@ -2933,6 +4490,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 1400 мм"
       },
       {
@@ -2951,6 +4510,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000, но меньше 1400 мм"
       },
       {
@@ -2969,6 +4530,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы не меньше 1000 и не больше 1400 мм"
       },
       {
@@ -2987,6 +4550,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы 1000-1400 мм"
       },
       {
@@ -3005,6 +4570,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы >1000 <1400 мм"
       },
       {
@@ -3021,6 +4588,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1800 мм"
       },
       {
@@ -3037,6 +4606,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы меньше 600 мм"
       },
       {
@@ -3053,6 +4624,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1400, но меньше 1000 мм"
       },
       {
@@ -3071,6 +4644,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000"
       },
       {
@@ -3089,6 +4664,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, длина столешницы больше 1000 меньше 1400"
       },
       {
@@ -3107,6 +4684,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "стол письменный бенчмарка, тип каркаса металлический, больше 1000, но меньше 1400 мм"
       },
       {
@@ -3125,6 +4704,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост 173 см"
       },
       {
@@ -3143,6 +4724,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост 173"
       },
       {
@@ -3161,6 +4744,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170 см"
       },
       {
@@ -3179,6 +4764,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост меньше 182 см"
       },
       {
@@ -3197,6 +4784,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170, но меньше 182 см"
       },
       {
@@ -3215,6 +4804,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост не меньше 170 и не больше 182 см"
       },
       {
@@ -3233,6 +4824,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост 170-182 см"
       },
       {
@@ -3251,6 +4844,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост >170 <182 см"
       },
       {
@@ -3267,6 +4862,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 188 см"
       },
       {
@@ -3283,6 +4880,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост меньше 158 см"
       },
       {
@@ -3299,6 +4898,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 182, но меньше 170 см"
       },
       {
@@ -3315,6 +4916,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 164, но меньше 170 см"
       },
       {
@@ -3333,6 +4936,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170"
       },
       {
@@ -3351,6 +4956,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, рост больше 170 меньше 182"
       },
       {
@@ -3369,6 +4976,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "халат медицинский бенчмарка, пол женский, больше 170, но меньше 182 см"
       },
       {
@@ -3387,6 +4996,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525 мм"
       },
       {
@@ -3405,6 +5016,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 525"
       },
       {
@@ -3423,6 +5036,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 мм"
       },
       {
@@ -3441,6 +5056,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 600 мм"
       },
       {
@@ -3459,6 +5076,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450, но меньше 600 мм"
       },
       {
@@ -3477,6 +5096,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна не меньше 450 и не больше 600 мм"
       },
       {
@@ -3495,6 +5116,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна 450-600 мм"
       },
       {
@@ -3513,6 +5136,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна >450 <600 мм"
       },
       {
@@ -3529,6 +5154,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600 мм"
       },
       {
@@ -3547,6 +5174,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна меньше 300 мм"
       },
       {
@@ -3563,6 +5192,8 @@
        "error": null,
        "dialog": null,
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 600, но меньше 450 мм"
       },
       {
@@ -3581,6 +5212,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450"
       },
       {
@@ -3599,6 +5232,8 @@
         "supported": false
        },
        "reached_at": null,
+       "ranking": null,
+       "trace": null,
        "text": "пила ручная бенчмарка, тип пилы ножовка, длина полотна больше 450 меньше 600"
       }
      ]

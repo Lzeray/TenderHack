@@ -19,6 +19,8 @@ import random
 import statistics
 import time
 
+from benchmark import ranking
+
 KS = (1, 2, 3)
 BOOT_N = 2000
 BOOT_SEED = 20261010
@@ -72,10 +74,12 @@ def evaluate_case(adapter, case: dict, ks=KS, use_dialog: bool = True) -> dict:
         "hit0": matched and code in gold,
         "latency_ms": round(latency, 2), "error": err,
         "dialog": None, "reached_at": 0 if (matched and code in gold) else None,
+        "ranking": ranking.rank_stats(pred, gold), "trace": None,
     }
     if gold and use_dialog and ks:
         if row["hit0"]:
             row["dialog"] = {"skipped": "hit0"}     # код выдан сразу — диалог не нужен
+            row["trace"] = ranking.trace_stats([{"ranked": ranking.ranked_list(pred)}], gold, True, max(ks))
         else:
             k = max(ks)
             try:
@@ -88,7 +92,8 @@ def evaluate_case(adapter, case: dict, ks=KS, use_dialog: bool = True) -> dict:
                 fc = d.get("final_code")
                 ok = bool(d.get("resolved")) and fc in gold
                 row["dialog"] = {"supported": True, "resolved": ok, "steps": d.get("steps"), "final_code": fc,
-                                 "wrong_final": fc is not None and fc not in gold}
+                                 "wrong_final": fc is not None and fc not in gold, "reason": d.get("reason")}
+                row["trace"] = ranking.trace_stats(d.get("trace"), gold, ok, k, d.get("reason"))
                 if ok and d.get("steps") is not None and d["steps"] <= k:
                     row["reached_at"] = int(d["steps"])
     return row
@@ -191,6 +196,16 @@ def summarize(rows: list[dict], ks=KS, n_boot: int = BOOT_N, seed: int = BOOT_SE
     # верхняя граница доли ошибочных автокодов
     ap = out["ci95"]["auto_precision"]
     out["wrong_auto_rate_upper95"] = round(1 - ap["lo"], 4) if ap else None
+    # ранжирование (что показано первым) и дальность эталона от вершины по шагам диалога
+    out["ranking"] = ranking.summarize(rows, kmax)
+    rk = [r["ranking"] for r in rows if r.get("ranking")]
+    out["ci95"]["hit@1"] = proportion_ci([x["hit@1"] for x in rk], n_boot, seed)
+    out["ci95"]["hit@3"] = proportion_ci([x["hit@3"] for x in rk], n_boot, seed)
+    # лишние вопросы: среди code_required код был ясен из текста, а решение спросило
+    out["over_asking"] = ratio(sum(not r["matched"] for r in req), len(req))
+    # уверенная ошибка: автокод не из эталона, хотя эталон был в списке решения — ранжирование подвело
+    out["wrong_auto_gold_listed"] = sum(r["wrong_auto"] and bool(r.get("ranking") and r["ranking"]["rank"])
+                                        for r in rows)
     return out
 
 

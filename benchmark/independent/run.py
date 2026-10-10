@@ -20,6 +20,8 @@ import platform
 import sys
 from pathlib import Path
 
+from benchmark import ranking
+
 from . import metrics as mt
 from .generate import MANIFEST, SUITES, test_hash
 
@@ -131,6 +133,10 @@ def to_markdown(rep: dict) -> str:
                 f"| {_f(s['required_hit'])} | {_f(s['no_code_respected'])}{_ci(ci['no_code_respected'])} "
                 f"| {_f(s['premature_auto'])} | {_f(s['questions_mean'])} "
                 f"| {_f(s['latency_ms_p50'])} / {_f(s['latency_ms_p95'])} |")
+        lines += ["", "Ранжирование и диалог (hit@k — эталон в первых k строках до вопросов; *_by_step — после 0, 1, 2… "
+                  "ответов; type_hit@1 — первая строка того же ОКПД2):", ""]
+        lines += ranking.markdown_rows({a: rep["adapters"][a]["suites"][sname]["summary"]["ranking"]
+                                        for a in rep["adapters"]})
         if meta["split"] == "all":
             lines += ["", "По сплитам (только агрегаты):", "",
                       "| Решение | сплит | n | wrong_auto | auto_precision | @0 | @2 | required_hit | no_code_respected |",

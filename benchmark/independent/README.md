@@ -148,6 +148,9 @@
 | `questions_mean` | Среднее число вопросов до верного кода. Считается по кейсам, где код получен за ≤ 3 шага; 0 — если код выдан сразу. |
 | `dialog_wrong_final` | Диалог закончился кодом не из эталона |
 | `latency_ms_p50`, `latency_ms_p95` | Задержка `predict` |
+| `over_asking` | Среди `code_required` — доля, где решение спросило вместо кода |
+| `wrong_auto_gold_listed` | Ошибочный автокод, хотя эталон был в списке решения: подвело ранжирование, а не разбор |
+| `ranking.*` | `hit@1/@3/@5`, `mrr`, `ndcg@3`, `type_hit@1`, `rank_by_step`, `hit1_by_step`, `mrr_by_step`, `questions_to_top1_mean`, `bits_per_question`, `useless_question_rate`, `dead_end_rate`. Определения — в `benchmark/README.md` и `benchmark/ranking.py`. Для `hit@1` и `hit@3` считаются 95% интервалы |
 
 Как считаются `code_reached@k`:
 

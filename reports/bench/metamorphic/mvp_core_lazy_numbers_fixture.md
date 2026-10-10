@@ -1,6 +1,6 @@
 # Отчёт: ktru:core
 
-Дата: 2026-10-10 09:46; машина: Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+Дата: 2026-10-10 10:08; машина: Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
 
 | метрика | lazy_numbers_fixture |
 | --- | --- |
@@ -17,11 +17,35 @@
 | forbidden_code_hits | 13 |
 | compatible_recall | 0.778 |
 | checks_pass | 0.087 |
-| dialog_resolved | 0.778 |
-| dialog_steps_mean | 1.86 |
+| dialog_resolved | 0.852 |
+| dialog_steps_mean | 1.78 |
 | determinism | 1.0 |
 | errors | 0 |
-| latency p50 / p95, мс | 1.87 / 2.87 |
+| latency p50 / p95, мс | 1.93 / 3.17 |
+
+Ранжирование и диалог (hit@k — эталон в первых k строках до вопросов; *_by_step — после 0, 1, 2… ответов; type_hit@1 — первая строка того же ОКПД2):
+
+| метрика | lazy_numbers_fixture |
+| --- | --- |
+| hit@1 | 0.4 |
+| hit@3 | 0.778 |
+| hit@5 | 0.778 |
+| mrr | 0.563 |
+| ndcg@3 | 0.559 |
+| type_hit@1 | 1.0 |
+| gold_rank_median | 1 |
+| gold_not_listed | 0.222 |
+| list_size_median | 1 |
+| list_precision_mean | 0.544 |
+| top1_reached | 0.778 |
+| questions_to_top1_mean | 0.51 |
+| rank_by_step | [1.69, 1.06, 1, 1, 1, 1, 1] |
+| hit1_by_step | [0.4, 0.756, 0.778, 0.778, 0.778, 0.778, 0.778] |
+| mrr_by_step | [0.563, 0.763, 0.778, 0.778, 0.778, 0.778, 0.778] |
+| bits_per_question | 0.634 |
+| useless_question_rate | 0.553 |
+| dead_end_rate | 0.067 |
+| over_asking | 0.621 |
 
 Непройденные кейсы:
 

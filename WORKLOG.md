@@ -18,6 +18,20 @@
   Проверены только генерация, целостность эталона, заморозка и метрики на подставных решениях
   (`tests/test_metamorphic_suites.py`).
 
+## 000c. Метрики ранжирования и вопросов (облачная сессия, 2026-10-10)
+
+- `benchmark/ranking.py` — общий модуль для `benchmark.run` и `benchmark.independent`:
+  - до вопросов: hit@1/@3/@5, mrr, ndcg@3, type_hit@1 (тот же ОКПД2), строка эталона, доля «нет в списке»,
+    размер и точность списка;
+  - по шагам диалога: rank_by_step, hit1_by_step, mrr_by_step, questions_to_top1;
+  - качество вопросов: bits_per_question, useless_question_rate, dead_end_rate;
+  - кроме того: over_asking, wrong_auto_gold_listed.
+- Контракт адаптера: `ranked_codes`, `dialog` → `trace` и `reason`. Адаптер `ktru` отдаёт оба.
+- В `benchmark.run` диалог идёт и при `auto=forbidden`, если эталон есть: `dialog_resolved` не сравнивается
+  со старыми отчётами.
+- Синтетика (`lazy_numbers_fixture`), MVP `ktru:core`: hit@1 0,4, hit@3 0,778, hit1 после 1 вопроса 0,756,
+  useless_question_rate 0,553, dead_end_rate 0,067. Смоук, не точность.
+
 ## 000b. Человеческие опечатки и ошибки в числах (облачная сессия, 2026-10-10)
 
 - `benchmark/metamorphic/typos.py`: набор `typos_human` (202) — короткие слова («стур»), фонетические ошибки

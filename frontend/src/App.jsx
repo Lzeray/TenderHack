@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useSearch } from "./useSearch.js";
+import CsvBatch from "./CsvBatch.jsx";
 import { Feedback, Icon, MissingChars, ProductArt, ProductCard, ProductDialog, Question, SearchBox, SelectedChars } from "./components.jsx";
 
 const categories = [
@@ -43,6 +44,8 @@ function Welcome({ onChoose }) {
 export default function App() {
   const search = useSearch();
   const [selected, setSelected] = useState(null);
+  const [csvActive, setCsvActive] = useState(false);
+  const changeText = value => { setCsvActive(false); search.changeText(value); };
   const data = search.result;
   const current = data && !search.stale;
   const matched = current && data.status === "matched" && data.final_code;
@@ -57,14 +60,16 @@ export default function App() {
 
   return <>
     <header className="site-header"><div className="container header-inner">
-      <button className="brand" onClick={() => search.changeText("")} aria-label="Портал поставщиков — на главную"><span className="brand-mark"><Icon name="box" size={24} /></span><span>Портал <span className="brand-accent">поставщиков</span><small>Помощник подбора КТРУ</small></span></button>
+      <button className="brand" onClick={() => changeText("")} aria-label="Портал поставщиков — на главную"><span className="brand-mark"><Icon name="box" size={24} /></span><span>Портал <span className="brand-accent">поставщиков</span><small>Помощник подбора КТРУ</small></span></button>
       <nav aria-label="Навигация"><span className="nav-current">Каталог</span></nav>
     </div></header>
     <main className="container">
-      <section className={`hero ${search.text ? "hero-compact" : ""}`}>
+      <section className={`hero ${search.text || csvActive ? "hero-compact" : ""}`}>
         <h1>Опишите товар.<br className="desktop-break" /><span> Код КТРУ подберём вместе.</span></h1>
-        <SearchBox search={search} />
+        <SearchBox search={{ ...search, changeText }} />
       </section>
+      <CsvBatch active={csvActive} onActiveChange={setCsvActive} onDetails={setSelected} />
+      {!csvActive && <>
       <Feedback search={search} />
       {!search.text.trim() ? <Welcome onChoose={search.changeText} /> : <>
         <div className="catalog-layout"><aside className="catalog-sidebar side" aria-label="Подбор и характеристики" tabIndex={0}>
@@ -83,8 +88,9 @@ export default function App() {
           </div>
         </section></div>
       </>}
+      </>}
     </main>
     <footer className="site-footer container"><span>Портал поставщиков <span className="footer-divider">/</span> TenderHack</span><span>Подбор по справочнику КТРУ; выгрузки СТЕ — для дополнительных характеристик</span></footer>
-    <ProductDialog selected={selected} onClose={() => setSelected(null)} onUse={search.changeText} />
+    <ProductDialog selected={selected} onClose={() => setSelected(null)} onUse={changeText} />
   </>;
 }

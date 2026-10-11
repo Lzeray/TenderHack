@@ -354,7 +354,7 @@ export function Question({ search }) {
   </details>;
 }
 
-export function ProductCard({ item, kind, onDetails }) {
+export function ProductCard({ item, kind, onDetails, children }) {
   const category = categoryOf(item);
   const description = kind === "ste" ? (item.characteristics || "").split("|").map(s => s.trim())
     .filter(s => s && !/упаков|штрихкод|не задано|неизвест/i.test(s)).slice(0, 3)
@@ -366,6 +366,7 @@ export function ProductCard({ item, kind, onDetails }) {
     <div className="card-content"><div className="card-category">{{ furniture: "Мебель", clothes: "Одежда", tools: "Инструменты" }[category]}</div>
       <button className="card-name" onClick={() => onDetails({ item, kind })}>{item.name}</button>
       {kind === "ste" && <div className="card-description">{description.length ? description.map((line, i) => <p key={i}>{line}</p>) : <p>Товар из предоставленной выгрузки. Подробнее — в карточке.</p>}</div>}
+      {children}
       <div className="card-bottom">{kind === "ste" && <span>{clean(item.manufacturer) ? item.manufacturer : clean(item.country) ? item.country : "Из выгрузки товаров"}</span>}
         <button className={`card-details ${kind === "ktru" ? "catalog-card-details" : ""}`} onClick={() => onDetails({ item, kind })} aria-label={`Подробнее: ${item.name}`}>{kind === "ktru" && "Характеристики"}<Icon name="arrow" size={17} /></button>
       </div>

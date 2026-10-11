@@ -135,9 +135,17 @@ export function useSearch() {
   // Выбранный параметр записывается в строку поиска: «…, Тип каркаса: Металлический» — разбор читает точное название
   // свойства КТРУ. Фрагмент из описания (fragment) заменяется на месте, удаление вырезает его. Прежнее решение
   // о том же свойстве (ответ, выбор варианта) снимается из скрытой строки: теперь значение задаёт текст.
-  const putInText = useCallback(({ name, fragment = null, phrase = "" }) => {
+  const putInText = useCallback(({ name, fragment = null, phrase = "", value = "" }) => {
     const current = query.current;
-    const at = fragment ? current.toLowerCase().indexOf(fragment.toLowerCase()) : -1;
+    let at = fragment ? current.toLowerCase().indexOf(fragment.toLowerCase()) : -1;
+    if (at < 0 && !phrase) {
+      // удаление без фрагмента: «Свойство: значение» или само значение в строке (целым словом)
+      const low = current.toLowerCase();
+      const pair = name ? low.match(new RegExp(`${name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*:[^,;]*`)) : null;
+      const word = !pair && value ? low.match(new RegExp(`(^|[^\\p{L}])(${value.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})(?=$|[^\\p{L}])`, "u")) : null;
+      if (pair) { fragment = pair[0]; at = pair.index; }
+      else if (word) { fragment = word[2]; at = word.index + word[1].length; }
+    }
     if (!phrase && at < 0) {   // фрагмента в тексте нет (значение из наименования или решение) — решение «удалить»
       mutate(p => ({ ...p, overrides: [...p.overrides.filter(c => c.property !== name), { property: name, remove: true }] }));
       return;

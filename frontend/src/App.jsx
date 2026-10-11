@@ -68,7 +68,7 @@ export default function App() {
           <div className="secondary-panels"><Question search={search} /><SelectedChars search={search} /></div>
           <MissingChars search={search} />
         </aside><section className="catalog-main" aria-label="Результаты подбора" data-query={current ? data.query.original : ""}>
-          <div className="results-header"><h2>{matched ? "Подобранный КТРУ" : "Подходящие КТРУ"}</h2><span className="view-label" aria-label="Количество подходящих позиций">{searching ? "…" : count(items.length)}</span></div>
+          <div className="results-header"><h2>{matched ? "Подобранный КТРУ" : "Подходящие КТРУ"}</h2><span className="view-label" aria-label="Количество подходящих позиций">{searching ? "…" : !matched && (data?.compatible_codes?.length || 0) > items.length ? `${items.length} из ${data.compatible_codes.length}` : count(items.length)}</span></div>
           <div id="result-panel">
             {searching ? <div className="product-grid" aria-label="Загрузка позиций">{Array.from({ length: 6 }, (_, i) => <div className="skeleton-card" key={i}><div /><span /><span /><span /></div>)}</div>
               : items.length > 0 ? <div className="product-grid">{items.map(item => <ProductCard key={`ktru-${item.code}`} item={item} kind="ktru" onDetails={setSelected} />)}</div>

@@ -126,12 +126,13 @@ def api_search(req: SearchRequest) -> SearchResponse:
         o = get_orchestrator()
         # разбор видимого текста — правилами: в гибридном режиме основной движок сам текст не разбирает
         core = getattr(getattr(o, "live", None), "rules", None) or get_engine()
-        response = process(req, core, o.run)
+        response = process(req, core, o.run, lock=o.core_lock)
     else:
         response = o.run(req)
     # Run only after Enter / the existing 1000 ms idle timer, on original visible text.
     # This separate provider cannot alter the primary recognizer or catalogue codes.
-    if os.environ.get("EXTRAS_LLM", "on") == "on":
+    # модели по умолчанию выключены (CLAUDE.md): Qwen для доп. характеристик включается EXTRAS_LLM=on (docker-compose)
+    if os.environ.get("EXTRAS_LLM", "off") == "on":
         from .llm.extra_characteristics import enrich
         core = getattr(getattr(o, "live", None), "rules", None) or core
         response = enrich(req, response, core, get_extras_provider(), o.is_stale)

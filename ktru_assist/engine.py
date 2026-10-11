@@ -378,7 +378,8 @@ class Engine:
         head_tok = {t.i for t in nq.tokens if t.kind == "word" and any(fuzzy_equal(t.lemma, h) for h in heads)}
         type_text = " ".join(t.text for t in nq.tokens if t.kind in ("word", "code") and (
             t.i in det.type_token_idx or t.i in head_tok or t.used_by == "type" or t.used_by in type_feats
-            or (t.used_by is None and t.lemma not in STOPWORDS)))
+            or (t.used_by is None and t.lemma not in ("тип", "вид"))))
+        # предлоги остаются на месте: «шкаф для одежды» без «для» стал бы «шкаф одежды», и «одежда» — типом
         # гипотеза модели, противоречащая всем конечным позициям области, не становится фильтром:
         # это сигнал об ошибке в описании (несуществующее значение), а не повод исключить всех кандидатов
         domain_finals = [p for p in positions if not p.is_template]

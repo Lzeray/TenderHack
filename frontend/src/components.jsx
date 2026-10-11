@@ -205,11 +205,12 @@ export function Additional({ data, compact = false }) {
 function applyValue(search, { name, fragment, constraint }) {
   search.putInText({ name, fragment, phrase: phraseFor(name, constraint) });
 }
-function removeValue(search, { name, fragment }) {
-  search.putInText({ name, fragment, phrase: "" });
+function removeValue(search, { name, fragment, value }) {
+  search.putInText({ name, fragment, phrase: "", value });
 }
 
 function ValueInput({ name, values = [], numeric = false, units = [], initial = "", initialUnit = "", fragment = null, removable = false, search }) {
+  // initial — текущее значение: им же ищется фрагмент строки при удалении, если сервер фрагмент не вернул
   const [value, setValue] = useState(initial);
   const [unit, setUnit] = useState(initialUnit || units[0] || "");
   useEffect(() => { setValue(initial); setUnit(initialUnit || units[0] || ""); }, [initial, initialUnit, name]);
@@ -234,12 +235,12 @@ function ValueInput({ name, values = [], numeric = false, units = [], initial = 
           ? <select className="unit-select" aria-label="Единица измерения" value={unit} onChange={event => setUnit(event.target.value)}>{units.map(u => <option key={u}>{u}</option>)}</select>
           : unit && <span className="value-unit">{unit}</span>)}</>}
     {removable && <button className="icon-button" title="Убрать" aria-label={`Убрать ${name}`} disabled={search.stale}
-      onClick={() => removeValue(search, { name, fragment })}><Icon name="close" size={14} /></button>}
+      onClick={() => removeValue(search, { name, fragment, value: initial })}><Icon name="close" size={14} /></button>}
   </div>;
 }
 
-function CharItem({ name, tag, tagClass, hint, evidence, children }) {
-  return <li className="char-item">
+function CharItem({ name, tag, tagClass, hint, evidence, children, kind = "" }) {
+  return <li className={`char-item ${kind ? `char-${kind}` : ""}`}>
     <div className="char-head"><b>{name}</b>{tag && <span className={`mini-tag ${tagClass}`}>{tag}</span>}</div>
     {children}
     {hint && <small className="char-note">{hint}</small>}
@@ -277,24 +278,35 @@ export function SelectedChars({ search }) {
   const other = features.filter(f => ["bound", "proposed"].includes(f.status) && f.property_name && !requiredIds.has(f.id) && !optionalIds.has(f.id));
   const ambiguous = features.filter(f => f.status === "ambiguous");
   const extra = data.additional || [];
-  const total = rows.length + optional.length + other.length + ambiguous.length + extra.length;
+  // «Вид товара: Стол» из слова типа — это сам товар, а не характеристика: показывается без удаления
+  const typeWord = features.filter(f => f.status === "bound" && f.from_type_name && !requiredIds.has(f.id));
+  const optionalShown = [...optional, ...other].filter(f => !f.from_type_name);
+  const total = rows.length + optionalShown.length + typeWord.length + ambiguous.length + extra.length;
   if (!total) return null;
   return <SidePanel icon="check" title="Выбранные характеристики" count={total} className="side-selected" collapsible
     empty="Пока ничего не распознано. Опишите товар подробнее или заполните характеристики ниже.">
-    {rows.map(r => { const f = byId[r.feature_id]; return <CharItem key={`r-${r.property_code}`} name={r.name} tag={STATUS_TAGS[r.status][0]} tagClass={STATUS_TAGS[r.status][1]}
-      evidence={f?.evidence} hint={r.status !== "filled" ? r.reason : null}>
-      <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} initial={r.value || ""} initialUnit={r.unit || ""} fragment={fragmentFor(r.name, features, f)} removable />
+    {rows.length > 0 && <li className="char-group char-group-required">Обязательные характеристики КТРУ</li>}
+    {rows.map(r => { const f = byId[r.feature_id]; const fixed = f?.from_type_name; return <CharItem key={`r-${r.property_code}`} name={r.name} tag={STATUS_TAGS[r.status][0]} tagClass={STATUS_TAGS[r.status][1]}
+      evidence={f?.evidence} hint={fixed ? "задано наименованием товара" : r.status !== "filled" ? r.reason : null} kind="required">
+      {fixed ? <b className="char-static">{r.value}</b>
+        : <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} initial={r.value || ""} initialUnit={r.unit || ""} fragment={fragmentFor(r.name, features, f)} removable />}
     </CharItem>; })}
-    {[...optional, ...other].map(f => <CharItem key={`o-${f.id}`} name={f.property_name} tag={optionalIds.has(f.id) ? "Необязательная" : "КТРУ"} tagClass="blue" evidence={f.evidence}>
+    {optionalShown.length > 0 && <li className="char-group char-group-optional">Необязательные характеристики КТРУ</li>}
+    {optionalShown.map(f => <CharItem key={`o-${f.id}`} name={f.property_name} tag={optionalIds.has(f.id) ? "Необязательная" : "КТРУ"} tagClass="blue" evidence={f.evidence} kind="optional">
       <ValueInput search={search} name={f.property_name} initial={featureValue(f)} initialUnit={f.unit || ""} numeric={!!f.unit} units={f.unit ? [f.unit] : []} fragment={fragmentFor(f.property_name, features, f)} removable />
     </CharItem>)}
-    {ambiguous.map(f => <CharItem key={`a-${f.id}`} name={`«${f.evidence || f.value}»`} tag="Уточните свойство" tagClass="amber">
+    {typeWord.map(f => <CharItem key={`t-${f.id}`} name={f.property_name} tag="Тип товара" tagClass="blue" hint="задано наименованием товара" kind="optional">
+      <b className="char-static">{f.value}</b>
+    </CharItem>)}
+    {ambiguous.length > 0 && <li className="char-group char-group-ambiguous">Уточните, к чему относится</li>}
+    {ambiguous.map(f => <CharItem key={`a-${f.id}`} name={`«${f.evidence || f.value}»`} tag="Уточните свойство" tagClass="amber" kind="ambiguous">
       <select className="value-select" defaultValue="" disabled={search.stale} onChange={event => {
         const option = f.options[Number(event.target.value)];
         search.override({ property: option.property_code, value: option.value ?? f.value, value_to: f.value_to, op: f.op, unit: f.unit });
       }}><option value="" disabled>К какому свойству относится?</option>{f.options.map((o, i) => <option key={i} value={i}>{o.property_name}{o.value ? ` = ${o.value}` : ""}</option>)}</select>
     </CharItem>)}
-    {extra.map((a, i) => <CharItem key={`e-${i}`} name={a.name} tag={SOURCE_TAGS[a.source][0]} tagClass={SOURCE_TAGS[a.source][1]} hint={a.reason}>
+    {extra.length > 0 && <li className="char-group char-group-extra">Дополнительные (нет в КТРУ, на код не влияют)</li>}
+    {extra.map((a, i) => <CharItem key={`e-${i}`} name={a.name} tag={SOURCE_TAGS[a.source][0]} tagClass={SOURCE_TAGS[a.source][1]} hint={a.reason} kind="extra">
       <b className="char-static">{a.value} {a.unit || ""}</b>
     </CharItem>)}
   </SidePanel>;
@@ -307,7 +319,7 @@ export function MissingChars({ search }) {
   const common = missing.filter(r => r.common);
   const partial = missing.filter(r => !r.common);
   const empty = (data.required_characteristics || []).length ? "Все обязательные характеристики КТРУ указаны." : "Появятся, когда станет понятен товар.";
-  return <SidePanel icon="filter" title="Обязательные характеристики" count={missing.length} className="side-missing" empty={empty}>
+  return <SidePanel icon="filter" title="Осталось заполнить (обязательные)" count={missing.length} className="side-missing" empty={empty}>
     {common.length > 0 && partial.length > 0 && <li className="char-group">Общие для всех позиций</li>}
     {common.map(r => <CharItem key={`m-${r.property_code}`} name={r.name}>
       <ValueInput search={search} name={r.name} values={r.values} numeric={r.numeric} units={r.units} />

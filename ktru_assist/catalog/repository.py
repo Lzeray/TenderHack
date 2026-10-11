@@ -5,6 +5,7 @@ import re
 
 import json
 import sqlite3
+import threading
 from dataclasses import dataclass, field
 from decimal import Decimal
 from functools import cached_property
@@ -210,17 +211,42 @@ def item_words(name: str, heads: set[str]) -> set[str]:
     return out
 
 
+class _Rows(list):
+    def fetchone(self):
+        return self[0] if self else None
+
+    def fetchall(self):
+        return list(self)
+
+
+class _LockedConnection:
+    """Одно соединение SQLite на все потоки API: запросы идут под общей блокировкой, строки читаются целиком.
+    Без этого параллельные запросы (черновик и разбор при наборе, карточка позиции) ломали курсор
+    («sqlite3.InterfaceError: bad parameter or other API misuse»)."""
+
+    def __init__(self, con: sqlite3.Connection):
+        self._con = con
+        self._lock = threading.RLock()
+
+    def execute(self, sql: str, params=()):
+        with self._lock:
+            return _Rows(self._con.execute(sql, params).fetchall())
+
+    def __getattr__(self, name):
+        return getattr(self._con, name)
+
+
 class Catalog:
-    """SQLite в режиме только чтения; соединение на поток не разделяется (check_same_thread=False
-    допустим, так как запись невозможна)."""
+    """SQLite в режиме только чтения; одно соединение на все потоки — под блокировкой (_LockedConnection)."""
 
     def __init__(self, db_path: Path | str):
         self.db_path = unpack_gz(Path(db_path))
         if not self.db_path.exists():
             raise FileNotFoundError(f"База каталога не найдена: {self.db_path}. Выполните импорт.")
         uri = self.db_path.resolve().as_uri() + "?mode=ro"
-        self.con = sqlite3.connect(uri, uri=True, check_same_thread=False)
-        self.con.row_factory = sqlite3.Row
+        raw = sqlite3.connect(uri, uri=True, check_same_thread=False)
+        raw.row_factory = sqlite3.Row
+        self.con = _LockedConnection(raw)
         self._cache: dict[str, Position] = {}
         built = self.meta.get("morph", "pymorphy")
         if built != MORPH_MODE:

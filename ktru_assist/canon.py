@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from .models import Feature
-from .text import content_lemmas, norm, tokenize
+from .text import content_lemmas, norm, property_key, tokenize
 
 VERSION = "1.0"
 
@@ -49,8 +49,8 @@ def match_group(name: str | None, groups: dict) -> object | None:
     """Группа свойства КТРУ по названию из текста: точное совпадение без регистра, затем по леммам."""
     if not name:
         return None
-    key = " ".join(tokenize(name))
-    exact = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
+    key = property_key(name)
+    exact = [g for g in groups.values() if property_key(g.name) == key]
     if len(exact) == 1:
         return exact[0]
     lem = _lemkey(name)

@@ -54,10 +54,15 @@ def _interval_constraint(code: str, iv: Interval, unit: Unit | None) -> Constrai
     return Constraint(property=code, op="le" if iv.hi_incl else "lt", value=fmt(iv.hi).replace(",", "."), unit=u)
 
 
+def _qkey(text: str | None) -> tuple:
+    """Качественное значение — по леммам: «Женская» и «Женский» у разных позиций — один вариант ответа."""
+    return tuple(content_lemmas(text or "")) or (norm(text or ""),)
+
+
 def _value_compatible(prop: Prop, opt_value: AllowedValue) -> bool:
     if opt_value.kind == "quality":
-        n = norm(opt_value.text or "")
-        return any(v.kind == "quality" and norm(v.text or "") == n for v in prop.values)
+        n = _qkey(opt_value.text)
+        return any(v.kind == "quality" and _qkey(v.text) == n for v in prop.values)
     iv = opt_value.interval
     for v in prop.values:
         if v.interval is None:
@@ -86,7 +91,7 @@ def _options_for(name_key: str, cands: list[Position], strict_refs: bool = False
         sample = sample or p
         for v in p.values:
             if v.kind == "quality" and v.text:
-                key = ("q", norm(v.text))
+                key = ("q", _qkey(v.text))
                 if key not in seen:
                     # ответ несёт ключ-название характеристики, а не код: у позиций разных наименований одна
                     # характеристика бывает под разными кодами, и после вопроса о наименовании ответ терялся
@@ -109,7 +114,7 @@ def _count(name_key: str, opt: _Opt, cands: list[Position], sample_values: dict,
 
 
 def _value_key(v: AllowedValue):
-    return ("q", norm(v.text or "")) if v.kind == "quality" else ("n", v.unit.key if v.unit else "", v.interval)
+    return ("q", _qkey(v.text)) if v.kind == "quality" else ("n", v.unit.key if v.unit else "", v.interval)
 
 
 def build_plans(cands: list[Position], constrained: set[str], with_type: bool, strict_refs: bool = False,

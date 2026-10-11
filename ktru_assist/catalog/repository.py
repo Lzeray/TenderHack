@@ -12,7 +12,7 @@ from functools import cached_property
 from pathlib import Path
 
 from ..config import unpack_gz
-from ..text import MORPH_MODE, content_lemmas, norm, tokenize
+from ..text import MORPH_MODE, content_lemmas, norm, property_key, tokenize
 from ..units import Unit, fmt, from_okei, unit_from_char_name
 
 YES_NO = {"да", "нет"}
@@ -154,7 +154,7 @@ class Prop:
 
     @property
     def norm_name(self) -> str:
-        return " ".join(tokenize(self.name))
+        return property_key(self.name)
 
 
 @dataclass

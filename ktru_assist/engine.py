@@ -32,11 +32,18 @@ from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
 from .catalog.scope import ref
-from .text import MORPH_MODE, STOPWORDS, content_lemmas, fuzzy_equal, lemma, norm, tokenize
+from .text import MORPH_MODE, STOPWORDS, content_lemmas, fuzzy_equal, lemma, norm, property_key, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate, find_prop
 
 MAX_CANDIDATES_OUT = 100
+
+
+def _value_label_key(v) -> tuple:
+    """Ключ значения КТРУ для показа: качественные — по леммам («Женская» = «Женский»), числовые — по подписи."""
+    if v.kind == "quality" and v.text:
+        return ("q", tuple(content_lemmas(v.text)) or (norm(v.text),))
+    return ("n", v.label)
 MAX_QUESTIONS = 2          # уточняющих вопросов не больше двух, дальше — список «Осталось ввести» (QUESTIONS_PLAN Q2)
 REQUIRED_EMPTY = "обязательное свойство не заполнено"
 PREFERENCE_WORDS = {"желательно", "предпочтительно", "желательный", "предпочтительный"}
@@ -489,7 +496,7 @@ class Engine:
             blocking_feats.append(None)
         # «Вид товара» из слова типа («стол») не задаёт характеристику: по ней ещё можно спросить «стол или секция
         # стола» (docs/QUESTIONS_PLAN.md, Q1)
-        constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
+        constrained = {(f.characteristic_ref if self.native else property_key(f.property_name)) for f in features
                        if f.status == "bound" and f.property_name and not f.from_type_name}
         if self.native:
             # признаки разбора правилами не несут ссылку на характеристику: заданные свойства — по позициям
@@ -871,11 +878,13 @@ class Engine:
                 if not pr.required:
                     continue
                 r = rows.setdefault(pr.norm_name, {"prop": pr, "count": 0, "values": {}, "units": set(),
-                                                    "sets": set()})
+                                                    "sets": set(), "names": {}})
                 r["count"] += 1
-                r["sets"].add(tuple(sorted(v.label for v in pr.values)))
+                r["names"][pr.name] = r["names"].get(pr.name, 0) + 1
+                r["sets"].add(tuple(sorted(_value_label_key(v) for v in pr.values)))
                 for v in pr.values:
-                    r["values"].setdefault(v.label, None)
+                    # «Женская» / «Женский» у разных позиций — одно значение (сравнение по леммам)
+                    r["values"].setdefault(_value_label_key(v), v.label)
                     if v.unit:
                         r["units"].add(v.unit.title)
             for f in active:
@@ -897,10 +906,11 @@ class Engine:
                 unit = f.unit
                 reason = {"filled": "заполнена и проверена по КТРУ", "invalid": "значение не подходит позициям КТРУ",
                           "unchecked": "указана, но сравнить с КТРУ не удалось — уточните значение"}[status]
+            name = max(sorted(r["names"]), key=lambda n: r["names"][n])   # самое частое написание свойства
             out.append(RequiredCharacteristic(
-                property_code=pr.code, name=pr.name, common=r["count"] == total, positions=r["count"], total=total,
+                property_code=pr.code, name=name, common=r["count"] == total, positions=r["count"], total=total,
                 numeric=pr.is_numeric, boolean=pr.is_boolean, units=sorted(r["units"]),
-                values=list(r["values"])[:50], status=status, value=value, unit=unit,
+                values=list(r["values"].values())[:50], status=status, value=value, unit=unit,
                 feature_id=f.id if f is not None else None,
                 narrows=total > 1 and (r["count"] < total or len(r["sets"]) > 1), reason=reason))
         out.sort(key=lambda r: (not r.common, -r.positions, not r.narrows, r.name))
@@ -1093,7 +1103,7 @@ class Engine:
         by_key: dict[str, list[Feature]] = {}
         for f in features:
             if f.status == "bound" and f.source == "text" and f.property_name:
-                key = " ".join(tokenize(f.property_name))
+                key = property_key(f.property_name)
                 if key not in multi:
                     by_key.setdefault(key, []).append(f)
         out = []
@@ -1169,12 +1179,12 @@ class Engine:
             if c.property == TYPE_PROP:
                 continue
             g = self._resolve_group(c.property, groups)
-            gname = " ".join(tokenize(g.name)) if g is not None else None
+            gname = property_key(g.name) if g is not None else None
             # у позиций КТРУ одна и та же характеристика бывает под разными кодами: тогда привязка — по названию
             strict = self.native and g is not None and \
-                sum(1 for x in groups.values() if " ".join(tokenize(x.name)) == gname) == 1
+                sum(1 for x in groups.values() if property_key(x.name) == gname) == 1
             for f in features:
-                by_name = bool(f.property_name) and " ".join(tokenize(f.property_name)) == gname
+                by_name = bool(f.property_name) and property_key(f.property_name) == gname
                 same = g is not None and ((f.characteristic_ref == g.key or (f.characteristic_ref is None and by_name))
                                           if self.native else by_name)
                 if same and f.status == "bound":
@@ -1221,7 +1231,7 @@ class Engine:
         code_matches = [g for g in groups.values() if prop in g.codes]
         if code_matches:
             return code_matches[0] if len(code_matches) == 1 else None
-        key = " ".join(tokenize(prop))
-        matches = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
+        key = property_key(prop)
+        matches = [g for g in groups.values() if property_key(g.name) == key]
         # несколько групп с одним названием (разные коды одной характеристики) — привязка по названию
         return matches[0] if matches else None

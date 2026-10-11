@@ -16,7 +16,7 @@ from decimal import Decimal, InvalidOperation
 from .catalog.repository import Interval, Position, Prop, merge_intervals
 from .models import Feature, Issue, PropertyCheck
 from .dims import axis_of, context_of
-from .text import content_lemmas, head_lemma, norm, tokenize
+from .text import content_lemmas, head_lemma, norm, property_key, tokenize
 from .units import lookup, fmt
 
 
@@ -65,10 +65,10 @@ def find_prop(pos: Position, f: Feature) -> Prop | None:
         return p if p and (f.property_name is None or p.name == f.property_name) else None
     if f.property_code and f.property_code in pos.props:
         p = pos.props[f.property_code]
-        if f.property_name is None or p.norm_name == " ".join(tokenize(f.property_name)):
+        if f.property_name is None or p.norm_name == property_key(f.property_name):
             return p
     if f.property_name:
-        key = " ".join(tokenize(f.property_name))
+        key = property_key(f.property_name)
         for p in pos.props.values():
             if p.norm_name == key:
                 return p

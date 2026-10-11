@@ -227,3 +227,17 @@ def test_negation_does_not_jump_over_repeated_word(real_engine):
     r = real_engine.search(SearchRequest(text="мужское пальто нагольное (дубленка), размер 52, мех не натуральный натуральная кожа"))
     feats = {f.property_name: f.value for f in r.features if f.status == "bound"}
     assert feats.get("Натуральный мех") == "Нет" and feats.get("Натуральная кожа") == "Да"
+
+
+def test_property_spelling_variants_are_one_property(real_engine):
+    # «Наличие мягкого сидения» / «сиденья» — одно свойство (docs/PROPERTY_VARIANTS.md)
+    r = real_engine.search(SearchRequest(text="стул"))
+    soft = [x for x in r.required_characteristics if "мягкого сид" in x.name.lower()]
+    assert len(soft) == 1 and soft[0].positions == 11
+    # значение по любому написанию фильтрует обе группы позиций
+    r = real_engine.search(SearchRequest(text="стул, наличие мягкого сиденья: да"))
+    assert "Секция стульев многоместная" in {c.name for c in r.candidates if c.compatible}
+    # «Прямая» / «Прямой» у разных шкафов — один вариант
+    r = real_engine.search(SearchRequest(text="шкаф"))
+    kinds = next(x.values for x in r.required_characteristics if x.name == "Тип конструкции")
+    assert len(kinds) == len({v.lower()[:5] for v in kinds})

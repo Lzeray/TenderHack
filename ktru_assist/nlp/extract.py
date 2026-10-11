@@ -34,7 +34,7 @@ from ..components import canonical_key, component_of_lemma, property_component
 from ..config import ROOT
 from ..models import Feature
 from ..dims import AXES, axis_of, context_of
-from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_of_literal, lemma_set, norm, tokenize
+from ..text import NEGATIONS, STOPWORDS, content_lemmas, fuzzy_equal, head_lemma, lemma, lemma_of_literal, lemma_set, norm, property_key, tokenize
 from ..units import BY_KEY, fmt
 from .normalize import NormalizedQuery, Token
 
@@ -96,9 +96,12 @@ def _core_noun(name: str) -> str | None:
 
 def build_groups(positions: list[Position]) -> dict[str, PropGroup]:
     groups: dict[str, PropGroup] = {}
+    spellings: dict[str, dict[str, int]] = {}
     for p in positions:
         for prop in p.props.values():
             key = prop.norm_name
+            spellings.setdefault(key, {})
+            spellings[key][prop.name] = spellings[key].get(prop.name, 0) + 1
             g = groups.get(key)
             if g is None:
                 terms = [t for t in content_lemmas(prop.name) if t not in GENERIC_NAME_WORDS]
@@ -123,10 +126,12 @@ def build_groups(positions: list[Position]) -> dict[str, PropGroup]:
                 if v.kind == "quality" and v.text:
                     g.quality.setdefault(norm(v.text), v.text)
                     g.value_lemmas.setdefault(norm(v.text), v.lemmas)
-    for g in groups.values():
+    for key, g in groups.items():
         g.codes.sort()
         if not g.quality:
             g.boolean = False
+        # одно свойство под разными написаниями («сидения» / «сиденья»): показывается самое частое
+        g.name = max(sorted(spellings[key]), key=lambda n: spellings[key][n])
     return groups
 
 
@@ -406,7 +411,7 @@ class Extractor:
         feats += self._booleans(nq)
         feats += self._value_aliases(nq)
         # свойства, уже заданные явно или найденные раньше, не получают значение только из слов наименования
-        self._bound_keys = {" ".join(tokenize(f.property_name)) for f in feats
+        self._bound_keys = {property_key(f.property_name) for f in feats
                             if f.status == "bound" and f.property_name}
         feats += self._qualities(nq)
         return feats
@@ -498,7 +503,7 @@ class Extractor:
         feats = []
         words = [t for t in tokens if t.kind == "word"]
         for a in value_aliases():
-            g = self.groups.get(" ".join(tokenize(a.property)))
+            g = self.groups.get(property_key(a.property))
             if g is None or norm(a.value) not in g.quality:
                 continue  # свойства или значения нет у позиций области — алиас не применяется
             n = len(a.phrase)

@@ -4,6 +4,3 @@ data/*.sqlite
 reports
 .git
 **/__pycache__
-**/node_modules
-frontend/dist
-.venv

@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import replace
 from decimal import Decimal, InvalidOperation
 import hashlib
+import os
 from pathlib import Path
 import time
 
@@ -92,11 +93,8 @@ class LiveSearch:
         # Incomplete words are queried against catalogue names; no hand-written synonym list.
         prefix = norm(text)
         hits = [t for t in types.values() if len(prefix) >= 2 and norm(t.name).startswith(prefix)] if " " not in text else []
-        if not hits and self.o.semantic is not None:
-            proposals = self.o.semantic.propose(response, req.text, set(req.rejected))
-            if proposals:
-                best = max(p.score or 0 for p in proposals)
-                hits = [types[p.answer.value] for p in proposals if p.answer and (p.score or 0) >= best - .025]
+        # Близость эмбеддингов не доказывает тип товара: при неизвестном предмете
+        # случайные соседи каталога не становятся подходящими позициями.
         codes = sorted({c for t in hits for c in t.codes})
         ps = self.catalog.get_many(codes)
         return [ps[c] for c in codes], False
@@ -152,6 +150,7 @@ class LiveSearch:
                         "status": "outside_catalogue", "quote": token.text, "op": "eq"})
         response.query_profile["item_terms"] = rule_response.detected_types
         response.query_profile["unrecognized"] = rule_response.unrecognized
+        response.unrecognized = list(rule_response.unrecognized)
         # Поиск идёт только по КТРУ; выгрузки СТЕ лишь подтверждают дополнительные характеристики.
         self._additional(req, response, rule_response.detected_types,
                          [a for a in response.query_profile["attributes"] if a["status"] == "outside_catalogue"])
@@ -226,6 +225,13 @@ class LiveSearch:
         if req.manual_only or self.o.llm is None or self.o.cfg.b_mode == "off":
             fast.model_pending = False
             fast.providers.append(ProviderStatus(name="qwen", enabled=False, status="off"))
+            return fast
+        if os.environ.get("EXTRAS_LLM", "off") == "on" and fast.query_profile.get("item_terms"):
+            # Предмет уже распознан: отдельный проход получит только неразобранные
+            # фрагменты исходного текста. Повторный разбор всей строки создавал дубли.
+            fast.model_pending = False
+            fast.providers.append(ProviderStatus(name="qwen", enabled=True, used=False,
+                status="skipped", detail="предмет распознан; только неразобранные параметры передаются qwen_extras"))
             return fast
         groups = build_groups(positions)
         hints = [{"name": g.name, "values": sorted(g.quality.values())[:8],

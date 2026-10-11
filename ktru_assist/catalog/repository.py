@@ -1,15 +1,18 @@
 """Доступ к импортированному каталогу (SQLite только на чтение) и доменные объекты."""
 from __future__ import annotations
 
+import re
+
 import json
 import sqlite3
+import threading
 from dataclasses import dataclass, field
 from decimal import Decimal
 from functools import cached_property
 from pathlib import Path
 
 from ..config import unpack_gz
-from ..text import MORPH_MODE, content_lemmas, norm, tokenize
+from ..text import MORPH_MODE, content_lemmas, norm, property_key, tokenize
 from ..units import Unit, fmt, from_okei, unit_from_char_name
 
 YES_NO = {"да", "нет"}
@@ -151,7 +154,7 @@ class Prop:
 
     @property
     def norm_name(self) -> str:
-        return " ".join(tokenize(self.name))
+        return property_key(self.name)
 
 
 @dataclass
@@ -182,17 +185,68 @@ class Position:
         return " ".join(tokenize(self.name))
 
 
+ITEM_STOP = frozenset({"для", "под", "к", "ко", "с", "со", "на", "из", "от", "по", "в", "во", "без", "при", "над",
+                       "о", "об", "у", "за", "до"})
+
+
+def item_words(name: str, heads: set[str]) -> set[str]:
+    """Слова типа в наименовании, которые называют сам товар, а не его назначение: слово не стоит после предлога
+    в своей группе (назад — до запятой, «/», скобки или начала). «Шаблон для заточки спиральных сверл» — не
+    «сверло», «Ножи и лезвия режущие» — и «лезвие»."""
+    from ..text import lemma
+    parts = re.findall(r"[а-яёa-z]+(?:-[а-яёa-z]+)*|[,/()]", name.lower())
+    out = set()
+    for i, w in enumerate(parts):
+        lem = lemma(w) if w not in ",/()" else w
+        if lem not in heads:
+            continue
+        j, ok = i - 1, True
+        while j >= 0 and parts[j] not in ",/()":
+            if parts[j] in ITEM_STOP:
+                ok = False
+                break
+            j -= 1
+        if ok:
+            out.add(lem)
+    return out
+
+
+class _Rows(list):
+    def fetchone(self):
+        return self[0] if self else None
+
+    def fetchall(self):
+        return list(self)
+
+
+class _LockedConnection:
+    """Одно соединение SQLite на все потоки API: запросы идут под общей блокировкой, строки читаются целиком.
+    Без этого параллельные запросы (черновик и разбор при наборе, карточка позиции) ломали курсор
+    («sqlite3.InterfaceError: bad parameter or other API misuse»)."""
+
+    def __init__(self, con: sqlite3.Connection):
+        self._con = con
+        self._lock = threading.RLock()
+
+    def execute(self, sql: str, params=()):
+        with self._lock:
+            return _Rows(self._con.execute(sql, params).fetchall())
+
+    def __getattr__(self, name):
+        return getattr(self._con, name)
+
+
 class Catalog:
-    """SQLite в режиме только чтения; соединение на поток не разделяется (check_same_thread=False
-    допустим, так как запись невозможна)."""
+    """SQLite в режиме только чтения; одно соединение на все потоки — под блокировкой (_LockedConnection)."""
 
     def __init__(self, db_path: Path | str):
         self.db_path = unpack_gz(Path(db_path))
         if not self.db_path.exists():
             raise FileNotFoundError(f"База каталога не найдена: {self.db_path}. Выполните импорт.")
         uri = self.db_path.resolve().as_uri() + "?mode=ro"
-        self.con = sqlite3.connect(uri, uri=True, check_same_thread=False)
-        self.con.row_factory = sqlite3.Row
+        raw = sqlite3.connect(uri, uri=True, check_same_thread=False)
+        raw.row_factory = sqlite3.Row
+        self.con = _LockedConnection(raw)
         self._cache: dict[str, Position] = {}
         built = self.meta.get("morph", "pymorphy")
         if built != MORPH_MODE:
@@ -268,9 +322,14 @@ class Catalog:
         rows = self.con.execute(
             "SELECT code, name, name_lemmas, head, category, active, is_template, okpd2_name "
             "FROM positions WHERE category IS NOT NULL ORDER BY code").fetchall()
+        heads = {r["head"] for r in rows if r["head"]}
         return [{
             "code": r["code"], "name": r["name"], "name_lemmas": (r["name_lemmas"] or "").split(),
-            "head": r["head"], "head_parts": sorted({r["head"], *(r["head"] or "").split("-")} - {""}),
+            "head": r["head"],
+            # тип позиции — главное слово и другие слова типа в наименовании не после предлога: «Секция стульев
+            # многоместная» — и «стул», «Пара кожаных перчаток» — и «перчатка»; «Шкаф для одежды» — не «одежда»
+            # (docs/QUESTIONS_PLAN.md, Q1)
+            "head_parts": sorted({r["head"], *(r["head"] or "").split("-"), *item_words(r["name"], heads)} - {""}),
             "category": r["category"], "active": bool(r["active"]), "is_template": bool(r["is_template"]),
             "okpd2_lemmas": content_lemmas(r["okpd2_name"] or ""),
         } for r in rows]

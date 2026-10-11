@@ -2,6 +2,7 @@
 from dataclasses import replace
 import json
 import sqlite3
+from types import SimpleNamespace
 
 import pytest
 
@@ -42,6 +43,25 @@ def test_every_compatible_position_is_returned(live):
     assert {c.name for c in r.candidates} == {"Стул на металлическом каркасе"}
 
 
+def test_unknown_product_does_not_use_unrelated_semantic_neighbors(live):
+    from ktru_assist.live_search import LiveSearch
+    calls = []
+    target = next(iter(live.engine.catalog_scope.types))
+    def propose(*args):
+        calls.append(args)
+        return [SimpleNamespace(score=0.99, answer=SimpleNamespace(value=target))]
+    live.semantic = SimpleNamespace(propose=propose)
+    req = request("шмякозябра")
+    positions, verified = LiveSearch(live)._fallback(req, None)
+    assert not positions and not verified and not calls
+
+
+def test_unknown_product_has_no_compatible_positions(live):
+    r = live.run(request("шмякозябра"))
+    assert r.status == "not_found"
+    assert not r.candidates and not r.compatible_codes and r.final_code is None
+
+
 def test_qwen_runs_without_user_selecting_type(live):
     live.cfg.b_mode = "always"
     live.llm = FakeProvider({"item": "дрель", "item_quote": "дрель", "catalogue_type": None,
@@ -49,6 +69,16 @@ def test_qwen_runs_without_user_selecting_type(live):
     r = live.run(request("дрель ручная электрическая", stage="submitted"))
     assert live.llm.calls and r.results_total > 0
     assert any(p.name == "qwen" and p.used for p in r.providers)
+
+
+def test_extra_only_mode_does_not_send_recognized_input_to_primary_qwen(live, monkeypatch):
+    monkeypatch.setenv("EXTRAS_LLM", "on")
+    live.cfg.b_mode = "always"
+    live.llm = FakeProvider({"item": "дрель", "item_quote": "дрель", "attributes": []})
+    r = live.run(request("дрель ручная электрическая мощность 600 Вт", stage="submitted"))
+    assert not live.llm.calls
+    assert any(p.name == "qwen" and p.status == "skipped" and not p.used for p in r.providers)
+    assert any(f.value == "600" and f.origin == "rule" for f in r.features)
 
 
 def test_quantity_from_model_cannot_be_changed():

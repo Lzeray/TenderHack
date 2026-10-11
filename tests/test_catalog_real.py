@@ -162,9 +162,12 @@ def test_type_scope_is_complete(real_engine):
     r = real_engine.search(SearchRequest(text="стол"))
     assert len(r.compatible_codes) >= 30 and r.final_code is None
     assert {"Журнальный стол", "Стол письменный", "Стол для переговоров"} <= names(r)
+    # тип задаётся наименованием КТРУ: секции стола — тоже столы, разницу выясняют вопросы (docs/QUESTIONS_PLAN.md, Q1)
     kinds = [[v.text for pr in p.props.values() if pr.name == "Вид товара" for v in pr.values]
              for p in real_engine.catalog.get_many(r.compatible_codes).values()]
-    assert kinds and not any(k and all(v.startswith("Секция") for v in k) for k in kinds)
+    assert any(k and all(v.startswith("Секция") for v in k) for k in kinds)
+    r = real_engine.search(SearchRequest(text="стул"))
+    assert "Секция стульев многоместная" in names(r)          # «стульев» не после предлога — тоже стул
     r = real_engine.search(SearchRequest(text="шкаф, вид товара секция шкафа"))
     assert any("Секция шкафа" in x for x in kind(r) if "есть среди" in x)
     r = real_engine.search(SearchRequest(text="джинсы"))
@@ -209,8 +212,32 @@ def test_value_without_property_is_checked_by_other_characteristic(real_engine):
     assert any(not c.compatible and "ни в одной характеристике" in (c.excluded_reason or "") for c in r.candidates)
 
 
+def test_item_words_in_name():
+    from ktru_assist.catalog.repository import item_words
+    heads = {"стул", "одежда", "сверло", "лезвие", "нож", "перчатка", "рукавица"}
+    assert item_words("Секция стульев многоместная", heads) == {"стул"}
+    assert item_words("Шкаф для одежды металлический", heads) == set()        # после предлога — назначение
+    assert item_words("Шаблон для заточки спиральных сверл", heads) == set()
+    assert item_words("Ножи и лезвия режущие для машин", heads) == {"нож", "лезвие"}
+    assert item_words("Перчатки, рукавицы (варежки)", heads) == {"перчатка", "рукавица"}
+
+
 def test_negation_does_not_jump_over_repeated_word(real_engine):
     # «не» относится к «натуральный» (мех), а не к следующей «натуральная кожа»
     r = real_engine.search(SearchRequest(text="мужское пальто нагольное (дубленка), размер 52, мех не натуральный натуральная кожа"))
     feats = {f.property_name: f.value for f in r.features if f.status == "bound"}
     assert feats.get("Натуральный мех") == "Нет" and feats.get("Натуральная кожа") == "Да"
+
+
+def test_property_spelling_variants_are_one_property(real_engine):
+    # «Наличие мягкого сидения» / «сиденья» — одно свойство (docs/PROPERTY_VARIANTS.md)
+    r = real_engine.search(SearchRequest(text="стул"))
+    soft = [x for x in r.required_characteristics if "мягкого сид" in x.name.lower()]
+    assert len(soft) == 1 and soft[0].positions == 11
+    # значение по любому написанию фильтрует обе группы позиций
+    r = real_engine.search(SearchRequest(text="стул, наличие мягкого сиденья: да"))
+    assert "Секция стульев многоместная" in {c.name for c in r.candidates if c.compatible}
+    # «Прямая» / «Прямой» у разных шкафов — один вариант
+    r = real_engine.search(SearchRequest(text="шкаф"))
+    kinds = next(x.values for x in r.required_characteristics if x.name == "Тип конструкции")
+    assert len(kinds) == len({v.lower()[:5] for v in kinds})

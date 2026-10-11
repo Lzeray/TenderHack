@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
 from .models import Feature, Issue
-from .text import norm, tokenize
+from .text import norm, property_key, tokenize
 from .units import lookup
 
 
@@ -37,7 +37,7 @@ class MergeResult:
 
 
 def _group_key(name: str | None) -> str:
-    return " ".join(tokenize(name or ""))
+    return property_key(name)
 
 
 def _num(v: str | None, unit: str | None) -> Decimal | None:

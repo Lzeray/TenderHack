@@ -15,13 +15,59 @@
 from __future__ import annotations
 
 import json
+import re
+from functools import lru_cache
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .config import CATEGORIES, ROOT
-from .text import content_lemmas, fuzzy_equal, lemma
+from .text import TOKEN_RE, _morph, content_lemmas, fuzzy_equal, lemma, norm
 
 PREPOSITIONS = {"для", "от", "на", "под", "с", "со", "из", "к", "по", "в", "во", "без"}
+
+
+@lru_cache(maxsize=8)
+def _subject_vocabulary(catalog):
+    heads = {h for d in catalog.search_documents() if d["active"] for h in d["head_parts"]}
+    return heads, catalog.property_core_terms()
+
+
+def product_subjects(text, catalog):
+    """Разные предметы запроса; части и свойства товара не становятся предметами."""
+    from .components import component_of_lemma
+    heads, properties = _subject_vocabulary(catalog)
+    subjects = set()
+    detail, coordinated, previous, brackets = False, True, 0, 0
+    for match in TOKEN_RE.finditer(text):
+        gap = text[previous:match.start()]
+        brackets += gap.count("(") - gap.count(")")
+        if re.search(r"[,;]", gap):
+            detail, coordinated = False, True
+        previous = match.end()
+        word = norm(match.group())
+        key = lemma(word)
+        if key in PREPOSITIONS:
+            detail, coordinated = True, False
+            continue
+        if word == "и":
+            coordinated = not detail
+            continue
+        if detail or brackets > 0 or word[0].isdigit():
+            continue
+        if not any(p.tag.POS == "NOUN" and p.tag.case == "nomn" for p in _morph().parse(word)):
+            continue
+        known = key in heads
+        segment = re.split(r"[,;]", text[match.start():], maxsplit=1)[0]
+        if ":" in segment and (subjects or not known):
+            detail, coordinated = True, False
+            continue
+        if not known and (key in properties or component_of_lemma(key)):
+            coordinated = False
+            continue
+        if known or coordinated:
+            subjects.add(key)
+            coordinated = False
+    return sorted(subjects)
 
 
 @dataclass

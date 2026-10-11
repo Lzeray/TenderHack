@@ -203,6 +203,7 @@ body:has(.hero-compact) .header-inner { min-height: 64px; }
 .results-header { align-items: center; background: transparent; padding: 4px 2px 14px; border-radius: 0; border-bottom: 1px solid #dfe0e8; margin: 0 0 24px; gap: 12px; }
 .results-header h2 { font-size: 18px; color: #575766; font-weight: 700; }
 .results-header .view-label { display: flex; min-width: 28px; padding: 4px 8px; border-radius: 7px; background: #e2e4ec; color: #666674; font-size: 12px; font-weight: 700; justify-content: center; }
+.single-ktru-note { margin: -8px 0 20px; padding: 12px 16px; font-size: 13px; }
 .product-card { border-color: #dfe0e8; box-shadow: 0 3px 12px #25253107; }
 .product-card:hover { border-color: #df839b; box-shadow: 0 6px 20px #9b123414; }
 .catalog-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px 0; background: none; border-bottom: 0; color: #b21439; }
@@ -226,3 +227,14 @@ body:has(.hero-compact) .header-inner { min-height: 64px; }
 @media (min-width: 1600px) { .catalog-layout { grid-template-columns: 380px minmax(0, 1fr); } }
 @media (max-width: 1100px) { .catalog-layout { grid-template-columns: 310px minmax(0, 1fr); gap: 18px; } .catalog-main .product-grid { gap: 18px; } }
 @media (max-width: 760px) { .catalog-layout { grid-template-columns: 1fr; gap: 20px; } .catalog-main .product-grid { grid-template-columns: minmax(0, 380px); } .side { position: static; max-height: none; overflow-y: visible; padding: 0; } .side-missing .side-panel-body { max-height: 280px; overflow-y: auto; } .side-selected[open] > .side-panel-body, .question-body { max-height: 280px; overflow-y: auto; } .results-header { padding: 4px 0 12px; } .results-header h2 { font-size: 17px; } .catalog-card-top { padding: 13px 16px 0; } .code-summary-main { min-width: 0; } }
+.side > .code-summary { flex-shrink: 0; margin: 0; }
+
+/* группы «Выбранных характеристик»: обязательные, необязательные, уточнить, дополнительные — различимы сразу */
+.char-group-required { color: var(--accent, #c8102e); }
+.char-group-optional { color: #2f5f9e; }
+.char-group-ambiguous { color: #9a6700; }
+.char-group-extra { color: #6b7280; }
+.char-item.char-required { border-left: 3px solid var(--accent, #c8102e); padding-left: 10px; }
+.char-item.char-optional { border-left: 3px solid #2f5f9e; padding-left: 10px; }
+.char-item.char-ambiguous { border-left: 3px solid #d4a72c; padding-left: 10px; }
+.char-item.char-extra { border-left: 3px dashed #9ca3af; padding-left: 10px; }

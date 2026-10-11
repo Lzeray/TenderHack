@@ -116,16 +116,62 @@ def health():
 
 @app.post("/api/search", response_model=SearchResponse)
 def api_search(req: SearchRequest) -> SearchResponse:
+    o = get_orchestrator()
+    core = getattr(getattr(o, "live", None), "rules", None) or get_engine()
     if get_engine().native and (req.session_id is None or req.revision is None):
         raise HTTPException(422, "session_id и revision обязательны для семантического пути")
+    if get_engine().settings.recognition_mode == "hybrid":
+        from .registry import product_subjects
+        from .models import Canonical
+        with o.core_lock:
+            subjects = product_subjects(req.text, get_engine().catalog)
+            if len(subjects) > 1:
+                o._register(req)
+                response = core.search(req.model_copy(update={"answers": [], "overrides": []}), candidate_codes=[])
+                response.status = "not_found"
+                response.message = "Укажите только один тип товара."
+                response.session_id, response.revision, response.stage = req.session_id, req.revision, req.stage
+                response.stale, response.preliminary = o.is_stale(req), False
+                response.features, response.unrecognized, response.additional = [], [], []
+                response.candidates, response.compatible_codes, response.preview_candidates = [], [], []
+                response.candidates_total = response.results_total = response.preview_total = 0
+                response.final_code = response.final_name = None
+                response.detected_types = []
+                response.code_resolution = response.characteristics_completion = None
+                response.properties, response.required_characteristics, response.optional_characteristics = [], [], []
+                response.question = None
+                response.canonical = Canonical()
+                response.query = {"original": req.text, "multiple_product_types": subjects}
+                response.query_profile = {"items": [], "attributes": [], "item_terms": [], "unrecognized": []}
+                return response
     if req.canonical is not None:
         # скрытая строка «тип; ключ: значение» (docs/PARSE_INPUT_PLAN.md, P4)
         from .canonical import process
         o = get_orchestrator()
         # разбор видимого текста — правилами: в гибридном режиме основной движок сам текст не разбирает
         core = getattr(getattr(o, "live", None), "rules", None) or get_engine()
-        return process(req, core, o.run)
-    return get_orchestrator().run(req)
+        response = process(req, core, o.run, lock=o.core_lock)
+    else:
+        response = o.run(req)
+    # Run only after Enter / the existing 1000 ms idle timer, on original visible text.
+    # This separate provider cannot alter the primary recognizer or catalogue codes.
+    # модели по умолчанию выключены (CLAUDE.md): Qwen для доп. характеристик включается EXTRAS_LLM=on (docker-compose)
+    if os.environ.get("EXTRAS_LLM", "off") == "on":
+        from .llm.extra_characteristics import enrich
+        core = getattr(getattr(o, "live", None), "rules", None) or core
+        response = enrich(req, response, core, get_extras_provider(), o.is_stale)
+    response.stale = response.stale or o.is_stale(req)
+    return response
+
+
+@lru_cache(maxsize=1)
+def get_extras_provider():
+    from .llm.provider import OllamaProvider
+    settings = Settings.from_env()
+    return OllamaProvider(settings.ollama_url,
+                          os.environ.get("EXTRAS_LLM_MODEL", "qwen3.5:4b"),
+                          timeout_s=float(os.environ.get("EXTRAS_LLM_TIMEOUT", "20")),
+                          num_ctx=16384, num_predict=1536, think=False)
 
 
 @app.post("/api/revision")

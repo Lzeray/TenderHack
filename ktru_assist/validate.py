@@ -16,7 +16,7 @@ from decimal import Decimal, InvalidOperation
 from .catalog.repository import Interval, Position, Prop, merge_intervals
 from .models import Feature, Issue, PropertyCheck
 from .dims import axis_of, context_of
-from .text import content_lemmas, head_lemma, norm, tokenize
+from .text import content_lemmas, head_lemma, norm, property_key, tokenize
 from .units import lookup, fmt
 
 
@@ -65,10 +65,10 @@ def find_prop(pos: Position, f: Feature) -> Prop | None:
         return p if p and (f.property_name is None or p.name == f.property_name) else None
     if f.property_code and f.property_code in pos.props:
         p = pos.props[f.property_code]
-        if f.property_name is None or p.norm_name == " ".join(tokenize(f.property_name)):
+        if f.property_name is None or p.norm_name == property_key(f.property_name):
             return p
     if f.property_name:
-        key = " ".join(tokenize(f.property_name))
+        key = property_key(f.property_name)
         for p in pos.props.values():
             if p.norm_name == key:
                 return p
@@ -263,10 +263,12 @@ def check_feature(pos: Position, f: Feature) -> tuple[str, str, Prop | None]:
     if quality_values and f.from_type_name and f.op == "eq":
         # слово типа («стол») — не характеристика: подходит любое значение с тем же главным словом
         # («Стол для переговоров»), не подходит другое изделие («Секция стола») (docs/KTRU_SEARCH_PLAN.md, K1)
+        # тип задаётся наименованием КТРУ: «Секция стола» тоже стол — какое изделие нужно, выясняют вопросы
+        # (docs/QUESTIONS_PLAN.md, Q1)
         head = head_lemma(f.value or "")
-        same = [v.text for v in quality_values if v.text and head_lemma(v.text) == head]
+        same = [v.text for v in quality_values if v.text and head in content_lemmas(v.text)]
         if same:
-            return "valid", f"тип «{f.value}» совпадает по главному слову: {', '.join(same[:4])}", prop
+            return "valid", f"тип «{f.value}» есть в значении: {', '.join(same[:4])}", prop
         return "invalid", f"«{f.value}» — другое изделие: {', '.join(allowed[:12])}", prop
     if quality_values:
         if _quality_match(prop, f.value or "", f.strict_ref):

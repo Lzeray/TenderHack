@@ -50,6 +50,10 @@ export default function App() {
   const candidates = current ? (data.recognition_mode === "semantic" && !data.scope?.confirmed_scope ? data.preview_candidates : data.candidates)?.filter(c => c.compatible && !c.is_template) || [] : [];
   const items = matched ? candidates.filter(c => c.code === data.final_code) : candidates;
   const searching = search.busy.fast || search.stale;
+  const singleIncomplete = current && !searching && data.status !== "conflict"
+    && (data.recognition_mode !== "semantic" || data.scope?.confirmed_scope)
+    && data.compatible_codes?.length === 1 && items.length === 1
+    && data.required_characteristics?.some(r => r.status === "missing");
 
   return <>
     <header className="site-header"><div className="container header-inner">
@@ -64,17 +68,19 @@ export default function App() {
       <Feedback search={search} />
       {!search.text.trim() ? <Welcome onChoose={search.changeText} /> : <>
         <div className="catalog-layout"><aside className="catalog-sidebar side" aria-label="Подбор и характеристики" tabIndex={0}>
-          <MissingChars search={search} />
+          <CodeSummary search={search} />
           <div className="secondary-panels"><Question search={search} /><SelectedChars search={search} /></div>
+          <MissingChars search={search} />
         </aside><section className="catalog-main" aria-label="Результаты подбора" data-query={current ? data.query.original : ""}>
-          <div className="results-header"><h2>{matched ? "Подобранный КТРУ" : "Подходящие КТРУ"}</h2><span className="view-label" aria-label="Количество подходящих позиций">{searching ? "…" : count(items.length)}</span></div>
-          {matched && <CodeSummary search={search} />}
+          <div className="results-header"><h2>{matched ? "Подобранный КТРУ" : "Подходящие КТРУ"}</h2><span className="view-label" aria-label="Количество подходящих позиций">{searching ? "…" : !matched && (data?.compatible_codes?.length || 0) > items.length ? `${items.length} из ${data.compatible_codes.length}` : count(items.length)}</span></div>
+          {singleIncomplete && <div className="notice notice-subtle single-ktru-note" role="status">
+            <Icon name="filter" size={18} /><p>Найден только один КТРУ, но заполнены не все обязательные характеристики.</p>
+          </div>}
           <div id="result-panel">
             {searching ? <div className="product-grid" aria-label="Загрузка позиций">{Array.from({ length: 6 }, (_, i) => <div className="skeleton-card" key={i}><div /><span /><span /><span /></div>)}</div>
               : items.length > 0 ? <div className="product-grid">{items.map(item => <ProductCard key={`ktru-${item.code}`} item={item} kind="ktru" onDetails={setSelected} />)}</div>
-              : <div className="empty-results"><span className="empty-symbol"><Icon name={data?.status === "conflict" ? "alert" : "search"} size={35} /></span><h3>{data?.status === "conflict" ? "Сначала уточним описание" : search.busy.model ? "Уточняем ваш запрос" : "Подходящих позиций пока нет"}</h3><p>{data?.status === "conflict" ? "Причина указана выше. После исправления покажем подходящие позиции." : "Попробуйте другое название, добавьте характеристику или ответьте на вопрос."}</p><button className="button button-soft" onClick={() => search.changeText("")}>Начать новый поиск</button></div>}
+              : <div className="empty-results"><span className="empty-symbol"><Icon name={data?.status === "conflict" ? "alert" : "search"} size={35} /></span><h3>{data?.status === "conflict" ? "Сначала уточним описание" : search.busy.model ? "Уточняем ваш запрос" : "Ой, ничего не нашлось, проверьте запрос"}</h3>{data?.status === "conflict" && <p>Причина указана выше. После исправления покажем подходящие позиции.</p>}<button className="button button-soft" onClick={() => search.changeText("")}>Начать новый поиск</button></div>}
           </div>
-          {!matched && <CodeSummary search={search} />}
         </section></div>
       </>}
     </main>

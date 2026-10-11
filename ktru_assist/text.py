@@ -125,6 +125,15 @@ def head_lemma(name: str) -> str | None:
     return lems[0] if lems else None
 
 
+@lru_cache(maxsize=16384)
+def property_key(name: str | None) -> str:
+    """Ключ характеристики: основы лемм слов названия. Одно свойство в КТРУ бывает записано по-разному у разных позиций:
+    «Наличие мягкого сидения» / «сиденья», «Наличие полки» / «полок», «Натуральная мех» / «Натуральный мех»
+    (docs/PROPERTY_VARIANTS.md). По каталогу склеиваются ровно такие пары; ни одна не встречается в одной позиции."""
+    from .morph import stem
+    return " ".join(stem(lemma(w)) for w in tokenize(name or ""))
+
+
 def damerau_levenshtein(a: str, b: str, limit: int = 3) -> int:
     """Расстояние Дамерау–Левенштейна (оптимальное выравнивание строк)."""
     if a == b:

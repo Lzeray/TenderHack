@@ -14,11 +14,11 @@ from __future__ import annotations
 import threading
 from collections import OrderedDict
 
-from .canon import display
+from .canon import display, value_supported
 from .models import AdditionalCharacteristic, Feature
 from .text import content_lemmas, lemma_set, norm
 
-VERSION = "1.0"
+VERSION = "1.1"
 MAX_SESSIONS = 1000
 MAX_PROPS = 40
 MAX_VALUES = 5
@@ -32,7 +32,7 @@ SUBJECTIVE = lemma_set({
     "дешевый", "дорогой", "недорогой", "бюджетный", "роскошный", "милый", "приятный", "уютный", "идеальный",
     "великолепный", "оригинальный", "интересный", "необычный", "супер", "клёвый", "клевый", "прикольный",
     "солидный", "престижный", "добротный", "нарядный", "любой", "какой-нибудь", "неважно", "красиво", "хорошо",
-    "отлично", "удобно", "качественно", "стильно", "модно",
+    "отлично", "удобно", "качественно", "стильно", "модно", "крепкий",
 })
 PLACEHOLDERS = {"-", "—", "нет данных", "не знаю", "неизвестно", "не важно", "неважно", "любой", "любая", "любое",
                 "не задано", "?"}
@@ -137,7 +137,12 @@ def classify(features: list[Feature], extra_attrs: list[dict], heads: list[str],
             value = "не " + value
         items.append((name, value, f.unit, f.id, f.origin))
     for a in extra_attrs:
-        items.append((a.get("name") or "", a.get("raw_value") or a.get("value"), a.get("raw_unit") or a.get("unit"),
+        value = a.get("raw_value") or a.get("value")
+        normalized = a.get("value")
+        if a.get("source") == "llm" and value and normalized and not any(c.isdigit() for c in value) \
+                and value_supported(normalized, value):
+            value = normalized
+        items.append((a.get("name") or "", value, a.get("raw_unit") or a.get("unit"),
                       None, a.get("source") or "llm"))
     out: list[AdditionalCharacteristic] = []
     seen: set[tuple] = set()

@@ -10,10 +10,12 @@
 """
 from __future__ import annotations
 
-from .models import Feature
-from .text import content_lemmas, norm, tokenize
+import re
 
-VERSION = "1.0"
+from .models import Feature
+from .text import content_lemmas, damerau_levenshtein, is_known_word, norm, property_key, tokenize
+
+VERSION = "1.2"
 
 
 def display(text: str | None) -> str | None:
@@ -28,6 +30,23 @@ def display(text: str | None) -> str | None:
 
 def _lemkey(text: str) -> tuple[str, ...]:
     return tuple(content_lemmas(text))
+
+
+def value_supported(value: str, quote: str) -> bool:
+    """Нормализация словоформ без новых фактов, чисел или изменения отрицания."""
+    words = content_lemmas(value)
+    cited = content_lemmas(quote)
+    numbers = [t.replace(",", ".") for t in re.findall(r"-?\d+(?:[.,]\d+)?", value)]
+    quoted_numbers = [t.replace(",", ".") for t in re.findall(r"-?\d+(?:[.,]\d+)?", quote)]
+    modifiers = {"не", "без", "нет", "менее", "более", "от", "до"}
+    if numbers != quoted_numbers or set(tokenize(value)) & modifiers != set(tokenize(quote)) & modifiers:
+        return False
+    return bool(words or numbers) and all(
+        any(w == q or (len(w) >= 4 and len(q) >= 4 and (
+            w[:4] == q[:4] or (not is_known_word(q) and damerau_levenshtein(w[:4], q[:4], 1) <= 1)))
+            for q in cited)
+        for w in words
+    )
 
 
 def match_value(text: str | None, allowed: dict[str, str]) -> str | None:
@@ -49,8 +68,8 @@ def match_group(name: str | None, groups: dict) -> object | None:
     """Группа свойства КТРУ по названию из текста: точное совпадение без регистра, затем по леммам."""
     if not name:
         return None
-    key = " ".join(tokenize(name))
-    exact = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
+    key = property_key(name)
+    exact = [g for g in groups.values() if property_key(g.name) == key]
     if len(exact) == 1:
         return exact[0]
     lem = _lemkey(name)
@@ -97,4 +116,4 @@ def canonicalize(features: list[Feature], groups: dict) -> list[Feature]:
     return features
 
 
-__all__ = ["display", "match_value", "match_group", "groups_with_value", "canonicalize", "VERSION"]
+__all__ = ["display", "value_supported", "match_value", "match_group", "groups_with_value", "canonicalize", "VERSION"]

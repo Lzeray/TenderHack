@@ -79,7 +79,10 @@ def _decision(c: Constraint, source: str, resp: SearchResponse, idx: int, origin
     """Решение пользователя: свойство — по признаку, который из него получился; фрагмент — текстовый признак,
     который оно заменило или удалило (выбор варианта «лдсп» помнит «лдсп»)."""
     if c.property == TYPE_PROP:
-        return CanonItem(source=source, key="тип", value=c.value, text=f"тип: {c.value}", constraint=c)
+        # выбор наименования живёт, пока в строке есть слово типа, к которому он дан: стёрли «стул» или написали
+        # другой товар — выбор «Стул на металлическом каркасе» больше не действует (docs/QUESTIONS_PLAN.md, Q3)
+        return CanonItem(source=source, key="тип", value=c.value, text=f"тип: {c.value}", constraint=c,
+                         evidence=_type_word(original, resp))
     made = next((f for f in resp.features if f.id == f"{source[0]}{idx + 1}" and f.source == source), None)
     name = made.property_name if made is not None else None
     replaced = None
@@ -103,6 +106,29 @@ def _decision(c: Constraint, source: str, resp: SearchResponse, idx: int, origin
                      evidence=_evidence(replaced, original) if replaced is not None else None)
 
 
+def _trim_type_words(fragment: str, heads) -> str:
+    """Фрагмент характеристики без слов типа по краям: «пассатижи слесарные» → «слесарные». Иначе удаление
+    характеристики кнопкой вырезало бы из строки и сам товар."""
+    from .text import lemma
+    words = fragment.split()
+    heads = set(heads or [])
+    while len(words) > 1 and lemma(words[0].strip(",;:")) in heads:
+        words = words[1:]
+    while len(words) > 1 and lemma(words[-1].strip(",;:")) in heads:
+        words = words[:-1]
+    return " ".join(words)
+
+
+def _type_word(original: str, resp: SearchResponse) -> str | None:
+    """Слово видимого текста, которым назван тип (главное слово найденного типа)."""
+    from .text import lemma, tokenize
+    heads = set(resp.detected_types or [])
+    for w in tokenize(original):
+        if w.isalpha() and lemma(w) in heads:
+            return w
+    return None
+
+
 def corrected_text(original: str, resp: SearchResponse) -> str | None:
     """Видимая строка с исправленной орфографией: раскладка и однозначные опечатки; остальное не трогается."""
     text = original
@@ -120,13 +146,17 @@ def corrected_text(original: str, resp: SearchResponse) -> str | None:
     return text if text != original else None
 
 
-def process(req: SearchRequest, core, run: Callable[[SearchRequest], SearchResponse]) -> SearchResponse:
-    """core — движок (разбор видимого текста), run — полный путь поиска (оркестратор)."""
+def process(req: SearchRequest, core, run: Callable[[SearchRequest], SearchResponse], lock=None) -> SearchResponse:
+    """core — движок (разбор видимого текста), run — полный путь поиска (оркестратор), lock — блокировка ядра
+    оркестратора: разбор видимого текста не должен идти параллельно с другим запросом к ядру."""
+    import contextlib
+    lock = lock or contextlib.nullcontext()
     prev = req.canonical or Canonical()
     original = req.text
     # 1. видимый текст: разбор и привязка новых решений к фрагментам
-    parsed = core.search(SearchRequest(text=original, corrections=req.corrections, overrides=req.overrides,
-                                       answers=req.answers))
+    with lock:
+        parsed = core.search(SearchRequest(text=original, corrections=req.corrections, overrides=req.overrides,
+                                           answers=req.answers))
     decisions = [i for i in prev.items if i.source != "text" and i.constraint is not None
                  and (i.evidence is None or present(i.evidence, original))]
     new = [_decision(c, "answer", parsed, k, original) for k, c in enumerate(req.answers)] + \
@@ -152,7 +182,7 @@ def process(req: SearchRequest, core, run: Callable[[SearchRequest], SearchRespo
             item = by_text.get(norm(f.evidence)) or next(
                 (i for i in items if f.property_name and norm(i.text).startswith(norm(f.property_name) + ":")), None)
             if item is not None and item.evidence:
-                f.evidence = item.evidence
+                f.evidence = _trim_type_words(item.evidence, parsed.detected_types)
             elif not present(f.evidence, original):
                 f.evidence = None
             f.raw_span = None

@@ -163,3 +163,12 @@ def test_adjective_agrees_with_part():
     assert _agrees("деревянная", "столешница") and _agrees("металлическом", "каркасе")
     assert not _agrees("деревянный", "столешница")       # «стол деревянный столешница лдсп»: дерево — про стол
     assert _agrees("лдсп", "столешница")                  # не прилагательное — не проверяется
+
+
+def test_property_key_merges_spelling_only():
+    from ktru_assist.text import property_key
+    assert property_key("Наличие мягкого сидения") == property_key("Наличие мягкого сиденья")
+    assert property_key("Наличие полки") == property_key("Наличие полок")
+    assert property_key("Натуральная мех") == property_key("Натуральный мех")
+    assert property_key("Количество закрытых секций") != property_key("Количество открытых секций")
+    assert property_key("Длина") != property_key("Ширина")

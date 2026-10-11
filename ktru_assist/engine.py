@@ -32,11 +32,19 @@ from .registry import TypeDetection, TypeRegistry
 from .resolver import describe, merge_model_features
 from .search.base import Hit, SearchBackend, SearchResult
 from .catalog.scope import ref
-from .text import MORPH_MODE, STOPWORDS, content_lemmas, fuzzy_equal, lemma, norm, tokenize
+from .text import MORPH_MODE, STOPWORDS, content_lemmas, fuzzy_equal, lemma, norm, property_key, tokenize
 from .units import BY_KEY
 from .validate import check_feature, evaluate, find_prop
 
 MAX_CANDIDATES_OUT = 100
+
+
+def _value_label_key(v) -> tuple:
+    """Ключ значения КТРУ для показа: качественные — по леммам («Женская» = «Женский»), числовые — по подписи."""
+    if v.kind == "quality" and v.text:
+        return ("q", tuple(content_lemmas(v.text)) or (norm(v.text),))
+    return ("n", v.label)
+MAX_QUESTIONS = 2          # уточняющих вопросов не больше двух, дальше — список «Осталось ввести» (QUESTIONS_PLAN Q2)
 REQUIRED_EMPTY = "обязательное свойство не заполнено"
 PREFERENCE_WORDS = {"желательно", "предпочтительно", "желательный", "предпочтительный"}
 REQUIREMENT_WORDS = {"нужный", "нужно", "нужен", "требоваться", "требуется", "должный", "должен", "необходимый"}
@@ -272,7 +280,19 @@ class Engine:
         # характеристик, если в описании полностью названо более общее наименование («стул»)
         basis = name_basis or positions
         domain_name_lemmas = {l for p in basis for l in p.name_lemmas}
-        name_tok_idx = set() if self.native else self._name_tokens(nq.tokens, basis) | det.type_token_idx
+        # слова типа: найденное наименование, слова распознанного типа и главное слово найденного типа в первой части
+        # описания («рукавица, …» — тип, а не «Вид: Рукавицы» у «Перчатки, рукавицы (варежки)»); дальше по тексту
+        # главное слово может быть значением («…, наименование изделия — брюки»)
+        # (только первое вхождение: «захвата тип — захват эксцентрикового типа» — второе уже значение)
+        first_part = next((t.i for t in nq.tokens if t.lemma in (",", ";")), len(nq.tokens))
+        head_first = {}
+        for tok in nq.tokens:
+            if tok.i < first_part and tok.kind == "word":
+                h = next((h for h in heads if fuzzy_equal(tok.lemma, h)), None)
+                if h is not None:
+                    head_first.setdefault(h, tok.i)
+        name_tok_idx = set() if self.native else (
+            self._name_tokens(nq.tokens, basis) | det.type_token_idx | set(head_first.values()))
         extractor = None if self.native else Extractor(
             groups, self.known_terms - domain_name_lemmas, name_tokens=name_tok_idx, type_heads=heads)
         features = list(search_features) if search_features is not None else [] if self.native else extractor.extract(nq)
@@ -365,7 +385,8 @@ class Engine:
         head_tok = {t.i for t in nq.tokens if t.kind == "word" and any(fuzzy_equal(t.lemma, h) for h in heads)}
         type_text = " ".join(t.text for t in nq.tokens if t.kind in ("word", "code") and (
             t.i in det.type_token_idx or t.i in head_tok or t.used_by == "type" or t.used_by in type_feats
-            or (t.used_by is None and t.lemma not in STOPWORDS)))
+            or (t.used_by is None and t.lemma not in ("тип", "вид"))))
+        # предлоги остаются на месте: «шкаф для одежды» без «для» стал бы «шкаф одежды», и «одежда» — типом
         # гипотеза модели, противоречащая всем конечным позициям области, не становится фильтром:
         # это сигнал об ошибке в описании (несуществующее значение), а не повод исключить всех кандидатов
         domain_finals = [p for p in positions if not p.is_template]
@@ -473,8 +494,10 @@ class Engine:
                                         f"несовместимых значений: {vals}. У товара одно значение этого свойства "
                                         "— укажите верное"))
             blocking_feats.append(None)
-        constrained = {(f.characteristic_ref if self.native else " ".join(tokenize(f.property_name))) for f in features
-                       if f.status == "bound" and f.property_name}
+        # «Вид товара» из слова типа («стол») не задаёт характеристику: по ней ещё можно спросить «стол или секция
+        # стола» (docs/QUESTIONS_PLAN.md, Q1)
+        constrained = {(f.characteristic_ref if self.native else property_key(f.property_name)) for f in features
+                       if f.status == "bound" and f.property_name and not f.from_type_name}
         if self.native:
             # признаки разбора правилами не несут ссылку на характеристику: заданные свойства — по позициям
             for f in features:
@@ -545,7 +568,22 @@ class Engine:
         else:
             single = len(finals) == 1
             ev = ev0
+            # главное слово задало тип, ответы на вопросы сузили его до одного наименования — тип подтверждён
+            # пользователем (docs/QUESTIONS_PLAN.md, Q2); «кресло-качалка» при единственном наименовании области
+            # (weak_single_name) по-прежнему требует подтверждения
+            if (not type_confirmed and single and not weak_single_name and not det.ambiguous_aliases
+                    and any(a.property != TYPE_PROP for a in answers) and not self.native):
+                type_confirmed = True
             proven = single and type_confirmed and res_b.complete and not blocking_feats
+            # пользователь назвал характеристики КТРУ, а у единственной позиции нет ни одной из них: ни одна не
+            # проверена (unknown ≠ valid) — кода нет («Банкетка … без обивки» → «Стул (банкетка)» без этих свойств)
+            if single and not self.native:
+                stated = [f for f in features if f.status == "bound" and f.source == "text" and f.property_name
+                          and not f.from_type_name]
+                checks = {k.feature_id: k for k in ev0.checks if k.feature_id} if ev0 else {}
+                if stated and all(checks.get(f.id) is not None and checks[f.id].status == "unknown"
+                                  and checks[f.id].unknown_reason == "property_absent" for f in stated):
+                    gate.append("ни одна из указанных характеристик у позиции не проверяется")
             if proven and not gate:
                 code_res = CodeResolution(status="resolved", code=finals_pos[0].code, remaining=1,
                                           reason="единственная конечная позиция в полностью проверенной области "
@@ -595,7 +633,8 @@ class Engine:
                     question = choose_question(
                         finals_pos, constrained, type_fixed, req_unknown,
                         type_first=bool(det.ambiguous_aliases) or weak_single_name or (self.native and not type_confirmed),
-                        strict_refs=self.native)
+                        strict_refs=self.native, weights=None if self.native else self._answer_weights(heads),
+                        budget=MAX_QUESTIONS - len({a.property for a in answers}))
                 if dims_question is not None and (question is None or question.kind != "type"):
                     question = dims_question
                 if question is not None and question.kind == "manual_choice":
@@ -614,6 +653,9 @@ class Engine:
                         parts.append("нужно подтверждение: " + "; ".join(gate))
                     if single and ev_blocking:
                         parts.append("не проверено: " + "; ".join(ev_blocking[:3]))
+                    if question is None and not single and len({a.property for a in answers}) >= MAX_QUESTIONS:
+                        parts.append(f"задано {MAX_QUESTIONS} уточняющих вопроса — дозаполните характеристики из "
+                                     "списка «Осталось ввести»")
                     message = ". ".join(parts)
         if contradictions:
             # переизбыток данных: несовместимые значения одного свойства — сначала выбрать верное
@@ -665,6 +707,27 @@ class Engine:
             additional=additional, **base)
 
     # ------------------------------------------------------------------
+    def _answer_weights(self, heads: list[str]):
+        """Доля значения среди товаров этого типа в выгрузках СТЕ (0…1) — слабая поправка к вероятностям ответов
+        в выборе вопроса (docs/QUESTIONS_PLAN.md, Q2). Нет выгрузок или свойства — None."""
+        stats = self.ste_stats
+        if stats is None or not getattr(stats, "available", False) or not heads:
+            return None
+        cache: dict = {}
+
+        def share(prop_name: str, label: str):
+            key = (prop_name, label)
+            if key not in cache:
+                ps = stats.find(heads, prop_name, "text", None)
+                if ps is None:
+                    cache[key] = None
+                else:
+                    freq = stats.text_lemmas(ps.prop_id)
+                    total = sum(freq.values())
+                    cache[key] = (freq.get(tuple(content_lemmas(label)), 0) / total) if total else None
+            return cache[key]
+        return share
+
     @staticmethod
     def _key_tokens(tokens) -> set[int]:
         """Слова названия свойства в записи «ключ: значение» после первой части («шапка; Размер (обхват головы): 61»):
@@ -815,11 +878,13 @@ class Engine:
                 if not pr.required:
                     continue
                 r = rows.setdefault(pr.norm_name, {"prop": pr, "count": 0, "values": {}, "units": set(),
-                                                    "sets": set()})
+                                                    "sets": set(), "names": {}})
                 r["count"] += 1
-                r["sets"].add(tuple(sorted(v.label for v in pr.values)))
+                r["names"][pr.name] = r["names"].get(pr.name, 0) + 1
+                r["sets"].add(tuple(sorted(_value_label_key(v) for v in pr.values)))
                 for v in pr.values:
-                    r["values"].setdefault(v.label, None)
+                    # «Женская» / «Женский» у разных позиций — одно значение (сравнение по леммам)
+                    r["values"].setdefault(_value_label_key(v), v.label)
                     if v.unit:
                         r["units"].add(v.unit.title)
             for f in active:
@@ -841,10 +906,11 @@ class Engine:
                 unit = f.unit
                 reason = {"filled": "заполнена и проверена по КТРУ", "invalid": "значение не подходит позициям КТРУ",
                           "unchecked": "указана, но сравнить с КТРУ не удалось — уточните значение"}[status]
+            name = max(sorted(r["names"]), key=lambda n: r["names"][n])   # самое частое написание свойства
             out.append(RequiredCharacteristic(
-                property_code=pr.code, name=pr.name, common=r["count"] == total, positions=r["count"], total=total,
+                property_code=pr.code, name=name, common=r["count"] == total, positions=r["count"], total=total,
                 numeric=pr.is_numeric, boolean=pr.is_boolean, units=sorted(r["units"]),
-                values=list(r["values"])[:50], status=status, value=value, unit=unit,
+                values=list(r["values"].values())[:50], status=status, value=value, unit=unit,
                 feature_id=f.id if f is not None else None,
                 narrows=total > 1 and (r["count"] < total or len(r["sets"]) > 1), reason=reason))
         out.sort(key=lambda r: (not r.common, -r.positions, not r.narrows, r.name))
@@ -1037,7 +1103,7 @@ class Engine:
         by_key: dict[str, list[Feature]] = {}
         for f in features:
             if f.status == "bound" and f.source == "text" and f.property_name:
-                key = " ".join(tokenize(f.property_name))
+                key = property_key(f.property_name)
                 if key not in multi:
                     by_key.setdefault(key, []).append(f)
         out = []
@@ -1113,12 +1179,12 @@ class Engine:
             if c.property == TYPE_PROP:
                 continue
             g = self._resolve_group(c.property, groups)
-            gname = " ".join(tokenize(g.name)) if g is not None else None
+            gname = property_key(g.name) if g is not None else None
             # у позиций КТРУ одна и та же характеристика бывает под разными кодами: тогда привязка — по названию
             strict = self.native and g is not None and \
-                sum(1 for x in groups.values() if " ".join(tokenize(x.name)) == gname) == 1
+                sum(1 for x in groups.values() if property_key(x.name) == gname) == 1
             for f in features:
-                by_name = bool(f.property_name) and " ".join(tokenize(f.property_name)) == gname
+                by_name = bool(f.property_name) and property_key(f.property_name) == gname
                 same = g is not None and ((f.characteristic_ref == g.key or (f.characteristic_ref is None and by_name))
                                           if self.native else by_name)
                 if same and f.status == "bound":
@@ -1165,7 +1231,7 @@ class Engine:
         code_matches = [g for g in groups.values() if prop in g.codes]
         if code_matches:
             return code_matches[0] if len(code_matches) == 1 else None
-        key = " ".join(tokenize(prop))
-        matches = [g for g in groups.values() if " ".join(tokenize(g.name)) == key]
+        key = property_key(prop)
+        matches = [g for g in groups.values() if property_key(g.name) == key]
         # несколько групп с одним названием (разные коды одной характеристики) — привязка по названию
         return matches[0] if matches else None
